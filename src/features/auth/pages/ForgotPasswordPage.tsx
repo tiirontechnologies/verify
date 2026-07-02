@@ -26,14 +26,14 @@ const navigate = useNavigate();
           <input
             type="email"
             placeholder="Enter email"
-            className="w-full border rounded-2xl px-4 md:px-5 py-3 md:py-4 mt-2 outline-none focus:border-red-400"
+            className="w-full border rounded-2xl px-4 md:px-5 py-3 md:py-4 mt-2 outline-none focus:border-red-400 cursor-pointer"
           />
 
         </div>
 
        <button
   onClick={() => navigate("/verify-otp")}
-  className="w-full bg-red-600 text-white py-3 md:py-4 rounded-2xl mt-8 hover:bg-red-700 transition"
+  className="w-full bg-red-600 text-white py-3 md:py-4 rounded-2xl mt-8 hover:bg-red-700 transition cursor-pointer"
 >
   Send Verification Code
 </button>

@@ -72,7 +72,7 @@ export default function TrustedOrganizationsSection() {
             <div>
 
               <h2 className="text-4xl md:text-5xl font-bold text-white">
-                500+
+                10+
               </h2>
 
               <p className="mt-3 text-slate-400 uppercase tracking-wider text-sm">
@@ -84,7 +84,7 @@ export default function TrustedOrganizationsSection() {
             <div>
 
               <h2 className="text-4xl md:text-5xl font-bold text-white">
-                50K+
+                1000+
               </h2>
 
               <p className="mt-3 text-slate-400 uppercase tracking-wider text-sm">

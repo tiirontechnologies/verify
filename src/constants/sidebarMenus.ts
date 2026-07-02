@@ -6,6 +6,7 @@ import {
   Settings,
   Users,
   FileText,
+  FileBadge2,
 } from "lucide-react";
 
 export const sidebarMenus = {
@@ -30,6 +31,11 @@ export const sidebarMenus = {
       path: "/student/profile",
       icon: User,
     },
+    {
+    label: "My Certificate",
+    path: "/student/my-certificate",
+    icon: FileBadge2,
+},
     {
       label: "Settings",
       path: "/student/settings",

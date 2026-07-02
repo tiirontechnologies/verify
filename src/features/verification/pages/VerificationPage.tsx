@@ -1,40 +1,70 @@
 import { useParams } from "react-router-dom";
+import Footer from "../../../components/shared/Footer";
+
 import CandidateCard from "../components/CandidateCard";
 import StatusCard from "../components/StatusCard";
-// import DocumentSection from "../components/DocumentSection";
-import ActivitySection from "../components/ActivitySection";
+import AvailableCertificates from "../components/AvailableCertificates";
 import VerificationSummary from "../components/VerificationSummary";
-import Footer from "../../../components/shared/Footer";
+
 
 export default function VerificationPage() {
   const { id } = useParams();
 
   return (
-    <div className="bg-[#fafafa] min-h-screen">
+    <div className="bg-slate-50 min-h-screen">
 
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-10">
+      {/* Hero */}
 
-        {/* Header */}
+<section className="bg-gradient-to-r from-slate-900 via-[#7F1D1D] to-slate-900 border-b border-red-900/40">
 
-        <p className="uppercase text-sm text-gray-400 tracking-widest">
-          Verification Success
-        </p>
+  <div className="max-w-7xl mx-auto px-6 lg:px-8 py-10">
 
-        <h1 className="text-4xl md:text-5xl font-bold mt-3">
+    <p className="uppercase tracking-[4px] text-red-300 text-sm font-medium">
+      Verification Success
+    </p>
+
+    <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between mt-3 gap-6">
+
+      <div>
+
+        <h1 className="text-4xl lg:text-5xl font-bold text-white">
           Credential Verification
         </h1>
 
-        <p className="mt-4 text-gray-500 text-lg">
-          Authenticated credential found for ID:
-          <span className="text-red-600 font-semibold">
-            {" "}
-            {id}
-          </span>
+        <p className="mt-3 text-gray-300 text-lg max-w-2xl leading-7">
+          This credential has been successfully verified against the official
+          records maintained by Tiiron Technologies.
         </p>
 
-        {/* Main Content */}
+      </div>
 
-        <div className="grid lg:grid-cols-3 gap-8 mt-12">
+      <div className="inline-flex items-center rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 px-6 py-3">
+
+        <span className="text-red-300 font-semibold">
+          Verification ID
+        </span>
+
+        <span className="mx-3 text-gray-400">
+          |
+        </span>
+
+        <span className="text-white font-semibold tracking-wide">
+          {id}
+        </span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+      {/* Main */}
+
+      <main className="max-w-7xl mx-auto px-6 lg:px-8 py-14">
+
+        <div className="grid lg:grid-cols-3 gap-10">
 
           {/* Left */}
 
@@ -42,42 +72,44 @@ export default function VerificationPage() {
 
             <CandidateCard />
 
-            {/* <DocumentSection /> */}
-
-            <ActivitySection />
+            <AvailableCertificates />
 
             {/* Verification Notice */}
 
-            <div className="bg-white rounded-3xl border shadow-sm p-8">
+            <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-8">
 
-              <h2 className="text-2xl font-bold mb-6">
+              <h2 className="text-2xl font-bold">
+
                 Verification Notice
+
               </h2>
 
-              <p className="text-gray-600 leading-8">
+              <p className="mt-6 text-gray-600 leading-8">
 
-                This credential has been successfully verified and
-                is authentic.
-
-              </p>
-
-              <p className="text-gray-600 leading-8 mt-4">
-
-                The information displayed above matches the records
-                maintained by Tiiron Verify.
+                This credential has been successfully verified against
+                Tiiron Technologies' official database.
 
               </p>
 
-              <div className="mt-8 bg-green-50 border border-green-200 rounded-2xl p-6">
+              <p className="mt-4 text-gray-600 leading-8">
+
+                All certificates displayed above are digitally issued,
+                authenticated and available for download.
+
+              </p>
+
+              <div className="mt-8 rounded-2xl bg-green-50 border border-green-200 p-6">
 
                 <h3 className="text-green-700 font-bold text-lg">
-                  ✓ Verified Credential
+
+                  ✓ Credential Verified
+
                 </h3>
 
-                <p className="text-green-600 mt-2 leading-7">
+                <p className="mt-2 text-green-700 leading-7">
 
-                  This document has been issued by an authorized
-                  institution and has passed the verification process.
+                  The candidate's credentials are authentic and have
+                  been successfully validated.
 
                 </p>
 
@@ -99,7 +131,7 @@ export default function VerificationPage() {
 
         </div>
 
-      </div>
+      </main>
 
       <Footer />
 

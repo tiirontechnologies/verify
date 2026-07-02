@@ -14,6 +14,9 @@ import ForgotPasswordPage from "./features/auth/pages/ForgotPasswordPage";
 import OtpVerificationPage from "./features/auth/pages/OtpVerificationPage";
 import ResetPasswordPage from "./features/auth/pages/ResetPasswordPage";
 import PasswordResetSuccessPage from "./features/auth/pages/PasswordResetSuccessPage";
+import GenerateCertificatePage from "./features/student/pages/GenerateCertificatePage";
+import InternshipCertificatePage from "./features/student/pages/InternshipCertificatePage";
+import TrainingCertificatePage from "./features/student/pages/TrainingCertificatePage";
 
 function App() {
   return (
@@ -92,12 +95,37 @@ function App() {
     </ProtectedRoute>
   }
 />
+<Route
+  path="/student/my-certificate"
+  element={
+    <ProtectedRoute>
+      <GenerateCertificatePage />
+    </ProtectedRoute>
+  }
+/>
 
 <Route
   path="/student/settings"
   element={
     <ProtectedRoute>
       <SettingsPage />
+    </ProtectedRoute>
+  }
+/>
+<Route
+  path="/student/certificates/internship"
+  element={
+    <ProtectedRoute>
+      <InternshipCertificatePage />
+    </ProtectedRoute>
+  }
+/>
+
+<Route
+  path="/student/certificates/training"
+  element={
+    <ProtectedRoute>
+      <TrainingCertificatePage />
     </ProtectedRoute>
   }
 />

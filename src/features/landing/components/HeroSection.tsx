@@ -25,7 +25,7 @@ export default function HeroSection() {
 
         {/* Badge */}
         <div className="inline-flex items-center gap-2 bg-red-50 border border-red-100 px-4 py-2 rounded-full text-xs md:text-sm text-red-600">
-          Trusted by 100+ Organizations
+          Trusted by 10+ Organizations
         </div>
 
         {/* Heading */}
@@ -41,45 +41,68 @@ export default function HeroSection() {
           achievements instantly with enterprise-grade security.
         </p>
 
-        {/* Search Box */}
-        <div className="max-w-3xl mx-auto mt-12 bg-white rounded-3xl shadow-xl border overflow-hidden">
+{/* Search Box */}
 
-          <div className="flex flex-col md:flex-row">
+<div className="max-w-3xl mx-auto mt-12">
 
-            <div className="flex items-center px-5 text-gray-400 border-b md:border-b-0">
-              <Search size={22} />
-            </div>
+  <div className="bg-white rounded-3xl shadow-xl border p-3">
 
-            <input
-              type="text"
-              value={credentialId}
-              onChange={(e) => setCredentialId(e.target.value)}
-              placeholder="Enter Verification ID"
-              className="flex-1 px-5 py-5 outline-none"
-            />
+    <div className="flex flex-col sm:flex-row gap-3">
 
-            <button
-              onClick={handleVerify}
-              className="
-                bg-red-600
-                hover:bg-red-700
-                text-white
-                px-8
-                py-5
-                flex
-                items-center
-                justify-center
-                gap-2
-                transition
-              "
-            >
-              Verify
-              <ChevronRight size={18} />
-            </button>
+      {/* Input */}
 
-          </div>
+      <div className="flex items-center flex-1 px-5 h-14 rounded-2xl bg-gray-50">
 
-        </div>
+        <Search
+          size={20}
+          className="text-gray-400"
+        />
+
+        <input
+          type="text"
+          value={credentialId}
+          onChange={(e) => setCredentialId(e.target.value)}
+          placeholder="Enter Verification ID"
+          className="
+            flex-1
+            ml-3
+            bg-transparent
+            outline-none
+            text-gray-700
+            placeholder:text-gray-400
+          "
+        />
+
+      </div>
+
+      {/* Button */}
+
+      <button
+        onClick={handleVerify}
+        className="
+          bg-red-600
+          hover:bg-red-700
+          text-white
+          h-14
+          px-8
+          rounded-2xl
+          flex
+          items-center
+          justify-center
+          gap-2
+          transition
+          whitespace-nowrap
+        "
+      >
+        Verify
+        <ChevronRight size={18} />
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
 
         {/* Feature Tags */}
         <div className="
@@ -94,11 +117,11 @@ export default function HeroSection() {
           text-gray-500
         ">
 
-          <div>✓ Blockchain Backed</div>
+          {/* <div>✓ Blockchain Backed</div> */}
 
-          <div>✓ Instant Results</div>
+          {/* <div>✓ Instant Results</div> */}
 
-          <div>✓ Tamper Proof</div>
+          {/* <div>✓ Tamper Proof</div>  */}
 
         </div>
 

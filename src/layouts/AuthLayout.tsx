@@ -1,7 +1,7 @@
 type AuthLayoutProps = {
   children: React.ReactNode;
 };
-
+import TiironLogo from "../assets/Tiiron_Technologies_DARK.png";
 export default function AuthLayout({
   children,
 }: AuthLayoutProps) {
@@ -14,24 +14,44 @@ export default function AuthLayout({
 
         {/* Top */}
 
-        <div>
+<div className="flex items-center">
 
-          <h1 className="text-4xl font-bold">
-            Tiiron Verify
-          </h1>
+<img
+  src={TiironLogo}
+  alt="Tiiron Technologies"
+  className="
+    h-10
+    sm:h-12
+    md:h-14
+    lg:h-16
+    xl:h-20
+    w-auto
+    object-contain
+    rounded-2xl
+  "
+/>
 
-          <p className="mt-4 text-gray-400 text-lg">
-            Decentralized Credential Verification Platform
-          </p>
+</div>
+{/* <div className="flex items-center">
 
-        </div>
+  <div className="w-44 h-44 rounded-full bg-white shadow-2xl flex items-center justify-center overflow-hidden border-4 border-white">
+
+    <img
+      src={TiironLogo}
+      alt="Tiiron Technologies"
+      className="w-32 h-32 object-contain"
+    />
+
+  </div>
+
+</div> */}
 
         {/* Center */}
 
         <div>
 
           <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/10 text-sm text-gray-300 mb-8">
-            Trusted by 100+ Organizations
+            Trusted by 10+ Organizations
           </div>
 
           <h2 className="text-6xl font-bold leading-tight">
@@ -64,7 +84,7 @@ export default function AuthLayout({
           <div>
 
             <h2 className="text-5xl font-bold text-red-500">
-              50K+
+              1000+
             </h2>
 
             <p className="mt-2 text-gray-400">
@@ -76,7 +96,7 @@ export default function AuthLayout({
           <div>
 
             <h2 className="text-5xl font-bold text-red-500">
-              100+
+              10+
             </h2>
 
             <p className="mt-2 text-gray-400">
