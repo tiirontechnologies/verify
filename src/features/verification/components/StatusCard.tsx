@@ -1,45 +1,95 @@
-export default function StatusCard() {
+import type { CertificateData } from "../../../types/certificate";
+
+type Props = {
+  certificate: CertificateData;
+};
+
+export default function StatusCard({
+  certificate,
+}: Props) {
+  const verified = certificate.status === "active";
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
 
-      <div className="bg-green-50 border border-green-200 rounded-2xl p-6">
+      {/* Main Status */}
 
-        <h2 className="text-4xl font-bold text-green-700">
-          VERIFIED
+      <div
+        className={`rounded-3xl p-8 border shadow-lg ${
+          verified
+            ? "bg-green-50 border-green-200"
+            : "bg-red-50 border-red-200"
+        }`}
+      >
+        <h2
+          className={`text-5xl font-black tracking-wider ${
+            verified ? "text-green-700" : "text-red-700"
+          }`}
+        >
+          {verified ? "VERIFIED" : "REVOKED"}
         </h2>
 
-        <p className="text-green-600 mt-2">
-          Authenticity Guaranteed
+        <p
+          className={`mt-3 text-lg ${
+            verified ? "text-green-600" : "text-red-600"
+          }`}
+        >
+          {verified
+            ? "Certificate authenticity successfully verified."
+            : "This certificate has been revoked."}
         </p>
-
       </div>
 
-      <div className="bg-white border border-red-100 rounded-2xl p-6">
+      {/* Details */}
 
-        <h3 className="font-bold text-xl">
-          Tiiron Technologies
+      <div className="bg-white rounded-3xl border shadow-lg p-8">
+
+        <h3 className="text-2xl font-bold">
+          {certificate.organization}
         </h3>
 
-        <div className="flex justify-between mt-8">
+        <div className="mt-8 space-y-6">
 
-          <div>
-            <p className="text-gray-400 text-sm">
+          <div className="flex justify-between">
+
+            <span className="text-gray-500">
               Status
-            </p>
+            </span>
 
-            <h3 className="text-green-600 font-bold">
-              Active
-            </h3>
+            <span
+              className={`font-bold ${
+                verified
+                  ? "text-green-600"
+                  : "text-red-600"
+              }`}
+            >
+              {certificate.status}
+            </span>
+
           </div>
 
-          <div>
-            <p className="text-gray-400 text-sm">
-              Issue Date
-            </p>
+          <div className="flex justify-between">
 
-            <h3 className="font-semibold">
-              01 Aug 2026
-            </h3>
+            <span className="text-gray-500">
+              Issue Date
+            </span>
+
+            <span className="font-semibold">
+              {certificate.issueDate}
+            </span>
+
+          </div>
+
+          <div className="flex justify-between">
+
+            <span className="text-gray-500">
+              Certificate ID
+            </span>
+
+            <span className="font-semibold">
+              {certificate.certificateId}
+            </span>
+
           </div>
 
         </div>

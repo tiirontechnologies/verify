@@ -1,5 +1,6 @@
 import logo from "../../../../assets/Tiiron_Technologies_Logo.png";
 import type { CertificateData } from "../../../../types/certificate";
+import demoqr from '../../../../assets/qrcode_inacademic.com.png'
 
 type Props = {
   certificate: CertificateData;
@@ -103,39 +104,31 @@ export default function InternshipCertificate({
 
           <div className="mt-12 px-10">
 
-            <p className="text-center text-[21px] leading-[44px] text-gray-700">
+<p className="text-center text-[21px] leading-[44px] text-gray-700">
+  has successfully completed the internship as a{" "}
 
-              has successfully completed the internship as a
+  <span className="font-bold text-[#1E4D8F]">
+    {certificate.role}
+  </span>{" "}
 
-              <span className="font-bold text-[#1E4D8F]">
-                {" "}
-                {certificate.role}
-              </span>
+  at{" "}
 
-              at
+  <span className="font-bold text-[#216D39]">
+    {certificate.organization}
+  </span>{" "}
 
-              <span className="font-bold text-[#216D39]">
-                {" "}
-                Tiiron Technologies Pvt. Ltd.
-              </span>
+  from{" "}
 
-              from
+  <span className="font-bold">
+    {certificate.startDate}
+  </span>{" "}
 
-              <span className="font-bold">
-                {" "}
-                {certificate.startDate}
-              </span>
+  to{" "}
 
-              to
-
-              <span className="font-bold">
-                {" "}
-                {certificate.endDate}
-              </span>
-
-              .
-
-            </p>
+  <span className="font-bold">
+    {certificate.endDate}
+  </span>.
+</p>
 
             <p className="mt-10 text-center text-[20px] leading-[40px] text-gray-700">
 
@@ -208,15 +201,12 @@ export default function InternshipCertificate({
 
              <div className="w-28 h-28 rounded-xl overflow-hidden border bg-white flex items-center justify-center">
   <img
-    src={certificate.qrCode}
+    src={demoqr}
     alt="QR Code"
     className="w-full h-full object-contain"
   />
 </div>
 
-<p className="mt-3 text-sm text-gray-500">
-  Scan to Verify
-</p>
 
               <p className="mt-3 text-sm text-gray-500">
                 Scan to Verify

@@ -1,4 +1,6 @@
-import { Eye, Download, BadgeCheck } from "lucide-react";
+import { Eye, BadgeCheck } from "lucide-react";
+
+import { useNavigate } from "react-router-dom";
 
 type CredentialCardProps = {
   title: string;
@@ -9,6 +11,8 @@ export default function CredentialCard({
   title,
   issuer,
 }: CredentialCardProps) {
+  const navigate = useNavigate();
+
   return (
     <div className="bg-white rounded-3xl border p-6 shadow-sm hover:shadow-md transition">
 
@@ -33,21 +37,24 @@ export default function CredentialCard({
 
       <div className="mt-8 flex gap-3">
 
-        <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 transition">
+        <button
+  onClick={() => navigate("/student/my-certificate")}
+  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 transition"
+>
 
-          <Eye size={18} />
+  <Eye size={18} />
 
-          View
+  View
 
-        </button>
+</button>
 
-        <button className="flex items-center gap-2 px-4 py-2 rounded-xl border hover:bg-gray-100 transition">
+        {/* <button className="flex items-center gap-2 px-4 py-2 rounded-xl border hover:bg-gray-100 transition">
 
           <Download size={18} />
 
           Download
 
-        </button>
+        </button> */}
 
       </div>
 

@@ -1,83 +1,98 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../services/authService";
+import { login } from "../../../api/auth.api";
 
 export default function LoginForm() {
   const navigate = useNavigate();
 
-  const [role, setRole] = useState<"student" | "organization">("student");
+  const [role, setRole] =
+useState<"student" | "admin">("student");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleLogin = async () => {
-    try {
-      setLoading(true);
-      setError("");
+const handleLogin = async () => {
+  try {
+    setLoading(true);
+    setError("");
 
-      const response = await login(email, password);
+    const response = await login(email, password);
 
-      localStorage.setItem("token", response.token);
-      localStorage.setItem("role", response.role);
+    localStorage.setItem("token", response.token);
+    localStorage.setItem("user", JSON.stringify(response.user));
 
-      if (response.role === "student") {
-        navigate("/student/dashboard");
-      }
-
-      if (response.role === "organization") {
-        navigate("/organization/dashboard");
-      }
-    } catch (err) {
-      setError("Invalid email or password");
-    } finally {
-      setLoading(false);
+    if (response.user.role === "student") {
+      navigate("/student/dashboard");
     }
-  };
+
+    if (response.user.role === "organization") {
+      navigate("/organization/dashboard");
+    }
+
+  } catch (err: any) {
+    setError(err.response?.data?.message || "Invalid email or password");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
-<div className="bg-white shadow-xl rounded-3xl p-6 sm:p-8 lg:p-10 w-full max-w-md">
-<h1 className="text-3xl sm:text-4xl font-bold text-slate-800">
-            Welcome Back
-      </h1>
+<div className="w-full px-6">
+<div className="text-center">
+  <h1 className="text-[42px] font-bold text-slate-900">
+    Login to Your Account
+  </h1>
 
-      <p className="text-gray-500 mt-3">
-        Sign in to continue
-      </p>
+  <p className="mt-3 text-[18px] text-slate-500">
+    Sign in to continue to your account
+  </p>
+</div>
 
       {/* Role */}
 
-<div className="grid grid-cols-2 bg-gray-100 rounded-2xl p-1 mt-6 sm:mt-8">
-        <button
-          onClick={() => setRole("student")}
-          className={`py-3 rounded-xl transition ${
-            role === "student"
-              ? "bg-white shadow font-semibold"
-              : ""
-          }`}
-        >
-          Student
-        </button>
+<div className="grid grid-cols-2 border rounded-2xl overflow-hidden mt-8">
+<button
+onClick={() => setRole("student")}
+className={`h-16 font-semibold transition ${
+role==="student"
+? "bg-red-50 text-red-600 border-b-2 border-red-600"
+: "bg-white text-slate-700"
+}`}
+>
+Student
+</button>
 
-        <button
-          onClick={() => setRole("organization")}
-          className={`py-3 rounded-xl transition ${
-            role === "organization"
-              ? "bg-white shadow font-semibold"
-              : ""
-          }`}
-        >
-          Organization
-        </button>
+<button
+onClick={() => setRole("admin")}
+className={`h-16 font-semibold transition ${
+role==="admin"
+? "bg-red-50 text-red-600 border-b-2 border-red-600"
+: "bg-white text-slate-700"
+}`}
+>
+Admin
+</button>
 
       </div>
 
       {/* Google */}
 
-      <button className="w-full border rounded-2xl py-3 sm:py-4 mt-6 sm:mt-8 hover:bg-gray-50 transition">
-        Continue with Google
-      </button>
+<button
+className="
+w-full
+h-16
+border
+rounded-2xl
+mt-8
+font-semibold
+hover:bg-gray-50
+transition
+"
+>
+Continue with Google
+</button>
 
       {/* Divider */}
 
@@ -106,7 +121,16 @@ export default function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Enter email"
-          className="w-full border rounded-2xl px-4 sm:px-5 py-3 sm:py-4 mt-2 outline-none focus:border-red-400"
+          className="
+w-full
+h-16
+border
+rounded-2xl
+px-5
+mt-2
+outline-none
+focus:border-red-500
+"
         />
 
       </div>
@@ -121,13 +145,6 @@ export default function LoginForm() {
             Password
           </label>
 
-          <button
-  onClick={() => navigate("/forgot-password")}
-  className="text-red-500 text-sm"
->
-  Forgot Password?
-</button>
-
         </div>
 
         <input
@@ -135,8 +152,40 @@ export default function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Enter password"
-          className="w-full border rounded-2xl px-4 sm:px-5 py-3 sm:py-4 mt-2 outline-none focus:border-red-400"
+          className="
+w-full
+h-16
+border
+rounded-2xl
+px-5
+mt-2
+outline-none
+focus:border-red-500
+"
         />
+        <div className="flex items-center justify-between mt-6">
+
+<div className="flex items-center gap-3">
+
+<input
+type="checkbox"
+className="w-5 h-5"
+/>
+
+<span className="text-slate-500">
+Remember me
+</span>
+
+</div>
+
+<button
+onClick={() => navigate("/forgot-password")}
+className="text-red-500 font-medium"
+>
+Forgot Password?
+</button>
+
+</div>
 
       </div>
 
@@ -153,14 +202,25 @@ export default function LoginForm() {
       <button
         onClick={handleLogin}
         disabled={loading}
-        className="w-full bg-red-500 hover:bg-red-600 text-white rounded-2xl py-3 sm:py-4 mt-6 sm:mt-8 transition"
+        className="
+w-full
+h-16
+mt-8
+rounded-2xl
+bg-red-600
+hover:bg-red-700
+text-white
+text-lg
+font-semibold
+transition
+"
       >
         {loading ? "Logging In..." : "Login to Dashboard"}
       </button>
 
       {/* Footer */}
 
-      <div className="mt-8 text-center text-gray-500">
+      {/* <div className="mt-8 text-center text-gray-500">
 
         Don't have an account?
 
@@ -168,7 +228,7 @@ export default function LoginForm() {
           Create Account
         </button>
 
-      </div>
+      </div> */}
 
     </div>
   );

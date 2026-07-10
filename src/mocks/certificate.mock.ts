@@ -1,61 +1,61 @@
-import type { CertificateData } from "../types/certificate";
+// import type { CertificateData } from "../types/certificate";
 
-export const internshipCertificateMock: CertificateData = {
-  id: "1",
+// export const internshipCertificateMock: CertificateData = {
+//   id: "1",
 
-  type: "internship",
+//   type: "internship",
 
-  studentName: "Nitesh Pandey",
+//   studentName: "Nitesh Pandey",
 
-  email: "ram@gmail.com",
+//   email: "ram@gmail.com",
 
-  certificateId: "TTRN-INT-2026-0001",
+//   certificateId: "TTRN-INT-2026-0001",
 
-  organization: "Tiiron Technologies Pvt. Ltd.",
+//   organization: "Tiiron Technologies Pvt. Ltd.",
 
-  course: "Full Stack MERN Internship",
+//   course: "Full Stack MERN Internship",
 
-  role: "Backend Developer Intern",
+//   role: "Backend Developer Intern",
 
-  issueDate: "30 June 2026",
+//   issueDate: "30 June 2026",
 
-  startDate: "01 Jan 2026",
+//   startDate: "01 Jan 2026",
 
-  endDate: "30 Jun 2026",
+//   endDate: "30 Jun 2026",
 
-  mentor: "Rahul Sharma",
+//   mentor: "Rahul Sharma",
 
-  director: "Nitesh Singh",
+//   director: "Nitesh Singh",
 
-  qrCode: "/qr.png",
-};
+//   qrCode: "/qr.png",
+// };
 
-export const trainingCertificateMock: CertificateData = {
-  id: "2",
+// export const trainingCertificateMock: CertificateData = {
+//   id: "2",
 
-  type: "training",
+//   type: "training",
 
-  studentName: "Ramchandra Pandey",
+//   studentName: "Ramchandra Pandey",
     
-  email: "ram@gmail.com",
+//   email: "ram@gmail.com",
 
-  certificateId: "TTRN-TRN-2026-0001",
+//   certificateId: "TTRN-TRN-2026-0001",
 
-  organization: "Tiiron Technologies Pvt. Ltd.",
+//   organization: "Tiiron Technologies Pvt. Ltd.",
 
-  course: "Full Stack + AI Training Program",
+//   course: "Full Stack + AI Training Program",
 
-  role: "Full Stack Developer",
+//   role: "Full Stack Developer",
 
-  issueDate: "30 June 2026",
+//   issueDate: "30 June 2026",
 
-  startDate: "01 Jan 2026",
+//   startDate: "01 Jan 2026",
 
-  endDate: "30 Jun 2026",
+//   endDate: "30 Jun 2026",
 
-  mentor: "Rahul Sharma",
+//   mentor: "Rahul Sharma",
 
-  director: "Nitesh Singh",
+//   director: "Nitesh Singh",
 
-  qrCode: "/qr.png",
-};
+//   qrCode: "/qr.png",
+// };

@@ -2,6 +2,8 @@ import DashboardLayout from "../../../layouts/DashboardLayout";
 import StatsCard from "../../../components/shared/StatsCard";
 import CredentialCard from "../components/CredentialCard";
 import RecentActivity from "../components/RecentActivity";
+import EditProfileModal from "../components/profile/EditProfileModal";
+
 import {
   Mail,
   Phone,
@@ -9,9 +11,109 @@ import {
   Calendar,
   User,
   MapPin,
+  Building2,
+  Layers3,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+
+import {
+  getMyProfile,
+} from "../../../api/studentProfile.api";
+
+import type {
+  StudentProfile,
+} from "../../../types/studentProfile";
 
 export default function ProfilePage() {
+  const [profile, setProfile] =
+  useState<StudentProfile | null>(null);
+
+const [loading, setLoading] = useState(true);
+const [showEditModal, setShowEditModal] = useState(false);
+
+  useEffect(() => {
+
+  const fetchProfile = async () => {
+
+    try {
+
+      const response =
+        await getMyProfile();
+
+      const data = response.data;
+
+      setProfile({
+
+        id: data._id,
+
+        fullName: data.fullName,
+
+        email: data.email,
+
+        mobile: data.mobile,
+
+        dateOfBirth: data.dateOfBirth
+          ? new Date(
+              data.dateOfBirth
+            ).toLocaleDateString("en-GB")
+          : "",
+
+        gender: data.gender,
+
+        address: data.address,
+
+        college: data.college,
+
+        department: data.department,
+
+        batch: data.batch,
+
+        skills: data.skills,
+
+        profileImage: data.profileImage,
+        lmsId: data.lmsId,
+
+      });
+
+    } catch (error) {
+
+      console.log(error);
+
+    } finally {
+
+      setLoading(false);
+
+    }
+
+  };
+
+  fetchProfile();
+
+}, []);
+
+if (loading) {
+
+  return (
+    <DashboardLayout>
+      <div className="flex justify-center items-center h-screen">
+        Loading Profile...
+      </div>
+    </DashboardLayout>
+  );
+
+}
+
+if (!profile) {
+
+  return (
+    <DashboardLayout>
+      <div className="flex justify-center items-center h-screen">
+        Profile Not Found
+      </div>
+    </DashboardLayout>
+  );
+
+}
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -37,11 +139,12 @@ export default function ProfilePage() {
 <div className="bg-white rounded-3xl border shadow-sm p-6 md:p-8">
             <div className="flex flex-col items-center">
 
-<div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-red-500 text-white flex items-center justify-center text-4xl md:text-5xl font-bold">                R
+<div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-red-500 text-white flex items-center justify-center text-4xl md:text-5xl font-bold">
+  {profile.fullName.charAt(0).toUpperCase()}
               </div>
 
               <h2 className="text-2xl md:text-3xl font-bold mt-6 text-center">
-                Ram Pandey
+                {profile.fullName}
               </h2>
 
               <p className="text-gray-500 mt-2">
@@ -49,12 +152,16 @@ export default function ProfilePage() {
               </p>
 
               <div className="mt-6 text-gray-500">
-                Student ID : STU-2026-001
+                Student ID : TII-2026-
+{String(profile.lmsId).padStart(4, "0")}
               </div>
 
-              <button className="mt-8 px-6 py-3 bg-red-600 text-white rounded-2xl hover:bg-red-700">
-                Edit Profile
-              </button>
+              <button
+    onClick={() => setShowEditModal(true)}
+    className="mt-8 px-6 py-3 bg-red-600 text-white rounded-2xl hover:bg-red-700"
+>
+    Edit Profile
+</button>
 
             </div>
 
@@ -76,7 +183,7 @@ export default function ProfilePage() {
                 </div>
 
                 <p className="text-gray-500">
-                  ram@example.com
+                  {profile.email}
                 </p>
               </div>
 
@@ -87,7 +194,7 @@ export default function ProfilePage() {
                 </div>
 
                 <p className="text-gray-500">
-                  +91 9876543210
+                  {profile.mobile || "Not Updated"}
                 </p>
               </div>
 
@@ -98,7 +205,7 @@ export default function ProfilePage() {
                 </div>
 
                 <p className="text-gray-500">
-                  10 Aug 2000
+                  {profile.dateOfBirth || "Not Updated"}
                 </p>
               </div>
 
@@ -109,7 +216,7 @@ export default function ProfilePage() {
                 </div>
 
                 <p className="text-gray-500">
-                  Male
+                  {profile.gender}
                 </p>
               </div>
 
@@ -120,7 +227,7 @@ export default function ProfilePage() {
                 </div>
 
                 <p className="text-gray-500">
-                  Gorakhpur, Uttar Pradesh
+                  {profile.address || "Not Updated"}
                 </p>
               </div>
 
@@ -152,22 +259,24 @@ export default function ProfilePage() {
             </div>
 
             <div>
+              <Building2 className="text-red-600 mb-3" />
               <h3 className="font-semibold">
                 Department
               </h3>
 
               <p className="text-gray-500">
-                Computer Science
+                {profile.department || "Not Updated"}
               </p>
             </div>
 
             <div>
+              <Layers3 className="text-red-600 mb-3" />
               <h3 className="font-semibold">
                 Batch
               </h3>
 
               <p className="text-gray-500">
-                2026
+                {profile.batch || "Not Updated"}
               </p>
             </div>
 
@@ -180,22 +289,22 @@ export default function ProfilePage() {
 <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           <StatsCard
             title="Credentials"
-            value="12"
+            value="2"
           />
 
           <StatsCard
             title="Verified"
-            value="10"
+            value="2"
           />
 
           <StatsCard
             title="Shared"
-            value="5"
+            value="NA"
           />
 
           <StatsCard
             title="Downloads"
-            value="22"
+            value="NA"
           />
 
         </div>
@@ -210,21 +319,16 @@ export default function ProfilePage() {
 
           <div className="flex flex-wrap gap-4">
 
-            {[
-              "React",
-              "Node.js",
-              "MongoDB",
-              "Docker",
-              "TypeScript",
-              "AWS",
-            ].map((skill) => (
-              <span
-                key={skill}
-                className="px-5 py-3 rounded-full bg-red-50 text-red-600 font-medium"
-              >
-                {skill}
-              </span>
-            ))}
+           {profile.skills.map((skill) => (
+
+<span
+key={skill}
+className="px-5 py-3 rounded-full bg-red-50 text-red-600 font-medium"
+>
+{skill}
+</span>
+
+))}
 
           </div>
 
@@ -241,13 +345,13 @@ export default function ProfilePage() {
           <div className="grid lg:grid-cols-2 gap-6">
 
             <CredentialCard
-              title="Python Full Stack Development"
-              issuer="Tiiron Academy"
+              title="Internship Certificate"
+              issuer="Issued by Tiiron Technologies"
             />
 
             <CredentialCard
-              title="AWS Cloud Practitioner"
-              issuer="Tiiron Academy"
+              title="Training Certificate"
+              issuer="Issued by Tiiron Technologies"
             />
 
           </div>
@@ -259,6 +363,22 @@ export default function ProfilePage() {
         <RecentActivity />
 
       </div>
+
+      {showEditModal && (
+
+    <EditProfileModal
+        profile={profile}
+        onClose={() => setShowEditModal(false)}
+        onUpdate={(updatedProfile) => {
+
+            setProfile(updatedProfile);
+
+            setShowEditModal(false);
+
+        }}
+    />
+
+)}
     </DashboardLayout>
   );
 }

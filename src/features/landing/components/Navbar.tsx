@@ -1,15 +1,22 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, ShieldCheck } from "lucide-react";
+import {
+  Menu,
+  X,
+  ShieldCheck,
+  ChevronDown,
+  ExternalLink,
+} from "lucide-react";
 import logo from "../../../assets/Tiiron_Technologies_Logo.png";
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
+  const [exploreOpen, setExploreOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
 
-      <div className="max-w-[1800px] mx-auto h-[72px] px-3 lg:px-4 flex items-center justify-between">
+      <div className="max-w-[1800px] mx-auto h-[86px] px-5 lg:px-6 flex items-center justify-between">
 
         {/* Logo */}
 
@@ -18,50 +25,182 @@ export default function Navbar() {
   <img
     src={logo}
     alt="Tiiron Technologies"
-    className="h-16 w-auto object-contain"
+    className="h-14 w-auto object-contain"
   />
 
 </Link>
 
         {/* Center Navigation */}
 
-<nav className="hidden lg:flex items-center gap-12 text-lg font-semibold leading-none text-gray-700">
-          <Link
-            to="/"
-            className="hover:text-red-600 transition duration-200"
-          >
-            Home
-          </Link>
+<nav className="hidden lg:flex items-center gap-12 relative">
 
-          <Link
-            to="/features"
-            className="hover:text-red-600 transition"
-          >
-            Features
-          </Link>
+  <Link
+    to="/"
+    className="text-[18px] font-medium text-gray-800 hover:text-red-600 transition"
+  >
+    Home
+  </Link>
 
-          <Link
-            to="/solutions"
-            className="hover:text-red-600 transition"
-          >
-            Solutions
-          </Link>
+<a
+  href="https://tiirontechnologies.com/services"
+  target="_self"
+  rel="noopener noreferrer"
+  className="text-[18px] font-medium text-gray-800 hover:text-red-600 transition"
+>
+  Services
+</a>
 
-          <Link
-            to="/pricing"
-            className="hover:text-red-600 transition"
-          >
-            Pricing
-          </Link>
+<a
+  href="https://tiirontechnologies.com/products"
+  target="_self"
+  rel="noopener noreferrer"
+  className="text-[18px] font-medium text-gray-800 hover:text-red-600 transition"
+>
+  Products
+</a>
 
-          <Link
-            to="/contact"
-            className="hover:text-red-600 transition"
-          >
-            Contact
-          </Link>
+  <a
+  href="https://tiirontechnologies.com/about"
+  target="_self"
+  rel="noopener noreferrer"
+  className="text-[18px] font-medium text-gray-800 hover:text-red-600 transition"
+>
+  About
+</a>
 
-        </nav>
+  <div
+    className="relative"
+    onMouseEnter={() => setExploreOpen(true)}
+    onMouseLeave={() => setExploreOpen(false)}
+  >
+<button
+  className="
+    flex
+    items-center
+    gap-2
+    text-[18px]
+    font-medium
+    text-gray-800
+    hover:text-red-600
+    transition-all
+    duration-200
+  "
+>
+  Explore
+  <ChevronDown
+    size={18}
+    strokeWidth={2.3}
+    className={`transition-transform duration-300 ${
+      exploreOpen ? "rotate-180" : ""
+    }`}
+  />
+</button>
+
+{exploreOpen && (
+  <div
+    className="
+      absolute
+      left-1/2
+      -translate-x-1/2
+      top-full
+      mt-3
+      w-[340px]
+      bg-white
+      rounded-3xl
+      border
+      border-gray-200
+      shadow-2xl
+      overflow-hidden
+      z-50
+      py-3
+    "
+  >
+    <a
+      href="https://tiirontechnologies.com/pricing"
+      target="_self"
+      className="
+        flex
+        items-center
+        justify-between
+        px-7
+        py-4
+        text-[18px]
+        font-medium
+        text-gray-800
+        hover:bg-gray-50
+        hover:text-red-600
+        transition
+      "
+    >
+      Pricing
+    </a>
+
+    <a
+      href="https://tiirontechnologies.com/comingsoon"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="
+        flex
+        items-center
+        justify-between
+        px-7
+        py-4
+        text-[18px]
+        font-medium
+        text-gray-800
+        hover:bg-gray-50
+        hover:text-red-600
+        transition
+      "
+    >
+      Testimonials
+    </a>
+
+    <a
+      href="https://tiirontechnologies.com/help"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="
+        flex
+        items-center
+        justify-between
+        px-7
+        py-4
+        text-[18px]
+        font-medium
+        text-gray-800
+        hover:bg-gray-50
+        hover:text-red-600
+        transition
+      "
+    >
+      Help & Support
+    </a>
+
+    <Link
+      to="/"
+      className="
+        flex
+        items-center
+        justify-between
+        px-7
+        py-4
+        text-[18px]
+        font-medium
+        text-gray-800
+        hover:bg-gray-50
+        hover:text-red-600
+        transition
+      "
+    >
+      Verify Credentials
+      <ExternalLink size={18} strokeWidth={2.2} />
+    </Link>
+  </div>
+)}
+  </div>
+
+</nav>
 
         {/* Right Side */}
 

@@ -1,4 +1,5 @@
 import DashboardLayout from "../../../layouts/DashboardLayout";
+import { Clock } from "lucide-react";
 
 export default function VerificationHistory() {
   return (
@@ -6,7 +7,7 @@ export default function VerificationHistory() {
 
       <div className="space-y-8">
 
-        <div>
+        {/* <div>
 
           <h1 className="text-4xl font-bold">
             Verification History
@@ -80,10 +81,46 @@ export default function VerificationHistory() {
 
           </table>
 
+        </div> */}
+
+          <div className="flex items-center justify-center py-24 px-6">
+      <div className="max-w-md text-center">
+
+        {/* Icon */}
+
+        <div className="flex justify-center">
+          <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center">
+            <Clock
+
+              size={80}
+              className="text-red-600"
+              strokeWidth={2.2}
+            />
+            
+          </div>
         </div>
+<div className="mt-6 font-semibold text-red-900 text-lg">
+  Coming Soon
+</div>
+        {/* Title */}
+
+        <h2 className="mt-6 text-3xl font-bold text-gray-600">
+        Exciting updates are on the way. Thank you for waiting!
+          
+        </h2>
+
+        {/* Description */}
+
+
+        
+
+      </div>
+    </div>
 
       </div>
 
     </DashboardLayout>
+
+  
   );
 }

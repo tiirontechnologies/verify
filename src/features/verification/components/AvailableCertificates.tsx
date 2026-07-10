@@ -1,4 +1,4 @@
-import { Download, FileBadge } from "lucide-react";
+import { FileBadge } from "lucide-react";
 
 export default function AvailableCertificates() {
   return (
@@ -35,13 +35,13 @@ export default function AvailableCertificates() {
 
           </div>
 
-          <button className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-xl">
+          {/* <button className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-xl">
 
             <Download size={18} />
 
             Download
 
-          </button>
+          </button> */}
 
         </div>
 
@@ -70,13 +70,13 @@ export default function AvailableCertificates() {
 
           </div>
 
-          <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl">
+          {/* <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl">
 
             <Download size={18} />
 
             Download
 
-          </button>
+          </button> */}
 
         </div>
 

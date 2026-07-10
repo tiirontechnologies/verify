@@ -11,6 +11,9 @@ import {
 export default function SettingsPage() {
   return (
     <DashboardLayout>
+      <p className="text-gray-500 text-sm mb-4">
+        Will be available soon, currently you can manage your account settings from your profile.
+      </p>
       <div className="space-y-8">
 
         {/* Header */}

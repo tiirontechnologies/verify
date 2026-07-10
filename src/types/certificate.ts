@@ -28,4 +28,6 @@ export interface CertificateData {
 
     qrCode: string;
 
+    status: "active" | "revoked";
+
 }

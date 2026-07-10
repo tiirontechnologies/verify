@@ -1,6 +1,5 @@
 import {
   LayoutDashboard,
-  BadgeCheck,
   History,
   User,
   Settings,
@@ -17,16 +16,6 @@ export const sidebarMenus = {
       icon: LayoutDashboard,
     },
     {
-      label: "My Credentials",
-      path: "/student/credentials",
-      icon: BadgeCheck,
-    },
-    {
-      label: "Verification History",
-      path: "/student/history",
-      icon: History,
-    },
-    {
       label: "Profile",
       path: "/student/profile",
       icon: User,
@@ -36,6 +25,16 @@ export const sidebarMenus = {
     path: "/student/my-certificate",
     icon: FileBadge2,
 },
+    // {
+    //   label: "My Credentials",
+    //   path: "/student/credentials",
+    //   icon: BadgeCheck,
+    // },
+    {
+      label: "Verification History",
+      path: "/student/history",
+      icon: History,
+    },
     {
       label: "Settings",
       path: "/student/settings",

@@ -1,8 +1,18 @@
-export default function VerificationSummary() {
-  return (
-    <div className="bg-white border border-red-100 rounded-2xl p-8 mt-8">
+import type { CertificateData } from "../../../types/certificate";
 
-      <h2 className="text-xl font-bold mb-8">
+type Props = {
+  certificate: CertificateData;
+};
+
+export default function VerificationSummary({
+  certificate,
+}: Props) {
+
+  return (
+
+    <div className="bg-white rounded-3xl border shadow-lg p-8">
+
+      <h2 className="text-2xl font-bold mb-8">
         Verification Summary
       </h2>
 
@@ -15,7 +25,43 @@ export default function VerificationSummary() {
           </span>
 
           <span className="font-semibold">
-            VT-9928-RS-2026
+            {certificate.certificateId}
+          </span>
+
+        </div>
+
+        <div className="flex justify-between">
+
+          <span className="text-gray-500">
+            Candidate
+          </span>
+
+          <span className="font-semibold">
+            {certificate.studentName}
+          </span>
+
+        </div>
+
+        <div className="flex justify-between">
+
+          <span className="text-gray-500">
+            Course
+          </span>
+
+          <span className="font-semibold text-right">
+            {certificate.course}
+          </span>
+
+        </div>
+
+        <div className="flex justify-between">
+
+          <span className="text-gray-500">
+            Organization
+          </span>
+
+          <span className="font-semibold text-right">
+            {certificate.organization}
           </span>
 
         </div>
@@ -35,18 +81,6 @@ export default function VerificationSummary() {
         <div className="flex justify-between">
 
           <span className="text-gray-500">
-            Issued By
-          </span>
-
-          <span className="font-semibold">
-            Tiiron Technologies
-          </span>
-
-        </div>
-
-        <div className="flex justify-between">
-
-          <span className="text-gray-500">
             Last Verified
           </span>
 
@@ -59,5 +93,7 @@ export default function VerificationSummary() {
       </div>
 
     </div>
+
   );
+
 }

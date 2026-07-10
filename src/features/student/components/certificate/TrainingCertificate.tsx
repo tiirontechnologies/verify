@@ -1,6 +1,7 @@
 import logo from "../../../../assets/Tiiron_Technologies_Logo.png";
 
 import type { CertificateData } from "../../../../types/certificate";
+import demoqr from '../../../../assets/qrcode_inacademic.com.png'
 
 type Props = {
   certificate: CertificateData;
@@ -260,7 +261,7 @@ export default function TrainingCertificate({
 
                 <span className="text-sm text-gray-500">
                   <img
-    src={certificate.qrCode}
+    src={demoqr}
     alt="QR"
     className="w-28 h-28 object-contain"
 />

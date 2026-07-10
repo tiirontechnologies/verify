@@ -7,10 +7,101 @@ import { useNavigate } from "react-router-dom";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-import { trainingCertificateMock } from "../../../mocks/certificate.mock";
+import { useEffect, useState } from "react";
+import { getMyCertificate } from "../../../api/certificate.api";
+import type { CertificateData } from "../../../types/certificate";
 
 export default function TrainingCertificatePage() {
   const navigate = useNavigate();
+
+const [certificate, setCertificate] =
+  useState<CertificateData | null>(null);
+
+const [loading, setLoading] = useState(true);
+
+const [error, setError] = useState("");
+
+useEffect(() => {
+
+  const fetchCertificate = async () => {
+
+    try {
+
+      const response = await getMyCertificate();
+
+      const data = response.data;
+
+      setCertificate({
+
+        id: data._id,
+
+        type: "training",
+
+        studentName: data.studentName,
+
+        email: data.email,
+
+        certificateId: data.certificateId,
+
+        organization: data.organization,
+
+        course: data.course,
+
+        role: data.role,
+
+        issueDate: new Date(data.issueDate).toLocaleDateString(
+          "en-GB",
+          {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+          }
+        ),
+
+        startDate: new Date(data.startDate).toLocaleDateString(
+          "en-GB",
+          {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          }
+        ),
+
+        endDate: new Date(data.endDate).toLocaleDateString(
+          "en-GB",
+          {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          }
+        ),
+
+        mentor: data.mentor,
+
+        director: data.director,
+
+        qrCode: data.qrCode || "/qr.png",
+        status: data.status,
+
+      });
+
+    } catch (err: any) {
+
+      setError(
+        err.response?.data?.message || "No Certificate Found"
+      );
+
+    } finally {
+
+      setLoading(false);
+
+    }
+
+  };
+
+  fetchCertificate();
+
+}, []);
 
   const downloadCertificate = async () => {
     const certificateElement = document.getElementById("certificate");
@@ -43,10 +134,33 @@ export default function TrainingCertificatePage() {
       pdfHeight
     );
 
-    pdf.save(
-      `${trainingCertificateMock.studentName}-Training-Certificate.pdf`
-    );
+    if (!certificate) return;
+
+pdf.save(
+  `${certificate.studentName}-Training-Certificate.pdf`
+);
   };
+  if (loading) {
+  return (
+    <DashboardLayout>
+      <div className="flex justify-center items-center h-screen">
+        Loading Certificate...
+      </div>
+    </DashboardLayout>
+  );
+}
+
+if (error) {
+  return (
+    <DashboardLayout>
+      <div className="flex justify-center items-center h-screen">
+        <h1>{error}</h1>
+      </div>
+    </DashboardLayout>
+  );
+}
+
+if (!certificate) return null;
 
   return (
     <DashboardLayout>
@@ -96,8 +210,8 @@ export default function TrainingCertificatePage() {
           >
 
             <TrainingCertificate
-              certificate={trainingCertificateMock}
-            />
+  certificate={certificate}
+/>
 
           </div>
 

@@ -29,17 +29,17 @@ export default function StudentDashboard() {
 
           <StatsCard
             title="Credentials"
-            value="12"
+            value="2"
           />
 
           <StatsCard
             title="Verified"
-            value="10"
+            value="2"
           />
 
           <StatsCard
             title="Shared"
-            value="5"
+            value="NA"
           />
 
         </div>
@@ -55,12 +55,12 @@ export default function StudentDashboard() {
   <div className="grid lg:grid-cols-2 gap-6">
 
     <CredentialCard
-      title="Python Full Stack Development"
+      title="Internship Completion Certificate"
       issuer="Tiiron Academy"
     />
 
     <CredentialCard
-      title="AWS Cloud Practitioner"
+      title="Training Completion Certificate"
       issuer="Tiiron Academy"
     />
 

@@ -31,12 +31,12 @@ export default function Footer() {
             <img
   src={logo}
   alt="Tiiron"
-  className="h-28 lg:h-36 w-auto object-contain mx-auto lg:mx-0"
+  className="h-18 lg:h-28 w-auto object-contain mx-auto my-4 lg:mx-0"
 />
 
             <div className="-mt-4 max-w-sm mx-auto lg:mx-0">
-
-              <p className="text-gray-600 text-[17px] leading-9">
+ 
+              <p className="text-gray-600 text-[22px] leading-9">
 
                 A comprehensive, next-generation credential verification
                 platform designed to securely issue, manage and verify
@@ -84,16 +84,16 @@ transition
 
           <div className="col-span-1 lg:col-span-2 pt-0 lg:pt-5 text-center lg:text-left">
 
-            <h2 className="text-[28px] font-extrabold text-gray-900 mb-7">
+            <h2 className="text-[28px] font-bold text-gray-900 mb-7">
               Quick Links
             </h2>
 
             <div className="space-y-5">
 
               <p className="
-text-[18px]
+text-[22px]
 font-semibold
-text-gray-700
+text-gray-400
 hover:text-red-600
 transition-all
 duration-200
@@ -104,9 +104,9 @@ cursor-pointer
               </p>
 
               <p className="
-text-[18px]
+text-[22px]
 font-semibold
-text-gray-700
+text-gray-400
 hover:text-red-600
 transition-all
 duration-200
@@ -117,9 +117,9 @@ cursor-pointer
               </p>
 
               <p className="
-text-[18px]
+text-[22px]
 font-semibold
-text-gray-700
+text-gray-400
 hover:text-red-600
 transition-all
 duration-200
@@ -130,9 +130,9 @@ cursor-pointer
               </p>
 
               <p className="
-text-[18px]
+text-[22px]
 font-semibold
-text-gray-700
+text-gray-400
 hover:text-red-600
 transition-all
 duration-200
@@ -148,126 +148,86 @@ cursor-pointer
 
           {/* Solutions */}
 
-          <div className="col-span-1 lg:col-span-2 pt-0 lg:pt-5 text-center lg:text-left">
+{/* Solutions */}
 
-            <h2 className="text-[28px] font-extrabold text-gray-900 mb-7">
-              Our Solutions
-            </h2>
+<div className="col-span-1 lg:col-span-2 pt-0 lg:pt-5 text-center lg:text-left">
 
-            <div className="space-y-5">
+  <h2 className="text-2xl font-bold text-gray-900 mb-8 tracking-tight">
+    Our Solutions
+  </h2>
 
-            <div
-  className="
-group
-flex
-justify-center
-lg:justify-start
-items-center
-gap-2
-text-[18px]
-font-semibold
-text-gray-700
-hover:text-red-600
-hover:translate-x-1
-transition-all
-duration-200
-cursor-pointer
-"
->
-  Tiiron LMS
-  <ExternalLink
-    size={16} strokeWidth={2.4}
-    className="opacity-50 group-hover:opacity-100 transition"
-  />
+  <div className="space-y-5">
+
+    <a
+      href="https://www.tiiron.com/"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex items-center gap-2 text-[22px] text-gray-400 hover:text-red-600 transition-all duration-200 cursor-pointer"
+    >
+      Tiiron LMS
+      <ExternalLink
+        size={14}
+        className="opacity-50 group-hover:opacity-100 transition"
+      />
+    </a>
+
+    <a
+      href="https://inacademic.com/"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex items-center gap-2 text-[22px] text-gray-400 hover:text-red-600 transition-all duration-200 cursor-pointer"
+    >
+      Inacademic
+      <ExternalLink
+        size={14}
+        className="opacity-50 group-hover:opacity-100 transition"
+      />
+    </a>
+
+    <a
+      href="https://academy.tiiron.com/"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex items-center gap-2 text-[22px] text-gray-400 hover:text-red-600 transition-all duration-200 cursor-pointer"
+    >
+      Tiiron Academy
+      <ExternalLink
+        size={14}
+        className="opacity-50 group-hover:opacity-100 transition"
+      />
+    </a>
+
+    <a
+      href="https://tiirontechnologies.com/"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex items-center gap-2 text-[22px] text-gray-400 hover:text-red-600 transition-all duration-200 cursor-pointer"
+    >
+      Tiiron Technologies
+      <ExternalLink
+        size={14}
+        className="opacity-50 group-hover:opacity-100 transition"
+      />
+    </a>
+
+  </div>
+
 </div>
-
-              <div className="
-group
-flex
-justify-center
-lg:justify-start
-items-center
-gap-2
-text-[18px]
-font-semibold
-text-gray-700
-hover:text-red-600
-hover:translate-x-1
-transition-all
-duration-200
-cursor-pointer
-">
-                Inacademic
-                <ExternalLink
-    size={16} strokeWidth={2.4}
-    className="opacity-50 group-hover:opacity-100 transition"
-/>
-              </div>
-
-              <div className="
-group
-flex
-justify-center
-lg:justify-start
-items-center
-gap-2
-text-[18px]
-font-semibold
-text-gray-700
-hover:text-red-600
-hover:translate-x-1
-transition-all
-duration-200
-cursor-pointer
-">
-                Tiiron Academy
-                <ExternalLink
-    size={16} strokeWidth={2.4}
-    className="opacity-50 group-hover:opacity-100 transition"
-/>
-              </div>
-
-              <div className="
-group
-flex
-justify-center
-lg:justify-start
-items-center
-gap-2
-text-[18px]
-font-semibold
-text-gray-700
-hover:text-red-600
-hover:translate-x-1
-transition-all
-duration-200
-cursor-pointer
-">
-                Tiiron Technologies
-                <ExternalLink
-    size={16} strokeWidth={2.4}
-    className="opacity-50 group-hover:opacity-100 transition"
-/>
-              </div>
-
-            </div>
-
-          </div>
 
           {/* Company */}
 
           <div className="col-span-1 lg:col-span-2 pt-0 lg:pt-5 text-center lg:text-left">
 
-            <h2 className="text-[28px] font-extrabold text-gray-900 mb-7">
+            <h2 className="text-[28px] font-bold text-gray-900 mb-7">
               Company
             </h2>
 
             <div className="space-y-5">
 
               <p className="
-text-[18px]
+text-[22px]
 font-semibold
-text-gray-700
+text-gray-400
 hover:text-red-600
 transition-all
 duration-200
@@ -278,9 +238,9 @@ cursor-pointer
               </p>
 
               <p className="
-text-[18px]
+text-[22px]
 font-semibold
-text-gray-700
+text-gray-400
 hover:text-red-600
 transition-all
 duration-200
@@ -291,9 +251,9 @@ cursor-pointer
               </p>
 
               <p className="
-text-[18px]
+text-[22px]
 font-semibold
-text-gray-700
+text-gray-400
 hover:text-red-600
 transition-all
 duration-200
@@ -310,9 +270,9 @@ justify-center
 lg:justify-start
 items-center
 gap-2
-text-[18px]
+text-[22px]
 font-semibold
-text-gray-700
+text-gray-400
 hover:text-red-600
 hover:translate-x-1
 transition-all
@@ -334,7 +294,7 @@ cursor-pointer
 
           <div className="col-span-1 lg:col-span-2 pt-0 lg:pt-5 text-center lg:text-left">
 
-            <h2 className="text-[28px] font-extrabold text-gray-900 mb-7">
+            <h2 className="text-[28px] font-bold text-gray-900 mb-7">
               Contact Us
             </h2>
 
@@ -349,11 +309,11 @@ cursor-pointer
 
                 <div>
 
-                  <p className="text-[13px] uppercase tracking-wider text-gray-400">
+                  <p className="text-lg uppercase tracking-wider text-gray-400">
                     Phone
                   </p>
 
-                  <p className="text-[18px] font-semibold text-gray-800">
+                  <p className="text-[22px] font-semibold text-gray-400">
                     +91 91612 18740
                   </p>
 
@@ -370,11 +330,11 @@ cursor-pointer
 
                 <div>
 
-                  <p className="text-sm font-medium uppercase tracking-wider text-gray-400">
+                  <p className="text-lg font-medium uppercase tracking-wider text-gray-400">
                     Email
                   </p>
 
-                  <p className="text-[18px] font-semibold text-gray-800">
+                  <p className="text-[22px] font-semibold text-gray-400">
                     contact@tiirontechnologies.com
                   </p>
 
@@ -391,12 +351,12 @@ cursor-pointer
 
                 <div>
 
-                  <p className="text-sm font-medium uppercase tracking-wider text-gray-400">
+                  <p className="text-lg font-medium uppercase tracking-wider text-gray-400">
                     Office
                   </p>
 
-                  <p className="text-[18px] font-semibold text-gray-800">
-                    Gorakhpur, Uttar Pradesh
+                  <p className="text-[22px] font-semibold text-gray-400">
+                    Lucknow, Uttar Pradesh
                   </p>
 
                 </div>
