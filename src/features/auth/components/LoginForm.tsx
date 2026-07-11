@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../../../api/auth.api";
+import useMeRedirect from "../hooks/useMeRedirect";
 
 export default function LoginForm() {
   const navigate = useNavigate();
+  const redirectToDashboard = useMeRedirect();
 
   const [role, setRole] =
 useState<"student" | "admin">("student");
@@ -23,13 +25,7 @@ const handleLogin = async () => {
     localStorage.setItem("token", response.token);
     localStorage.setItem("user", JSON.stringify(response.user));
 
-    if (response.user.role === "student") {
-      navigate("/student/dashboard");
-    }
-
-    if (response.user.role === "organization") {
-      navigate("/organization/dashboard");
-    }
+    await redirectToDashboard();
 
   } catch (err: any) {
     setError(err.response?.data?.message || "Invalid email or password");
@@ -38,6 +34,11 @@ const handleLogin = async () => {
   }
 };
 
+const handleGoogleLogin = () => {
+  // Implement Google login logic here
+  console.log("Google login clicked");
+  window.location.href = "http://localhost:5000/api/auth/google"; // Redirect to your backend endpoint for Google OAuth 
+}
   return (
 <div className="w-full px-6">
 <div className="text-center">
@@ -80,6 +81,7 @@ Admin
       {/* Google */}
 
 <button
+onClick={handleGoogleLogin}
 className="
 w-full
 h-16

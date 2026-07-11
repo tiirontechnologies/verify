@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LandingPage from "./features/landing/pages/LandingPage";
 import VerificationPage from "./features/verification/pages/VerificationPage";
@@ -17,10 +18,31 @@ import PasswordResetSuccessPage from "./features/auth/pages/PasswordResetSuccess
 import GenerateCertificatePage from "./features/student/pages/GenerateCertificatePage";
 import InternshipCertificatePage from "./features/student/pages/InternshipCertificatePage";
 import TrainingCertificatePage from "./features/student/pages/TrainingCertificatePage";
+import useMeRedirect from "./features/auth/hooks/useMeRedirect";
+
+function AuthBootstrap() {
+  const redirectToDashboard = useMeRedirect();
+  const hasCheckedRef = useRef(false);
+
+  useEffect(() => {
+    if (hasCheckedRef.current) {
+      return;
+    }
+
+    hasCheckedRef.current = true;
+
+    console.log("Auth bootstrap mounted");
+    console.log("Calling /auth/me from bootstrap");
+    redirectToDashboard();
+  }, [redirectToDashboard]);
+
+  return null;
+}
 
 function App() {
   return (
     <BrowserRouter>
+      <AuthBootstrap />
       <Routes>
 
         <Route
