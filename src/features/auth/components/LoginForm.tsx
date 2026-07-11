@@ -21,8 +21,15 @@ const handleLogin = async () => {
     setError("");
 
     const response = await login(email, password);
-
-    localStorage.setItem("token", response.token);
+if(response.success) {
+const user = response.user;
+if(user?.role === "student") {
+navigate("/student/dashboard", { replace: true });
+}
+}
+//     localStorage.setItem("token", response.token);
+//     localStorage.setItem("user", JSON.stringify(response.user));
+// if    localStorage.setItem("token", response.token);
     localStorage.setItem("user", JSON.stringify(response.user));
 
     await redirectToDashboard();
@@ -39,6 +46,7 @@ const handleGoogleLogin = () => {
   console.log("Google login clicked");
   window.location.href = "http://localhost:5000/api/auth/google"; // Redirect to your backend endpoint for Google OAuth 
 }
+
   return (
 <div className="w-full px-6">
 <div className="text-center">
