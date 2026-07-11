@@ -22,9 +22,9 @@ export default function useMeRedirect() {
     try {
       const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
-      console.log("Calling /auth/me with baseUrl:", baseUrl);
+    //   console.log("Calling /auth/me with baseUrl:", baseUrl);
 
-      const response = await fetch(`${baseUrl}/auth/me`, {
+      const response = await fetch(`${baseUrl}/api/auth/me`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
