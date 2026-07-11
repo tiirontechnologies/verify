@@ -32,7 +32,7 @@ export default function useMeRedirect() {
         credentials: "include",
       });
 
-      console.log("/auth/me response status:", response.status);
+    //   console.log("/auth/me response status:", response.status);
 
       const data = (await response.json().catch(() => ({}))) as MeResponse;
       const nestedUser = data?.user?.user;
@@ -45,7 +45,7 @@ export default function useMeRedirect() {
         if (response.status === 401 || response.status === 403 || !role) {
           localStorage.removeItem("token");
           localStorage.removeItem("user");
-          navigate("/login", { replace: true });
+        //   navigate("/login", { replace: true });
           return false;
         }
 
@@ -57,7 +57,7 @@ export default function useMeRedirect() {
       if (role === "student") {
         navigate("/student/dashboard", { replace: true });
       } else if (role === "admin") {
-        navigate("/admin/dashboard", { replace: true });
+        navigate("/organization/dashboard", { replace: true });
       } else {
         navigate("/login", { replace: true });
       }
