@@ -1,15 +1,12 @@
 import axios from "./axios"
 export const getMyCertificate = async () => {
-
-    const token = localStorage.getItem("token");
-
     const response = await axios.get(
-        "/certificates/my",
-        {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        }
+        "/api/certificates/my",
+        // {
+        //     headers: {
+        //         Authorization: `Bearer ${token}`,
+        //     },
+        // }
     );
 
     return response.data;
@@ -20,7 +17,7 @@ export const verifyCertificate = async (
 ) => {
 
   const response = await axios.get(
-    `/certificates/verify/${certificateId}`
+    `/api/certificates/verify/${certificateId}`
   );
 
   return response.data;

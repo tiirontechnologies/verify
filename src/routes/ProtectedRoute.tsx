@@ -16,7 +16,7 @@ export default function ProtectedRoute({
       const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
       try {
-        const response = await fetch(`${baseUrl}/auth/me`, {
+        const response = await fetch(`${baseUrl}/api/auth/me`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",

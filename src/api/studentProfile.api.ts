@@ -5,7 +5,7 @@ export const getMyProfile = async () => {
   const token = localStorage.getItem("token");
 
   const response = await axios.get(
-    "/student-profile/my",
+    "/api/student-profile/my",
     {
       headers: {
         Authorization: `Bearer ${token}`,
