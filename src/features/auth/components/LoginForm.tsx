@@ -1,11 +1,17 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../../../api/auth.api";
 import useMeRedirect from "../hooks/useMeRedirect";
+import {baseURL} from "../../../api/axios";
+
 
 export default function LoginForm() {
   const navigate = useNavigate();
   const redirectToDashboard = useMeRedirect();
+
+  useEffect(() => {
+    redirectToDashboard();
+  }, []);
 
   const [role, setRole] =
 useState<"student" | "admin">("student");
@@ -15,37 +21,63 @@ useState<"student" | "admin">("student");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+// const handleLogin = async () => {
+//   try {
+//     setLoading(true);
+//     setError("");
+
+//     const response = await login(email, password);
+// if(response.success) {
+// const user = response.user;
+// if(user?.role === "student") {
+// navigate("/student/dashboard", { replace: true });
+// }
+// }
+// //     localStorage.setItem("token", response.token);
+// //     localStorage.setItem("user", JSON.stringify(response.user));
+// // if    localStorage.setItem("token", response.token);
+//     localStorage.setItem("user", JSON.stringify(response.user));
+
+//     await redirectToDashboard();
+
+//   } catch (err: any) {
+//     setError(err.response?.data?.message || "Invalid email or password");
+//   } finally {
+//     setLoading(false);
+//   }
+// };
+
+
 const handleLogin = async () => {
   try {
     setLoading(true);
     setError("");
 
     const response = await login(email, password);
-if(response.success) {
-const user = response.user;
-if(user?.role === "student") {
-navigate("/student/dashboard", { replace: true });
-}
-}
-//     localStorage.setItem("token", response.token);
-//     localStorage.setItem("user", JSON.stringify(response.user));
-// if    localStorage.setItem("token", response.token);
+
+    if (!response.success) {
+      throw new Error("Login failed");
+    }
+
     localStorage.setItem("user", JSON.stringify(response.user));
 
-    await redirectToDashboard();
-
+    if (response.user?.role === "student") {
+      navigate("/student/dashboard", { replace: true });
+    } else if (response.user?.role === "admin") {
+      navigate("/organization/dashboard", { replace: true });
+    } else {
+      navigate("/login", { replace: true });
+    }
   } catch (err: any) {
     setError(err.response?.data?.message || "Invalid email or password");
   } finally {
     setLoading(false);
   }
 };
-
 const handleGoogleLogin = () => {
   // Implement Google login logic here
   console.log("Google login clicked");
-  const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-  window.location.href = `${baseUrl}/auth/google`; // Redirect to your backend endpoint for Google OAuth 
+  window.location.href = `${baseURL}/api/auth/google`; // Redirect to your backend endpoint for Google OAuth 
 }
 
   return (

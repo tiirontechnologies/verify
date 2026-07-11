@@ -20,11 +20,11 @@ export default function useMeRedirect() {
 
   return useCallback(async () => {
     try {
-      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
     //   console.log("Calling /auth/me with baseUrl:", baseUrl);
 
-      const response = await fetch(`${baseUrl}/auth/me`, {
+      const response = await fetch(`${baseUrl}/api/auth/me`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -39,7 +39,7 @@ export default function useMeRedirect() {
       const role = nestedUser?.role || data?.user?.role || data?.role;
       const user = nestedUser || data?.user || { role };
 
-      console.log("/auth/me parsed role:", role);
+    //   console.log("/auth/me parsed role:", role);
 
       if (!response.ok || !role) {
         if (response.status === 401 || response.status === 403 || !role) {
