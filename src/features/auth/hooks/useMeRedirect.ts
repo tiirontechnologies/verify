@@ -24,7 +24,7 @@ export default function useMeRedirect() {
 
     //   console.log("Calling /auth/me with baseUrl:", baseUrl);
 
-      const response = await fetch(`${baseUrl}/api/auth/me`, {
+      const response = await fetch(`${baseUrl}/auth/me`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
