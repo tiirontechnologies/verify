@@ -37,7 +37,8 @@ const handleLogin = async () => {
 const handleGoogleLogin = () => {
   // Implement Google login logic here
   console.log("Google login clicked");
-  window.location.href = "http://localhost:5000/api/auth/google"; // Redirect to your backend endpoint for Google OAuth 
+  const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+  window.location.href = `${baseUrl}/auth/google`; // Redirect to your backend endpoint for Google OAuth 
 }
   return (
 <div className="w-full px-6">
