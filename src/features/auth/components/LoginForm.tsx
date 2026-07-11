@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../../../api/auth.api";
 import useMeRedirect from "../hooks/useMeRedirect";
@@ -8,6 +8,10 @@ import {baseURL} from "../../../api/axios";
 export default function LoginForm() {
   const navigate = useNavigate();
   const redirectToDashboard = useMeRedirect();
+
+  useEffect(() => {
+    redirectToDashboard();
+  }, []);
 
   const [role, setRole] =
 useState<"student" | "admin">("student");
