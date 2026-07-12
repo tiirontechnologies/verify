@@ -13,7 +13,7 @@ export default function ProtectedRoute({
 
   useEffect(() => {
     const verifyAuth = async () => {
-      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+      const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
       try {
         const response = await fetch(`${baseUrl}/api/auth/me`, {
