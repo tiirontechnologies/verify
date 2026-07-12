@@ -31,8 +31,6 @@ function AuthBootstrap() {
 
     hasCheckedRef.current = true;
 
-    console.log("Auth bootstrap mounted");
-    console.log("Calling /auth/me from bootstrap");
     redirectToDashboard();
   }, [redirectToDashboard]);
 

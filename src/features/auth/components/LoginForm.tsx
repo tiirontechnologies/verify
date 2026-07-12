@@ -75,9 +75,7 @@ const handleLogin = async () => {
   }
 };
 const handleGoogleLogin = () => {
-  // Implement Google login logic here
-  console.log("Google login clicked");
-  window.location.href = `${baseURL}/api/auth/google`; // Redirect to your backend endpoint for Google OAuth 
+  window.location.href = `${baseURL}/api/auth/google`;
 }
 
   return (

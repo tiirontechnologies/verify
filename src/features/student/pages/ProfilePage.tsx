@@ -77,8 +77,6 @@ const [showEditModal, setShowEditModal] = useState(false);
 
     } catch (error) {
 
-      console.log(error);
-
     } finally {
 
       setLoading(false);
@@ -95,9 +93,58 @@ if (loading) {
 
   return (
     <DashboardLayout>
-      <div className="flex justify-center items-center h-screen">
+      {/* <div className="flex justify-center items-center h-screen">
         Loading Profile...
+      </div> */}
+
+
+ 
+
+<div className="fixed inset-0 flex items-center justify-center bg-white overflow-hidden">
+  {/* Background Glow */}
+  <div className="absolute w-[350px] h-[350px] rounded-full bg-red-600/10 blur-3xl animate-pulse" />
+
+  {/* Loader */}
+  <div className="relative z-10 flex flex-col items-center">
+    <div className="relative w-24 h-24">
+      {/* Outer Ring */}
+      <div className="absolute inset-0 rounded-full border-[3px] border-red-100" />
+
+      {/* Rotating Ring */}
+      <div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-red-600 animate-spin" />
+
+      {/* Inner Rotating Ring */}
+      <div className="absolute inset-3 rounded-full border-[3px] border-transparent border-b-red-500 animate-spin [animation-direction:reverse] [animation-duration:1.4s]" />
+
+      {/* Center Logo / Dot */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-4 h-4 rounded-full bg-red-600 shadow-[0_0_30px_rgba(220,38,38,0.7)] animate-pulse" />
       </div>
+    </div>
+
+    {/* Text */}
+    <h2 className="mt-8 text-2xl font-bold text-gray-900 tracking-wide">
+      Loading Profile
+    </h2>
+
+    <p className="mt-2 text-gray-500 text-sm">
+      Please wait while we prepare your workspace.
+    </p>
+
+    {/* Progress Bar */}
+    <div className="mt-8 w-64 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+      <div className="h-full w-1/2 bg-red-600 rounded-full animate-[loading_1.4s_ease-in-out_infinite]" />
+    </div>
+
+    {/* Loading Dots */}
+    <div className="flex gap-2 mt-6">
+      <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-bounce"></span>
+      <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-bounce delay-150"></span>
+      <span className="w-2.5 h-2.5 rounded-full bg-red-400 animate-bounce delay-300"></span>
+    </div>
+  </div>
+</div>
+
     </DashboardLayout>
   );
 
