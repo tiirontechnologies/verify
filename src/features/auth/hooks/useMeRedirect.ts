@@ -22,8 +22,6 @@ export default function useMeRedirect() {
     try {
       const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-    //   console.log("Calling /auth/me with baseUrl:", baseUrl);
-
       const response = await fetch(`${baseUrl}/api/auth/me`, {
         method: "GET",
         headers: {
@@ -32,14 +30,10 @@ export default function useMeRedirect() {
         credentials: "include",
       });
 
-    //   console.log("/auth/me response status:", response.status);
-
       const data = (await response.json().catch(() => ({}))) as MeResponse;
       const nestedUser = data?.user?.user;
       const role = nestedUser?.role || data?.user?.role || data?.role;
       const user = nestedUser || data?.user || { role };
-
-    //   console.log("/auth/me parsed role:", role);
 
       if (!response.ok || !role) {
         if (response.status === 401 || response.status === 403 || !role) {

@@ -77,8 +77,6 @@ const [showEditModal, setShowEditModal] = useState(false);
 
     } catch (error) {
 
-      console.log(error);
-
     } finally {
 
       setLoading(false);

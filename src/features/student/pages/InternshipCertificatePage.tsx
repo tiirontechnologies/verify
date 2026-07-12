@@ -28,15 +28,6 @@ export default function InternshipCertificatePage() {
         const response = await getMyCertificate();
 
         const data = response.data;
-        console.log("API Response:", response);
-
-console.log("Certificate:", data);
-
-console.log("startDate =", data.startDate);
-
-console.log("endDate =", data.endDate);
-
-console.log("issueDate =", data.issueDate);
 
         setCertificate({
           id: data._id,

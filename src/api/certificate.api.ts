@@ -20,5 +20,18 @@ export const verifyCertificate = async (
     `/api/certificates/verify/${certificateId}`
   );
 
-  return response.data;
+  const payload = response.data;
+
+  if (payload?.success === false) {
+    const error: any = new Error(
+      payload?.message || "Certificate not found"
+    );
+    error.response = {
+      status: 404,
+      data: payload,
+    };
+    throw error;
+  }
+
+  return payload;
 };

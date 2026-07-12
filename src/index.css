@@ -1,4 +1,14 @@
 @import "tailwindcss";
+
+button,
+a[role="button"],
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  cursor: pointer;
+}
+
 @keyframes float {
   0%,
   100% {

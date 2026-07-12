@@ -108,8 +108,6 @@ export default function EditProfileModal({
 
     } catch (error) {
 
-      console.log(error);
-
       alert("Unable to update profile.");
 
     } finally {
