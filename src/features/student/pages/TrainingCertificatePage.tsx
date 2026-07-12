@@ -1,282 +1,20 @@
-// // import DashboardLayout from "../../../layouts/DashboardLayout";
-// // import TrainingCertificate from "../components/certificate/TrainingCertificate";
 
-// // import { ArrowLeft, Download } from "lucide-react";
-// // import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useNavigate } from "react-router-dom";
 
-// // import html2canvas from "html2canvas";
-// // import jsPDF from "jspdf";
+import DashboardLayout from "../../../layouts/DashboardLayout";
 
-// // import { useEffect, useState } from "react";
-// // import { getMyCertificate } from "../../../api/certificate.api";
-// // import type { CertificateData } from "../../../types/certificate";
+import { ArrowLeft, Award, Download } from "lucide-react";
+import { toPng } from "html-to-image";
 
-// // export default function TrainingCertificatePage() {
-// //   const navigate = useNavigate();
+// 👇 agar tumhara actual function ka naam alag hai to sirf yaha badlo
+import { getMyCertificate} from "../../../api/certificate.api";
+import type { CertificateData } from "../../../types/certificate";
 
-// // const [certificate, setCertificate] =
-// //   useState<CertificateData | null>(null);
+// 👇 training certificate ka background image (same ya alag, jo bhi use karna ho)
+import traningBg from "../../../assets/traningBg.png";
 
-// // const [loading, setLoading] = useState(true);
 
-// // const [error, setError] = useState("");
-
-// // useEffect(() => {
-
-// //   const fetchCertificate = async () => {
-
-// //     try {
-
-// //       const response = await getMyCertificate();
-
-// //       const data = response.data;
-
-// //       setCertificate({
-
-// //         id: data._id,
-
-// //         type: "training",
-
-// //         studentName: data.studentName,
-
-// //         email: data.email,
-
-// //         certificateId: data.certificateId,
-
-// //         organization: data.organization,
-
-// //         course: data.course,
-
-// //         role: data.role,
-
-// //         issueDate: new Date(data.issueDate).toLocaleDateString(
-// //           "en-GB",
-// //           {
-// //             day: "2-digit",
-// //             month: "long",
-// //             year: "numeric",
-// //           }
-// //         ),
-
-// //         startDate: new Date(data.startDate).toLocaleDateString(
-// //           "en-GB",
-// //           {
-// //             day: "2-digit",
-// //             month: "short",
-// //             year: "numeric",
-// //           }
-// //         ),
-
-// //         endDate: new Date(data.endDate).toLocaleDateString(
-// //           "en-GB",
-// //           {
-// //             day: "2-digit",
-// //             month: "short",
-// //             year: "numeric",
-// //           }
-// //         ),
-
-// //         mentor: data.mentor,
-
-// //         director: data.director,
-
-// //         qrCode: data.qrCode || "/qr.png",
-// //         status: data.status,
-
-// //       });
-
-// //     } catch (err: any) {
-
-// //       setError(
-// //         err.response?.data?.message || "No Certificate Found"
-// //       );
-
-// //     } finally {
-
-// //       setLoading(false);
-
-// //     }
-
-// //   };
-
-// //   fetchCertificate();
-
-// // }, []);
-
-// //   const downloadCertificate = async () => {
-// //     const certificateElement = document.getElementById("certificate");
-
-// //     if (!certificateElement) return;
-
-// //     const canvas = await html2canvas(certificateElement, {
-// //       scale: 3,
-// //       useCORS: true,
-// //       backgroundColor: "#ffffff",
-// //     });
-
-// //     const imgData = canvas.toDataURL("image/png");
-
-// //     const pdf = new jsPDF({
-// //       orientation: "landscape",
-// //       unit: "mm",
-// //       format: "a4",
-// //     });
-
-// //     const pdfWidth = pdf.internal.pageSize.getWidth();
-// //     const pdfHeight = pdf.internal.pageSize.getHeight();
-
-// //     pdf.addImage(
-// //       imgData,
-// //       "PNG",
-// //       0,
-// //       0,
-// //       pdfWidth,
-// //       pdfHeight
-// //     );
-
-// //     if (!certificate) return;
-
-// // pdf.save(
-// //   `${certificate.studentName}-Training-Certificate.pdf`
-// // );
-// //   };
-// //   if (loading) {
-// //   return (
-// //     <DashboardLayout>
-// //       <div className="flex justify-center items-center h-screen">
-// //         Loading Certificate...
-// //       </div>
-// //     </DashboardLayout>
-// //   );
-// // }
-
-// // if (error) {
-// //   return (
-// //     <DashboardLayout>
-// //       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 -m-6 p-6 flex items-center justify-center">
-// //         <div className="relative w-full max-w-2xl overflow-hidden rounded-[32px] border border-slate-200 bg-white/90 p-10 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-sm text-center sm:p-14">
-// //           <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-blue-500/10 via-blue-400/5 to-transparent"></div>
-
-// //           <div className="relative mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-blue-50 to-blue-100 shadow-inner">
-// //             <svg viewBox="0 0 24 24" className="h-10 w-10 text-blue-600" fill="none" stroke="currentColor" strokeWidth="1.8">
-// //               <path d="M9 12h6m-6 4h6M9 8h.01M15 8h.01" />
-// //               <path d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5z" />
-// //             </svg>
-// //           </div>
-
-// //           <h1 className="relative mt-8 text-4xl font-semibold text-slate-800 sm:text-5xl">
-// //             Certificate Not Yet Available
-// //           </h1>
-
-// //           <p className="relative mx-auto mt-5 max-w-2xl text-lg leading-8 text-slate-500">
-// //             {error}
-// //           </p>
-
-// //           <div className="relative mt-8 rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4 text-sm text-slate-500">
-// //             Your training completion certificate will appear here once it has been issued by your organization.
-// //           </div>
-
-// //           <div className="relative mt-10">
-// //             <button
-// //               onClick={() => navigate(-1)}
-// //               className="rounded-2xl bg-blue-600 px-8 py-4 font-semibold text-white shadow-lg shadow-blue-200 transition hover:bg-blue-700"
-// //             >
-// //               Go Back
-// //             </button>
-// //           </div>
-// //         </div>
-// //       </div>
-// //     </DashboardLayout>
-// //   );
-// // }
-
-// // if (!certificate) return null;
-
-// //   return (
-// //     <DashboardLayout>
-// //       <div className="bg-slate-100 min-h-screen -m-6 p-8">
-
-// //         {/* Header */}
-
-// //         <div className="bg-white rounded-3xl shadow-sm border p-8 flex justify-between items-center">
-
-// //           <div>
-
-// //             <button
-// //               onClick={() => navigate(-1)}
-// //               className="flex items-center gap-2 text-blue-600 hover:text-blue-700 mb-4 transition"
-// //             >
-// //               <ArrowLeft size={18} />
-// //               Back
-// //             </button>
-
-// //             <h1 className="text-4xl font-bold">
-// //               Training Certificate
-// //             </h1>
-
-// //             <p className="text-gray-500 mt-2">
-// //               View and download your training completion certificate.
-// //             </p>
-
-// //           </div>
-
-// //           <button
-// //             onClick={downloadCertificate}
-// //             className="bg-blue-600 hover:bg-blue-700 text-white px-7 py-3 rounded-xl flex items-center gap-3 transition"
-// //           >
-// //             <Download size={20} />
-// //             Download PDF
-// //           </button>
-
-// //         </div>
-
-// //         {/* Certificate Viewer */}
-
-// //         <div className="mt-8 bg-white rounded-3xl shadow-lg border p-6 overflow-x-auto overflow-y-hidden">
-
-// //           <div
-// //             className="flex justify-center"
-// //             style={{ minWidth: "1200px" }}
-// //           >
-
-// //             <TrainingCertificate
-// //   certificate={certificate}
-// // />
-
-// //           </div>
-
-// //         </div>
-
-// //       </div>
-// //     </DashboardLayout>
-// //   );
-// // }
-
-
-
-
-// import { useEffect, useRef, useState, type CSSProperties } from "react";
-// import { useNavigate } from "react-router-dom";
-
-// import DashboardLayout from "../../../layouts/DashboardLayout";
-
-// import { ArrowLeft, Download } from "lucide-react";
-// import { toPng } from "html-to-image";
-
-// // 👇 agar tumhara actual function ka naam alag hai to sirf yaha badlo
-// // import { getMyTrainingCertificate } from "../../../api/certificate.api";
-// // import type { CertificateData } from "../../../types/certificate";
-
-// import { getMyCertificate } from "../../../api/certificate.api";
-// import type { CertificateData } from "../../../types/certificate";
-
-// // 👇 training certificate ka background image (same ya alag, jo bhi use karna ho)
-// import traningBg from "../../../assets/traningBg.png";
-
-// // ─────────────────────────────────────────────────────────────
-// // Course-wise training description templates
-// // certificate.course field se match hota hai (case-insensitive)
-// // ─────────────────────────────────────────────────────────────
 // const TRAINING_TEMPLATES: Record<
 //   string,
 //   { title: string; description: string }
@@ -298,6 +36,14 @@
 //   },
 // };
 
+
+// function getDescriptionFontClamp(description: string) {
+//   const len = description.length;
+//   if (len > 420) return "clamp(6px, 0.95cqw, 12px)";
+//   if (len > 300) return "clamp(6.5px, 1.05cqw, 13px)";
+//   return "clamp(7.5px, 1.25cqw, 15px)";
+// }
+
 // function getTrainingContent(certificate: CertificateData) {
 //   const key = (certificate.course || "").trim().toLowerCase();
 //   const template = TRAINING_TEMPLATES[key];
@@ -313,333 +59,6 @@
 //   };
 // }
 
-// // ─────────────────────────────────────────────────────────────
-// // containerType: "inline-size" + cqw units => font-size hamesha
-// // certificate CARD ki actual width se scale hota hai, viewport se nahi.
-// // ─────────────────────────────────────────────────────────────
-// const outerStyle: CSSProperties = {
-//   containerType: "inline-size",
-//   width: "100%",
-// } as CSSProperties;
-
-// // image capture ke time outer container ko isi fixed width pe rakha
-// // jaata hai, taaki cqw-based font-size hamesha isi width se calculate
-// // ho — on-screen jo dikhta hai wahi download hota hai
-// const CAPTURE_WIDTH = 1200;
-
-// export default function TrainingCertificatePage() {
-//   const navigate = useNavigate();
-//   const certificateRef = useRef<HTMLDivElement>(null);
-//   const outerRef = useRef<HTMLDivElement>(null);
-
-//   const [certificate, setCertificate] = useState<CertificateData | null>(null);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState("");
-//   const [downloadingImage, setDownloadingImage] = useState(false);
-
-//   useEffect(() => {
-//     const fetchCertificate = async () => {
-//       try {
-//         const response = await getMyCertificate();
-//         const data = response.data;
-
-//         setCertificate({
-//           id: data._id,
-//           type: data.certificateType.toLowerCase(),
-
-//           studentName: data.studentName,
-//           email: data.email,
-//           certificateId: data.certificateId,
-
-//           organization: data.organization,
-//           course: data.course,
-//           role: data.role,
-
-//           issueDate: new Date(data.issueDate).toLocaleDateString("en-GB", {
-//             day: "2-digit",
-//             month: "long",
-//             year: "numeric",
-//           }),
-
-//           startDate: new Date(data.startDate).toLocaleDateString("en-GB", {
-//             day: "2-digit",
-//             month: "short",
-//             year: "numeric",
-//           }),
-
-//           endDate: new Date(data.endDate).toLocaleDateString("en-GB", {
-//             day: "2-digit",
-//             month: "short",
-//             year: "numeric",
-//           }),
-
-//           mentor: data.mentor,
-//           director: data.director,
-
-//           qrCode: data.qrCode || "/qr.png",
-//           status: data.status,
-//         });
-//       } catch (err: any) {
-//         setError(err.response?.data?.message || "No Training Certificate Found");
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchCertificate();
-//   }, []);
-
-//   // outer container ko fixed width pe resize karke screenshot leta hai,
-//   // taaki cqw-based font-size hamesha consistent calculate ho — fir
-//   // original width wapas restore kar deta hai
-//   const captureCertificate = async () => {
-//     if (!certificateRef.current || !outerRef.current) return null;
-
-//     await document.fonts.ready;
-
-//     const prevWidth = outerRef.current.style.width;
-//     const prevMaxWidth = outerRef.current.style.maxWidth;
-
-//     outerRef.current.style.width = `${CAPTURE_WIDTH}px`;
-//     outerRef.current.style.maxWidth = `${CAPTURE_WIDTH}px`;
-
-//     // browser ko container-query recalc karne ka time do
-//     await new Promise((resolve) =>
-//       requestAnimationFrame(() => requestAnimationFrame(resolve))
-//     );
-
-//     try {
-//       return await toPng(certificateRef.current, {
-//         quality: 1,
-//         pixelRatio: 3,
-//         cacheBust: true,
-//         backgroundColor: "#ffffff",
-//       });
-//     } finally {
-//       outerRef.current.style.width = prevWidth;
-//       outerRef.current.style.maxWidth = prevMaxWidth;
-//     }
-//   };
-
-//   const downloadCertificateImage = async () => {
-//     if (!certificate) return;
-
-//     setDownloadingImage(true);
-//     try {
-//       const dataUrl = await captureCertificate();
-//       if (!dataUrl) return;
-
-//       const link = document.createElement("a");
-//       link.download = `${(certificate.studentName || "Student").trim().replace(/\s+/g, "_")}-Training-Certificate.png`;
-//       link.href = dataUrl;
-//       link.click();
-//     } catch (err) {
-//       console.error("Failed to download training certificate image:", err);
-//     } finally {
-//       setDownloadingImage(false);
-//     }
-//   };
-
-//   if (loading) {
-//     return (
-//       <DashboardLayout>
-//         <div className="flex justify-center items-center h-screen px-4 text-center">
-//           <h2 className="text-xl sm:text-2xl font-semibold">Loading Certificate...</h2>
-//         </div>
-//       </DashboardLayout>
-//     );
-//   }
-
-//   if (error) {
-//     return (
-//       <DashboardLayout>
-//         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 -m-6 p-4 sm:p-6 flex items-center justify-center">
-//           <div className="relative w-full max-w-2xl overflow-hidden rounded-[24px] sm:rounded-[32px] border border-slate-200 bg-white/90 p-6 sm:p-10 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-sm text-center sm:p-14">
-//             <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-red-500/10 via-red-400/5 to-transparent"></div>
-
-//             <div className="relative mx-auto flex h-16 w-16 sm:h-24 sm:w-24 items-center justify-center rounded-full bg-gradient-to-br from-red-50 to-red-100 shadow-inner">
-//               <svg viewBox="0 0 24 24" className="h-7 w-7 sm:h-10 sm:w-10 text-red-500" fill="none" stroke="currentColor" strokeWidth="1.8">
-//                 <path d="M9 12h6m-6 4h6M9 8h.01M15 8h.01" />
-//                 <path d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5z" />
-//               </svg>
-//             </div>
-
-//             <h1 className="relative mt-6 sm:mt-8 text-2xl sm:text-4xl lg:text-5xl font-semibold text-slate-800">
-//               Certificate Not Yet Available
-//             </h1>
-
-//             <p className="relative mx-auto mt-4 sm:mt-5 max-w-2xl text-sm sm:text-lg leading-6 sm:leading-8 text-slate-500">
-//               {error}
-//             </p>
-
-//             <div className="relative mt-6 sm:mt-8 rounded-2xl border border-slate-100 bg-slate-50 px-4 sm:px-5 py-3 sm:py-4 text-xs sm:text-sm text-slate-500">
-//               Your training completion certificate will appear here once it has been issued.
-//             </div>
-
-//             <div className="relative mt-8 sm:mt-10">
-//               <button
-//                 onClick={() => navigate(-1)}
-//                 className="rounded-2xl bg-red-600 px-6 sm:px-8 py-3 sm:py-4 font-semibold text-white shadow-lg shadow-red-200 transition hover:bg-red-700 text-sm sm:text-base"
-//               >
-//                 Go Back
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-//       </DashboardLayout>
-//     );
-//   }
-
-//   if (!certificate) {
-//     return null;
-//   }
-
-//   const { description } = getTrainingContent(certificate);
-
-//   return (
-//     <DashboardLayout>
-//       <div className="bg-slate-100 min-h-screen -m-6 p-4 sm:p-8">
-//         {/* Header */}
-//         <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border p-4 sm:p-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-//           <div>
-//             <button
-//               onClick={() => navigate(-1)}
-//               className="flex items-center gap-2 text-red-600 hover:text-red-700 mb-3 sm:mb-4 transition text-sm sm:text-base"
-//             >
-//               <ArrowLeft size={18} />
-//               Back
-//             </button>
-
-//             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold">
-//               Training Certificate
-//             </h1>
-
-//             <p className="text-gray-500 mt-2 text-sm sm:text-base">
-//               View your training completion certificate and download it as an image.
-//             </p>
-//           </div>
-
-//           <button
-//             onClick={downloadCertificateImage}
-//             disabled={downloadingImage}
-//             className="bg-red-600 hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed text-white px-5 sm:px-7 py-2.5 sm:py-3 rounded-xl flex items-center justify-center gap-2 sm:gap-3 transition text-sm sm:text-base self-start sm:self-auto"
-//           >
-//             <Download size={18} />
-//             {downloadingImage ? "Preparing..." : "Download Image"}
-//           </button>
-//         </div>
-
-//         {/* Certificate */}
-//         <div className="mt-6 sm:mt-8 bg-white rounded-2xl sm:rounded-3xl shadow-lg border p-3 sm:p-6">
-//           <div style={outerStyle} ref={outerRef}>
-//             <div
-//               id="training-certificate"
-//               ref={certificateRef}
-//               style={{
-//                 position: "relative",
-//                 width: "100%",
-//                 maxWidth: 1200,
-//                 margin: "0 auto",
-//                 aspectRatio: "2000 / 1414",
-//                 backgroundImage: `url(${traningBg})`,
-//                 backgroundSize: "100% 100%",
-//                 backgroundRepeat: "no-repeat",
-//                 fontFamily: "'Poppins', Arial, sans-serif",
-//                 color: "#0f172a",
-//                 overflow: "hidden",
-//                 borderRadius: "clamp(6px, 1cqw, 14px)",
-//               }}
-//             >
-//               {/* Certificate ID value */}
-//               <div
-//                 style={{
-//                   position: "absolute",
-//                   top: "13.8%",
-//                   left: "9.6%",
-//                   fontSize: "clamp(8px, 1.15cqw, 17px)",
-//                   fontWeight: 700,
-//                   letterSpacing: "0.4px",
-//                   color: "#0f172a",
-//                   whiteSpace: "nowrap",
-//                 }}
-//               >
-//                 {certificate.certificateId}
-//               </div>
-
-//               {/* Issue Date value */}
-//               <div
-//                 style={{
-//                   position: "absolute",
-//                   top: "13.8%",
-//                   right: "9%",
-//                   fontSize: "clamp(8px, 1.15cqw, 17px)",
-//                   fontWeight: 700,
-//                   letterSpacing: "0.4px",
-//                   color: "#0f172a",
-//                   whiteSpace: "nowrap",
-//                 }}
-//               >
-//                 {certificate.issueDate}
-//               </div>
-
-//               {/* Student Name — sits just above the blank underline */}
-//               <div
-//                 style={{
-//                   position: "absolute",
-//                   top: "48%",
-//                   left: "50%",
-//                   transform: "translate(-50%, 0)",
-//                   width: "62%",
-//                   textAlign: "center",
-//                   fontSize: "clamp(15px, 3cqw, 38px)",
-//                   fontWeight: 700,
-//                   color: "#081F5C",
-//                   fontFamily: "'Great Vibes', 'Brush Script MT', cursive",
-//                   lineHeight: 1.1,
-//                 }}
-//               >
-//                 {certificate.studentName?.trim()}
-//               </div>
-
-//               {/* Body — training program description (directly below underline, no pill) */}
-//               <div
-//                 style={{
-//                   position: "absolute",
-//                   top: "58%",
-//                   left: "50%",
-//                   transform: "translateX(-50%)",
-//                   width: "78%",
-//                   textAlign: "center",
-//                   fontSize: "clamp(7.5px, 1.25cqw, 15px)",
-//                   lineHeight: 1.45,
-//                   color: "#334155",
-//                 }}
-//               >
-//                 {description}
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </DashboardLayout>
-//   );
-// }
-
-
-import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { useNavigate } from "react-router-dom";
-
-import DashboardLayout from "../../../layouts/DashboardLayout";
-
-import { ArrowLeft, Award, Download } from "lucide-react";
-import { toPng } from "html-to-image";
-
-// 👇 agar tumhara actual function ka naam alag hai to sirf yaha badlo
-import { getMyCertificate} from "../../../api/certificate.api";
-import type { CertificateData } from "../../../types/certificate";
-
-// 👇 training certificate ka background image (same ya alag, jo bhi use karna ho)
-import traningBg from "../../../assets/traningBg.png";
 
 // ─────────────────────────────────────────────────────────────
 // Course-wise training description templates
@@ -647,22 +66,61 @@ import traningBg from "../../../assets/traningBg.png";
 // ─────────────────────────────────────────────────────────────
 const TRAINING_TEMPLATES: Record<
   string,
-  { title: string; description: string }
+  { title: string; plainDescription: string; description: React.ReactNode }
 > = {
   "data analytics & ai": {
     title: "Data Analytics & AI Training Certificate",
-    description:
+    plainDescription:
       "For successfully completing the Data Analytics & AI Training Program offered by Inacademic, an initiative of Tiiron Technologies Pvt. Ltd. Throughout the program, the participant gained practical knowledge of data analysis, data visualization, Python for analytics, artificial intelligence fundamentals, and real-world data-driven problem solving. They demonstrated strong learning ability, consistency, and active participation throughout the program.",
+    description: (
+      <>
+        For successfully completing the{" "}
+        <strong>Data Analytics & AI Training Program</strong> offered by
+        Inacademic, an initiative of{" "}
+        <strong>Tiiron Technologies Pvt. Ltd.</strong> Throughout the
+        program, the participant gained practical knowledge of data
+        analysis, data visualization, Python for analytics, artificial
+        intelligence fundamentals, and real-world data-driven problem
+        solving. They demonstrated strong learning ability, consistency, and
+        active participation throughout the program.
+      </>
+    ),
   },
   "python development": {
     title: "Python Development Training Certificate",
-    description:
+    plainDescription:
       "For successfully completing the Python Development Training Program offered by Inacademic, an initiative of Tiiron Technologies Pvt. Ltd. Throughout the program, the participant gained practical knowledge of Python programming, object-oriented programming, file handling, API fundamentals, and problem-solving through hands-on coding exercises. They demonstrated strong learning ability, consistency, and active participation throughout the program.",
+    description: (
+      <>
+        For successfully completing the{" "}
+        <strong>Python Development Training Program</strong> offered by
+        Inacademic, an initiative of{" "}
+        <strong>Tiiron Technologies Pvt. Ltd.</strong> Throughout the
+        program, the participant gained practical knowledge of Python
+        programming, object-oriented programming, file handling, API
+        fundamentals, and problem-solving through hands-on coding exercises.
+        They demonstrated strong learning ability, consistency, and active
+        participation throughout the program.
+      </>
+    ),
   },
   "frontend development": {
     title: "Frontend Development Training Certificate",
-    description:
+    plainDescription:
       "For successfully completing the Frontend Development Training Program offered by Inacademic, an initiative of Tiiron Technologies Pvt. Ltd. Throughout the program, the participant gained practical knowledge of modern frontend development, responsive web design, JavaScript, React, API integration, and user interface development. They demonstrated strong learning ability, consistency, and active participation throughout the program.",
+    description: (
+      <>
+        For successfully completing the{" "}
+        <strong>Frontend Development Training Program</strong> offered by
+        Inacademic, an initiative of{" "}
+        <strong>Tiiron Technologies Pvt. Ltd.</strong> Throughout the
+        program, the participant gained practical knowledge of modern
+        frontend development, responsive web design, JavaScript, React, API
+        integration, and user interface development. They demonstrated
+        strong learning ability, consistency, and active participation
+        throughout the program.
+      </>
+    ),
   },
 };
 
@@ -671,11 +129,17 @@ const TRAINING_TEMPLATES: Record<
 // scale nahi hota — isliye text neeche QR/signature graphics pe chadh
 // jaata tha. Yaha length ke hisaab se floor aur bhi chota kar diya
 // taaki har screen size pe text apni safe zone ke andar hi rahe.
-function getDescriptionFontClamp(description: string) {
-  const len = description.length;
-  if (len > 420) return "clamp(6px, 0.95cqw, 12px)";
-  if (len > 300) return "clamp(6.5px, 1.05cqw, 13px)";
-  return "clamp(7.5px, 1.25cqw, 15px)";
+// function getDescriptionFontClamp(plainDescription: string) {
+//   const len = plainDescription.length;
+//   if (len > 420) return "clamp(6px, 0.95cqw, 12px)";
+//   if (len > 300) return "clamp(6.5px, 1.05cqw, 13px)";
+//   return "clamp(7.5px, 1.25cqw, 15px)";
+// }
+function getDescriptionFontClamp(plainDescription: string) {
+  const len = plainDescription.length;
+  if (len > 420) return "clamp(7px, 1.1cqw, 14px)";
+  if (len > 300) return "clamp(7.5px, 1.25cqw, 16px)";
+  return "clamp(7.8px, 1.25cqw, 18px)";
 }
 
 function getTrainingContent(certificate: CertificateData) {
@@ -687,9 +151,21 @@ function getTrainingContent(certificate: CertificateData) {
   }
 
   // Fallback agar course teeno mein se koi match na kare
+  const plainDescription = `For successfully completing the ${certificate.course} Training Program offered by Inacademic, an initiative of Tiiron Technologies Pvt. Ltd. The participant demonstrated strong learning ability, consistency, and active participation throughout the program.`;
+
   return {
     title: `${certificate.course} Training Certificate`,
-    description: `For successfully completing the ${certificate.course} Training Program offered by Inacademic, an initiative of Tiiron Technologies Pvt. Ltd. The participant demonstrated strong learning ability, consistency, and active participation throughout the program.`,
+    plainDescription,
+    description: (
+      <>
+        For successfully completing the{" "}
+        <strong>{certificate.course} Training Program</strong> offered by
+        Inacademic, an initiative of{" "}
+        <strong>Tiiron Technologies Pvt. Ltd.</strong> The participant
+        demonstrated strong learning ability, consistency, and active
+        participation throughout the program.
+      </>
+    ),
   };
 }
 
@@ -711,7 +187,7 @@ export default function TrainingCertificatePage() {
   const navigate = useNavigate();
   const certificateRef = useRef<HTMLDivElement>(null);
   const outerRef = useRef<HTMLDivElement>(null);
-
+// const { description, plainDescription } = getTrainingContent(certificate);
   const [certificate, setCertificate] = useState<CertificateData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -919,7 +395,8 @@ export default function TrainingCertificatePage() {
     return null;
   }
 
-  const { description } = getTrainingContent(certificate);
+  // const { description } = getTrainingContent(certificate);
+  const { description, plainDescription } = getTrainingContent(certificate);
 
   return (
     <DashboardLayout>
@@ -1016,7 +493,7 @@ export default function TrainingCertificatePage() {
               </div>
 
               {/* Student Name — sits just above the blank underline */}
-              <div
+              {/* <div
                 style={{
                   position: "absolute",
                   top: "50%",
@@ -1032,7 +509,25 @@ export default function TrainingCertificatePage() {
                 }}
               >
                 {certificate.studentName?.trim()}
-              </div>
+              </div> */}
+              {/* Student Name — sits just above the blank underline */}
+<div
+  style={{
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, 0)",
+    width: "70%",
+    textAlign: "center",
+    fontSize: "clamp(18px, 3.6cqw, 48px)",
+    fontWeight: 700,
+    color: "#f1931f",
+    fontFamily: "'Great Vibes', 'Brush Script MT', cursive",
+    lineHeight: 1.1,
+  }}
+>
+  {certificate.studentName?.trim()}
+</div>
 
               {/* Body — training program description (directly below underline, no pill) */}
               <div
@@ -1043,7 +538,7 @@ export default function TrainingCertificatePage() {
                   transform: "translateX(-50%)",
                   width: "80%",
                   textAlign: "center",
-                  fontSize: getDescriptionFontClamp(description),
+                  fontSize: getDescriptionFontClamp(plainDescription),
                   lineHeight: 1.75,
                   color: "#334155",
                 }}
