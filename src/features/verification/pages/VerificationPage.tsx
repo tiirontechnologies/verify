@@ -104,7 +104,6 @@ const fetchCertificate = async () => {
   }
 
 };
-
     fetchCertificate();
 
   }, [id, navigate]);

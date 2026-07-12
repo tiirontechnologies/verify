@@ -5,7 +5,7 @@ export default function VerificationFailedPage() {
   const location = useLocation();
   const message =
     (location.state as { message?: string } | null)?.message ||
-    "This verification link doesn’t seem to match any certificate in our records.";
+    "The verification details provided do not match any certificate in our records.";
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#fff7f7_0%,_#f8fafc_55%,_#f1f5f9_100%)] flex items-center justify-center px-6 py-16">
@@ -28,7 +28,7 @@ export default function VerificationFailedPage() {
         </p>
 
         <div className="relative mt-8 rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4 text-sm text-slate-500">
-          Double-check the ID, or ask the issuer for a fresh link — even the best certificates occasionally need a second look.
+          Please verify the ID carefully, or contact the issuer for a fresh verification ID if needed.
         </div>
 
         <div className="relative mt-10 flex flex-col justify-center gap-4 sm:flex-row">
