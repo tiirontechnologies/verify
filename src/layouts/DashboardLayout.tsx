@@ -11,13 +11,10 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-gray-50">
 
-      <div className="flex">
-
-        {/* Sidebar */}
+      {/* <div className="flex">
 
         <Sidebar />
 
-        {/* Right Side */}
 
         <div className="flex-1">
 
@@ -29,8 +26,18 @@ export default function DashboardLayout({
 
         </div>
 
-      </div>
+      </div> */}
+<div className="min-h-screen bg-gray-50">
+  <Sidebar />
 
+  <div className="flex flex-col min-h-screen md:ml-72">
+    <Topbar />
+
+    <main className="flex-1 p-4 md:p-8">
+      {children}
+    </main>
+  </div>
+</div>
     </div>
   );
 }
