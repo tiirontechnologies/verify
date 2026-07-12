@@ -613,9 +613,51 @@ export default function InternshipCertificatePage() {
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="flex justify-center items-center h-screen px-4 text-center">
-          <h2 className="text-xl sm:text-2xl font-semibold">Loading Certificate...</h2>
-        </div>
+        <div className="flex min-h-[70vh] items-center justify-center px-4">
+  <div className="flex flex-col items-center">
+    {/* Loader */}
+    <div className="relative">
+      <div className="h-20 w-20 rounded-full border-4 border-red-100"></div>
+
+      <div className="absolute inset-0 h-20 w-20 rounded-full border-4 border-transparent border-t-red-600 animate-spin"></div>
+
+      <div className="absolute inset-3 h-14 w-14 rounded-full border-4 border-transparent border-b-red-500 animate-spin [animation-direction:reverse] [animation-duration:1.5s]"></div>
+
+      <div className="absolute inset-0 flex items-center justify-center">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-8 w-8 text-red-600"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z"
+          />
+        </svg>
+      </div>
+    </div>
+
+    {/* Text */}
+    <h2 className="mt-8 text-2xl font-bold text-gray-900">
+      Loading Certificate
+    </h2>
+
+    <p className="mt-2 text-sm text-gray-500">
+      Please wait while we securely prepare your certificate.
+    </p>
+
+    {/* Animated Dots */}
+    <div className="mt-6 flex gap-2">
+      <span className="h-2.5 w-2.5 rounded-full bg-red-600 animate-bounce"></span>
+      <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-bounce delay-150"></span>
+      <span className="h-2.5 w-2.5 rounded-full bg-red-400 animate-bounce delay-300"></span>
+    </div>
+  </div>
+</div>
       </DashboardLayout>
     );
   }
@@ -756,7 +798,7 @@ export default function InternshipCertificatePage() {
               <div
                 style={{
                   position: "absolute",
-                  top: "48%",
+                  top: "46%",
                   left: "50%",
                   transform: "translate(-50%, 0)",
                   width: "62%",
