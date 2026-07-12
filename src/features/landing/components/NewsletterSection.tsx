@@ -61,14 +61,15 @@ export default function NewsletterSection() {
 
           {/* Right */}
 
-          <div className="flex w-full lg:w-auto gap-3">
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center lg:w-auto">
 
             <input
               type="email"
               placeholder="Enter your email"
               className="
+              w-full
+              min-w-0
               flex-1
-              lg:w-[360px]
               border
               rounded-2xl
               px-5
@@ -80,12 +81,15 @@ export default function NewsletterSection() {
 
             <button
               className="
-              bg-red-600
-              hover:bg-red-700
-              text-white
+              w-full
               rounded-2xl
+              bg-red-600
               px-8
+              py-4
+              text-white
               transition
+              hover:bg-red-700
+              sm:w-auto
               "
             >
               Subscribe

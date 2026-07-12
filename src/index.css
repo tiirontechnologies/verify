@@ -20,6 +20,38 @@ input[type="reset"] {
   }
 }
 
+.footer-col-h {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--ink, #0f172a);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1.8rem;
+}
+
+.footer-link {
+  font-size: 0.9375rem;
+  color: #787773;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+  gap: 0.5rem;
+}
+
+.footer-link:hover {
+  color: #ef233c;
+  transform: translateX(2px);
+}
+
+.footer-contact-label {
+  font-size: 10px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
 .hero-float {
   animation: float 5s ease-in-out infinite;
 }

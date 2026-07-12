@@ -5,32 +5,36 @@ import {
   Download,
 } from "lucide-react";
 
-export default function HowItWorksSection() {
-  const steps = [
-    {
-      icon: <Search size={28} />,
-      title: "Enter Verification ID",
-      desc: "Provide the credential ID or scan the QR code to begin verification.",
-    },
-    {
-      icon: <ShieldCheck size={28} />,
-      title: "Validate Authenticity",
-      desc: "Our platform securely checks the credential against trusted records.",
-    },
-    {
-      icon: <FileCheck size={28} />,
-      title: "View Credential Details",
-      desc: "Access internship details, certificates and supporting documents.",
-    },
-    {
-      icon: <Download size={28} />,
-      title: "Download Report",
-      desc: "Generate a signed verification report instantly for your records.",
-    },
-  ];
+const steps = [
+  {
+    icon: <Search size={28} />,
+    title: "Enter Verification ID",
+    desc: "Provide the credential ID or scan the QR code to begin verification.",
+    accent: "bg-red-50 text-red-600",
+  },
+  {
+    icon: <ShieldCheck size={28} />,
+    title: "Validate Authenticity",
+    desc: "Our platform securely checks the credential against trusted records.",
+    accent: "bg-blue-50 text-blue-600",
+  },
+  {
+    icon: <FileCheck size={28} />,
+    title: "View Credential Details",
+    desc: "Access internship details, certificates and supporting documents.",
+    accent: "bg-green-50 text-green-600",
+  },
+  {
+    icon: <Download size={28} />,
+    title: "Download Report",
+    desc: "Generate a signed verification report instantly for your records.",
+    accent: "bg-violet-50 text-violet-600",
+  },
+];
 
+export default function HowItWorksSection() {
   return (
-    <section className="py-20 md:py-32 bg-gray-50">
+    <section className="py-14 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
 
         {/* Heading */}
@@ -54,33 +58,21 @@ export default function HowItWorksSection() {
 
         {/* Cards */}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-
+        <div className="grid gap-8 grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
           {steps.map((step, index) => (
             <div
-              key={index}
-              className="bg-white rounded-3xl p-8 border shadow-sm hover:shadow-xl transition"
+              key={step.title}
+              className="group rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-2xl"
             >
-
-              <div className="w-16 h-16 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center">
+              <div className={`flex h-16 w-16 items-center justify-center rounded-3xl ${step.accent}`}>
                 {step.icon}
               </div>
 
-              <div className="mt-8 text-red-500 text-sm font-semibold">
-                STEP 0{index + 1}
-              </div>
-
-              <h3 className="mt-4 text-2xl font-bold text-slate-900">
-                {step.title}
-              </h3>
-
-              <p className="mt-5 text-gray-500 leading-8">
-                {step.desc}
-              </p>
-
+              <div className="mt-8 text-red-500 text-sm font-semibold">STEP 0{index + 1}</div>
+              <h3 className="mt-4 text-2xl font-bold text-slate-900">{step.title}</h3>
+              <p className="mt-5 text-slate-500 leading-8">{step.desc}</p>
             </div>
           ))}
-
         </div>
 
       </div>

@@ -1,4 +1,4 @@
-import Navbar from "../components/Navbar";
+﻿import Navbar from "../components/Navbar";
 import HeroSection from "../components/HeroSection";
 import FeaturesSection from "../components/FeaturesSection";
 import HowItWorksSection from "../components/HowItWorksSection";
@@ -10,7 +10,7 @@ import Footer from "../../../components/shared/Footer";
 
 export default function LandingPage() {
   return (
-    <>
+    <div className="min-h-screen overflow-x-hidden bg-white text-slate-900">
       <Navbar />
       <HeroSection />
       <FeaturesSection />
@@ -20,6 +20,6 @@ export default function LandingPage() {
       <QRCodeCTA />
       <NewsletterSection />
       <Footer />
-    </>
+    </div>
   );
 }
