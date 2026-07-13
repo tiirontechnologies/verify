@@ -1019,46 +1019,42 @@ export default function InternshipCertificatePage() {
     <DashboardLayout>
       <div className="bg-slate-100 min-h-screen -m-6 p-4 sm:p-8">
         {/* Header */}
-        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border overflow-hidden">
-          {/* Top strip with gradient + back button */}
-          <div className="bg-gradient-to-r from-red-50 via-orange-50/60 to-white px-4 sm:px-8 py-3 sm:py-4">
-            <button
-              onClick={() => navigate(-1)}
-              className="flex items-center gap-2 text-red-600 hover:text-red-700 transition text-sm sm:text-base font-medium"
-            >
-              <ArrowLeft size={18} />
-              Back
-            </button>
-          </div>
+      <div className="relative overflow-hidden bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200 p-5 sm:p-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-5">
+  <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-red-500/10 via-orange-400/5 to-transparent pointer-events-none" />
 
-          {/* Main content row */}
-          <div className="px-4 sm:px-8 pb-5 sm:pb-8 pt-1 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-5">
-            <div className="flex items-start gap-3 sm:gap-4">
-              <div className="shrink-0 w-11 h-11 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-orange-100 flex items-center justify-center">
-                <Award size={22} className="text-red-600 sm:hidden" />
-                <Award size={26} className="text-red-600 hidden sm:block" />
-              </div>
+  <div className="relative">
+    <button
+      onClick={() => navigate(-1)}
+      className="flex items-center gap-2 text-red-600 hover:text-red-700 mb-4 sm:mb-5 transition text-sm sm:text-base font-medium"
+    >
+      <ArrowLeft size={18} />
+      Back
+    </button>
 
-              <div>
-                <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
-                  Internship Certificate
-                </h1>
-                <p className="text-gray-500 mt-1 sm:mt-2 text-sm sm:text-base">
-                  View your internship completion certificate and download it as an image.
-                </p>
-              </div>
-            </div>
+    <div className="flex items-center gap-3 sm:gap-4">
+      <div className="flex h-11 w-11 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-red-50 to-orange-100 shadow-inner">
+        <Award className="h-5 w-5 sm:h-7 sm:w-7 text-red-600" />
+      </div>
+      <div>
+        <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold text-slate-900">
+          Internship Certificate
+        </h1>
+        <p className="text-slate-500 mt-1 text-xs sm:text-base">
+          View your internship completion certificate and download it as an image.
+        </p>
+      </div>
+    </div>
+  </div>
 
-            <button
-              onClick={downloadCertificateImage}
-              disabled={downloadingImage}
-              className="bg-gradient-to-b from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 disabled:opacity-60 disabled:cursor-not-allowed text-white px-5 sm:px-7 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 sm:gap-3 transition text-sm sm:text-base font-medium shadow-lg shadow-red-200 self-start sm:self-auto"
-            >
-              <Download size={18} />
-              {downloadingImage ? "Preparing..." : "Download Image"}
-            </button>
-          </div>
-        </div>
+  <button
+    onClick={downloadCertificateImage}
+    disabled={downloadingImage}
+    className="relative bg-red-600 hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed text-white px-5 sm:px-7 py-2.5 sm:py-3.5 rounded-xl flex items-center justify-center gap-2 sm:gap-3 transition text-sm sm:text-base font-medium shadow-lg shadow-red-200 self-start sm:self-auto"
+  >
+    <Download size={18} />
+    {downloadingImage ? "Preparing..." : "Download Image"}
+  </button>
+</div>
 
         {/* Certificate */}
         <div className="mt-6 sm:mt-8 bg-white rounded-2xl sm:rounded-3xl shadow-lg border p-3 sm:p-6">
