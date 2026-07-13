@@ -129,6 +129,8 @@ import { LogOut, X } from "lucide-react";
 import { sidebarMenus } from "../../constants/sidebarMenus";
 import { useSidebar } from "../../context/SidebarContext";
 import TiironLogo from "../../assets/Tiiron_Technologies_Logo.png";
+import { baseURL } from "../../api/axios";
+import axios from "axios";
 
 export default function Sidebar() {
   const navigate = useNavigate();
@@ -140,12 +142,29 @@ export default function Sidebar() {
 
   const menus = sidebarMenus[role];
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    navigate("/login");
-  };
+//   const handleLogout = () => {
+//     try {
+//       const res = axios.post(`${baseURL}/api/auth/logout`)
 
+//       if(r){
+
+//       }
+//     // navigate("/login");
+//   }catch(err){
+// return ;
+//   }
+// }
+
+const handleLogout = async () => {
+    try {
+      await axios.post(`${baseURL}/api/auth/logout`, {}, { withCredentials: true });
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      localStorage.removeItem("role");
+      navigate("/login");
+    }
+  };
   return (
     <>
       {/* Mobile Overlay */}
