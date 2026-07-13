@@ -15,69 +15,94 @@ import type { CertificateData } from "../../../types/certificate";
 // import traningBg from "../../../assets/trainingbg.png";
 import cert2 from "../../../assets/cert2.png"
 
+
+
+
+
 // const TRAINING_TEMPLATES: Record<
 //   string,
-//   { title: string; description: string }
+//   // { title: string; plainDescription: string; description: React.ReactNode }
+//    {
+//     title: string;
+//     plainDescription: (start: string, end: string) => string;
+//     description: (start: string, end: string) => React.ReactNode;
+//   }
 // > = {
 //   "data analytics & ai": {
 //     title: "Data Analytics & AI Training Certificate",
-//     description:
-//       "For successfully completing the Data Analytics & AI Training Program offered by Inacademic, an initiative of Tiiron Technologies Pvt. Ltd. Throughout the program, the participant gained practical knowledge of data analysis, data visualization, Python for analytics, artificial intelligence fundamentals, and real-world data-driven problem solving. They demonstrated strong learning ability, consistency, and active participation throughout the program.",
+//     plainDescription:
+//       "For successfully completing the Data Analytics & AI Training Program offered by Inacademic, an initiative of Tiiron Technologies Pvt. Ltd. from ${start} to ${end}. Throughout the program, the participant gained practical knowledge of data analysis, data visualization, Python for analytics, artificial intelligence fundamentals, and real-world data-driven problem solving. They demonstrated strong learning ability, consistency, and active participation throughout the program.",
+//     description: (
+//       <>
+//         For successfully completing the{" "}
+//         <strong>Data Analytics & AI Training Program</strong> offered by
+//         Inacademic, an initiative of{" "}
+//         <strong>Tiiron Technologies Pvt. Ltd.</strong> Throughout the
+//         program, the participant gained practical knowledge of data
+//         analysis, data visualization, Python for analytics, artificial
+//         intelligence fundamentals, and real-world data-driven problem
+//         solving. They demonstrated strong learning ability, consistency, and
+//         active participation throughout the program.
+//       </>
+//     ),
 //   },
 //   "python development": {
 //     title: "Python Development Training Certificate",
-//     description:
+//     plainDescription:
 //       "For successfully completing the Python Development Training Program offered by Inacademic, an initiative of Tiiron Technologies Pvt. Ltd. Throughout the program, the participant gained practical knowledge of Python programming, object-oriented programming, file handling, API fundamentals, and problem-solving through hands-on coding exercises. They demonstrated strong learning ability, consistency, and active participation throughout the program.",
+//     description: (
+//       <>
+//         For successfully completing the{" "}
+//         <strong>Python Development Training Program</strong> offered by
+//         <strong> Inacademic</strong>, an initiative of{" "}
+//         <strong>Tiiron Technologies Pvt. Ltd.</strong> Throughout the
+//         program, the participant gained practical knowledge of Python
+//         programming, object-oriented programming, file handling, API
+//         fundamentals, and problem-solving through hands-on coding exercises.
+//         They demonstrated strong learning ability, consistency, and active
+//         participation throughout the program.
+//       </>
+//     ),
 //   },
 //   "frontend development": {
 //     title: "Frontend Development Training Certificate",
-//     description:
-//       "For successfully completing the Frontend Development Training Program offered by Inacademic, an initiative of Tiiron Technologies Pvt. Ltd. Throughout the program, the participant gained practical knowledge of modern frontend development, responsive web design, JavaScript, React, API integration, and user interface development. They demonstrated strong learning ability, consistency, and active participation throughout the program.",
+//     plainDescription:
+//       `For successfully completing the Frontend Development Training Program offered by Inacademic, an initiative of Tiiron Technologies Pvt. Ltd. Throughout the program, the participant gained practical knowledge of modern frontend development, responsive web design, JavaScript, React, API integration, and user interface development. They demonstrated strong learning ability, consistency, and active participation throughout the program.`,
+//     description: (
+//       <>
+//         For successfully completing the{" "}
+//         <strong>Frontend Development Training Program</strong> offered by
+//         Inacademic, an initiative of{" "}
+//         <strong>Tiiron Technologies Pvt. Ltd.</strong> Throughout the
+//         program, the participant gained practical knowledge of modern
+//         frontend development, responsive web design, JavaScript, React, API
+//         integration, and user interface development. They demonstrated
+//         strong learning ability, consistency, and active participation
+//         throughout the program.
+//       </>
+//     ),
 //   },
 // };
 
-
-// function getDescriptionFontClamp(description: string) {
-//   const len = description.length;
-//   if (len > 420) return "clamp(6px, 0.95cqw, 12px)";
-//   if (len > 300) return "clamp(6.5px, 1.05cqw, 13px)";
-//   return "clamp(7.5px, 1.25cqw, 15px)";
-// }
-
-// function getTrainingContent(certificate: CertificateData) {
-//   const key = (certificate.course || "").trim().toLowerCase();
-//   const template = TRAINING_TEMPLATES[key];
-
-//   if (template) {
-//     return template;
-//   }
-
-//   // Fallback agar course teeno mein se koi match na kare
-//   return {
-//     title: `${certificate.course} Training Certificate`,
-//     description: `For successfully completing the ${certificate.course} Training Program offered by Inacademic, an initiative of Tiiron Technologies Pvt. Ltd. The participant demonstrated strong learning ability, consistency, and active participation throughout the program.`,
-//   };
-// }
-
-
-// ─────────────────────────────────────────────────────────────
-// Course-wise training description templates
-// certificate.course field se match hota hai (case-insensitive)
-// ─────────────────────────────────────────────────────────────
 const TRAINING_TEMPLATES: Record<
   string,
-  { title: string; plainDescription: string; description: React.ReactNode }
+  {
+    title: string;
+    plainDescription: (start: string, end: string) => string;
+    description: (start: string, end: string) => React.ReactNode;
+  }
 > = {
-  "data analytics & ai": {
+  "data analytics & ai/ml": {
     title: "Data Analytics & AI Training Certificate",
-    plainDescription:
-      "For successfully completing the Data Analytics & AI Training Program offered by Inacademic, an initiative of Tiiron Technologies Pvt. Ltd. Throughout the program, the participant gained practical knowledge of data analysis, data visualization, Python for analytics, artificial intelligence fundamentals, and real-world data-driven problem solving. They demonstrated strong learning ability, consistency, and active participation throughout the program.",
-    description: (
+    plainDescription: (start, end) =>
+      `For successfully completing the Data Analytics & AI Training Program offered by Inacademic, an initiative of Tiiron Technologies Pvt. Ltd. from ${start} to ${end}. Throughout the program, the participant gained practical knowledge of data analysis, data visualization, Python for analytics, artificial intelligence fundamentals, and real-world data-driven problem solving. They demonstrated strong learning ability, consistency, and active participation throughout the program.`,
+    description: (start, end) => (
       <>
         For successfully completing the{" "}
         <strong>Data Analytics & AI Training Program</strong> offered by
         Inacademic, an initiative of{" "}
-        <strong>Tiiron Technologies Pvt. Ltd.</strong> Throughout the
+        <strong>Tiiron Technologies Pvt. Ltd.</strong> from{" "}
+        <strong>{start}</strong> to <strong>{end}</strong>. Throughout the
         program, the participant gained practical knowledge of data
         analysis, data visualization, Python for analytics, artificial
         intelligence fundamentals, and real-world data-driven problem
@@ -88,14 +113,15 @@ const TRAINING_TEMPLATES: Record<
   },
   "python development": {
     title: "Python Development Training Certificate",
-    plainDescription:
-      "For successfully completing the Python Development Training Program offered by Inacademic, an initiative of Tiiron Technologies Pvt. Ltd. Throughout the program, the participant gained practical knowledge of Python programming, object-oriented programming, file handling, API fundamentals, and problem-solving through hands-on coding exercises. They demonstrated strong learning ability, consistency, and active participation throughout the program.",
-    description: (
+    plainDescription: (start, end) =>
+      `For successfully completing the Python Development Training Program offered by Inacademic, an initiative of Tiiron Technologies Pvt. Ltd. from ${start} to ${end}. Throughout the program, the participant gained practical knowledge of Python programming, object-oriented programming, file handling, API fundamentals, and problem-solving through hands-on coding exercises. They demonstrated strong learning ability, consistency, and active participation throughout the program.`,
+    description: (start, end) => (
       <>
         For successfully completing the{" "}
         <strong>Python Development Training Program</strong> offered by
         <strong> Inacademic</strong>, an initiative of{" "}
-        <strong>Tiiron Technologies Pvt. Ltd.</strong> Throughout the
+        <strong>Tiiron Technologies Pvt. Ltd.</strong> from{" "}
+        <strong>{start}</strong> to <strong>{end}</strong>. Throughout the
         program, the participant gained practical knowledge of Python
         programming, object-oriented programming, file handling, API
         fundamentals, and problem-solving through hands-on coding exercises.
@@ -106,14 +132,15 @@ const TRAINING_TEMPLATES: Record<
   },
   "frontend development": {
     title: "Frontend Development Training Certificate",
-    plainDescription:
-      "For successfully completing the Frontend Development Training Program offered by Inacademic, an initiative of Tiiron Technologies Pvt. Ltd. Throughout the program, the participant gained practical knowledge of modern frontend development, responsive web design, JavaScript, React, API integration, and user interface development. They demonstrated strong learning ability, consistency, and active participation throughout the program.",
-    description: (
+    plainDescription: (start, end) =>
+      `For successfully completing the Frontend Development Training Program offered by Inacademic, an initiative of Tiiron Technologies Pvt. Ltd. from ${start} to ${end}. Throughout the program, the participant gained practical knowledge of modern frontend development, responsive web design, JavaScript, React, API integration, and user interface development. They demonstrated strong learning ability, consistency, and active participation throughout the program.`,
+    description: (start, end) => (
       <>
         For successfully completing the{" "}
         <strong>Frontend Development Training Program</strong> offered by
         Inacademic, an initiative of{" "}
-        <strong>Tiiron Technologies Pvt. Ltd.</strong> Throughout the
+        <strong>Tiiron Technologies Pvt. Ltd.</strong> from{" "}
+        <strong>{start}</strong> to <strong>{end}</strong>. Throughout the
         program, the participant gained practical knowledge of modern
         frontend development, responsive web design, JavaScript, React, API
         integration, and user interface development. They demonstrated
@@ -124,39 +151,57 @@ const TRAINING_TEMPLATES: Record<
   },
 };
 
-// Description lambi hoti hai (~450-500 chars), aur chhote mobile
-// container pe clamp() ka fixed px floor background image ke saath
-// scale nahi hota — isliye text neeche QR/signature graphics pe chadh
-// jaata tha. Yaha length ke hisaab se floor aur bhi chota kar diya
-// taaki har screen size pe text apni safe zone ke andar hi rahe.
-// function getDescriptionFontClamp(plainDescription: string) {
-//   const len = plainDescription.length;
-//   if (len > 420) return "clamp(6px, 0.95cqw, 12px)";
-//   if (len > 300) return "clamp(6.5px, 1.05cqw, 13px)";
-//   return "clamp(7.5px, 1.25cqw, 15px)";
-// }
-// function getDescriptionFontClamp(plainDescription: string) {
-//   const len = plainDescription.length;
-//   if (len > 420) return "clamp(7px, 1.1cqw, 16px)";
-//   if (len > 300) return "clamp(7.5px, 1.25cqw, 18px)";
-//   return "clamp(7.8px, 1.25cqw, 20px)";
-// }
+
 function getDescriptionFontClamp(plainDescription: string) {
   const len = plainDescription.length;
   if (len > 420) return "clamp(8px, 1.3cqw, 18px)";
   if (len > 300) return "clamp(8.5px, 1.45cqw, 20px)";
   return "clamp(9px, 1.45cqw, 22px)";
 }
+// function getTrainingContent(certificate: CertificateData) {
+//   const key = (certificate.course || "").trim().toLowerCase();
+//   const template = TRAINING_TEMPLATES[key];
+
+//   if (template) {
+//     return template;
+//   }
+
+//   // Fallback agar course teeno mein se koi match na kare
+//   const plainDescription = `For successfully completing the ${certificate.course} Training Program offered by Inacademic, an initiative of Tiiron Technologies Pvt. Ltd. The participant demonstrated strong learning ability, consistency, and active participation throughout the program.`;
+
+//   return {
+//     title: `${certificate.course} Training Certificate`,
+//     plainDescription,
+//     description: (
+//       <>
+//         For successfully completing the{" "}
+//         <strong>{certificate.course} Training Program</strong> offered by
+//         <strong> Inacademic</strong>, an initiative of{" "}
+//         <strong>Tiiron Technologies Pvt. Ltd.</strong> The participant
+//         demonstrated strong learning ability, consistency, and active
+//         participation throughout the program.
+//       </>
+//     ),
+//   };
+// }
+
 function getTrainingContent(certificate: CertificateData) {
   const key = (certificate.course || "").trim().toLowerCase();
   const template = TRAINING_TEMPLATES[key];
 
+  const start = certificate.startDate;
+  const end = certificate.endDate;
+
   if (template) {
-    return template;
+    return {
+      title: template.title,
+      plainDescription: template.plainDescription(start, end),
+      description: template.description(start, end),
+    };
   }
 
   // Fallback agar course teeno mein se koi match na kare
-  const plainDescription = `For successfully completing the ${certificate.course} Training Program offered by Inacademic, an initiative of Tiiron Technologies Pvt. Ltd. The participant demonstrated strong learning ability, consistency, and active participation throughout the program.`;
+  const plainDescription = `For successfully completing the ${certificate.course} Training Program offered by Inacademic, an initiative of Tiiron Technologies Pvt. Ltd. from ${start} to ${end}. The participant demonstrated strong learning ability, consistency, and active participation throughout the program.`;
 
   return {
     title: `${certificate.course} Training Certificate`,
@@ -166,7 +211,8 @@ function getTrainingContent(certificate: CertificateData) {
         For successfully completing the{" "}
         <strong>{certificate.course} Training Program</strong> offered by
         <strong> Inacademic</strong>, an initiative of{" "}
-        <strong>Tiiron Technologies Pvt. Ltd.</strong> The participant
+        <strong>Tiiron Technologies Pvt. Ltd.</strong> from{" "}
+        <strong>{start}</strong> to <strong>{end}</strong>. The participant
         demonstrated strong learning ability, consistency, and active
         participation throughout the program.
       </>
@@ -174,18 +220,13 @@ function getTrainingContent(certificate: CertificateData) {
   };
 }
 
-// ─────────────────────────────────────────────────────────────
-// containerType: "inline-size" + cqw units => font-size hamesha
-// certificate CARD ki actual width se scale hota hai, viewport se nahi.
-// ─────────────────────────────────────────────────────────────
+
 const outerStyle: CSSProperties = {
   containerType: "inline-size",
   width: "100%",
 } as CSSProperties;
 
-// image capture ke time outer container ko isi fixed width pe rakha
-// jaata hai, taaki cqw-based font-size hamesha isi width se calculate
-// ho — on-screen jo dikhta hai wahi download hota hai
+
 const CAPTURE_WIDTH = 1200;
 
 export default function TrainingCertificatePage() {
