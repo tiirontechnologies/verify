@@ -11,7 +11,7 @@ import { toPng } from "html-to-image";
 import { getMyCertificate} from "../../../api/certificate.api";
 import type { CertificateData } from "../../../types/certificate";
 
-// 👇 training certificate ka background image (same ya alag, jo bhi use karna ho)
+
 import traningBg from "../../../assets/trainingbg.png";
 
 
@@ -59,11 +59,6 @@ import traningBg from "../../../assets/trainingbg.png";
 //   };
 // }
 
-
-// ─────────────────────────────────────────────────────────────
-// Course-wise training description templates
-// certificate.course field se match hota hai (case-insensitive)
-// ─────────────────────────────────────────────────────────────
 const TRAINING_TEMPLATES: Record<
   string,
   { title: string; plainDescription: string; description: React.ReactNode }
@@ -474,7 +469,8 @@ export default function TrainingCertificatePage() {
                   fontSize: "clamp(8px, 1.15cqw, 17px)",
                   fontWeight: 700,
                   letterSpacing: "0.4px",
-                  color: "#0f172a",
+                  // color: "#0f172a",
+                  color: "#081F5C",
                   whiteSpace: "nowrap",
                 }}
               >
@@ -490,7 +486,8 @@ export default function TrainingCertificatePage() {
                   fontSize: "clamp(8px, 1.15cqw, 17px)",
                   fontWeight: 700,
                   letterSpacing: "0.4px",
-                  color: "#0f172a",
+                  // color: "#0f172a",
+                  color: "#081F5C",
                   whiteSpace: "nowrap",
                 }}
               >
