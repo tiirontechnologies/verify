@@ -12,7 +12,7 @@ import { getMyCertificate} from "../../../api/certificate.api";
 import type { CertificateData } from "../../../types/certificate";
 
 // 👇 training certificate ka background image (same ya alag, jo bhi use karna ho)
-import traningBg from "../../../assets/traningBg.png";
+import traningBg from "../../../assets/trainingbg.png";
 
 
 // const TRAINING_TEMPLATES: Record<
@@ -94,7 +94,7 @@ const TRAINING_TEMPLATES: Record<
       <>
         For successfully completing the{" "}
         <strong>Python Development Training Program</strong> offered by
-        Inacademic, an initiative of{" "}
+        <strong> Inacademic</strong>, an initiative of{" "}
         <strong>Tiiron Technologies Pvt. Ltd.</strong> Throughout the
         program, the participant gained practical knowledge of Python
         programming, object-oriented programming, file handling, API
@@ -135,13 +135,18 @@ const TRAINING_TEMPLATES: Record<
 //   if (len > 300) return "clamp(6.5px, 1.05cqw, 13px)";
 //   return "clamp(7.5px, 1.25cqw, 15px)";
 // }
+// function getDescriptionFontClamp(plainDescription: string) {
+//   const len = plainDescription.length;
+//   if (len > 420) return "clamp(7px, 1.1cqw, 16px)";
+//   if (len > 300) return "clamp(7.5px, 1.25cqw, 18px)";
+//   return "clamp(7.8px, 1.25cqw, 20px)";
+// }
 function getDescriptionFontClamp(plainDescription: string) {
   const len = plainDescription.length;
-  if (len > 420) return "clamp(7px, 1.1cqw, 14px)";
-  if (len > 300) return "clamp(7.5px, 1.25cqw, 16px)";
-  return "clamp(7.8px, 1.25cqw, 18px)";
+  if (len > 420) return "clamp(8px, 1.3cqw, 18px)";
+  if (len > 300) return "clamp(8.5px, 1.45cqw, 20px)";
+  return "clamp(9px, 1.45cqw, 22px)";
 }
-
 function getTrainingContent(certificate: CertificateData) {
   const key = (certificate.course || "").trim().toLowerCase();
   const template = TRAINING_TEMPLATES[key];
@@ -160,7 +165,7 @@ function getTrainingContent(certificate: CertificateData) {
       <>
         For successfully completing the{" "}
         <strong>{certificate.course} Training Program</strong> offered by
-        Inacademic, an initiative of{" "}
+        <strong> Inacademic</strong>, an initiative of{" "}
         <strong>Tiiron Technologies Pvt. Ltd.</strong> The participant
         demonstrated strong learning ability, consistency, and active
         participation throughout the program.
@@ -481,7 +486,7 @@ export default function TrainingCertificatePage() {
                 style={{
                   position: "absolute",
                   top: "13.8%",
-                  right: "9%",
+                  right: "10%",
                   fontSize: "clamp(8px, 1.15cqw, 17px)",
                   fontWeight: 700,
                   letterSpacing: "0.4px",
@@ -514,14 +519,15 @@ export default function TrainingCertificatePage() {
 <div
   style={{
     position: "absolute",
-    top: "50%",
+    top: "48%",
     left: "50%",
     transform: "translate(-50%, 0)",
     width: "70%",
     textAlign: "center",
     fontSize: "clamp(18px, 3.6cqw, 48px)",
     fontWeight: 700,
-    color: "#f1931f",
+    // color: "#f1931f",
+    color: "#081F5C",
     fontFamily: "'Great Vibes', 'Brush Script MT', cursive",
     lineHeight: 1.1,
   }}
@@ -533,13 +539,14 @@ export default function TrainingCertificatePage() {
               <div
                 style={{
                   position: "absolute",
-                  top: "60%",
+                  top: "57%",
                   left: "50%",
                   transform: "translateX(-50%)",
                   width: "80%",
                   textAlign: "center",
                   fontSize: getDescriptionFontClamp(plainDescription),
                   lineHeight: 1.75,
+                  fontWeight: 400,
                   color: "#334155",
                 }}
               >
