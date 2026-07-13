@@ -474,7 +474,8 @@ export default function TrainingCertificatePage() {
                   fontSize: "clamp(8px, 1.15cqw, 17px)",
                   fontWeight: 700,
                   letterSpacing: "0.4px",
-                  color: "#0f172a",
+                  // color: "#0f172a",
+                  color: "#081F5C",
                   whiteSpace: "nowrap",
                 }}
               >
@@ -490,7 +491,8 @@ export default function TrainingCertificatePage() {
                   fontSize: "clamp(8px, 1.15cqw, 17px)",
                   fontWeight: 700,
                   letterSpacing: "0.4px",
-                  color: "#0f172a",
+                  // color: "#0f172a",
+                  color: "#081F5C",
                   whiteSpace: "nowrap",
                 }}
               >
