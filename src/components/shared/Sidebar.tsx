@@ -160,6 +160,7 @@ const handleLogout = async () => {
       await axios.post(`${baseURL}/api/auth/logout`, {}, { withCredentials: true });
     } catch (err) {
       console.error("Logout error:", err);
+      alert("Logout Error !");
     } finally {
       localStorage.removeItem("role");
       navigate("/login");
