@@ -12,8 +12,8 @@ import { getMyCertificate} from "../../../api/certificate.api";
 import type { CertificateData } from "../../../types/certificate";
 
 // 👇 training certificate ka background image (same ya alag, jo bhi use karna ho)
-import traningBg from "../../../assets/trainingbg.png";
-
+// import traningBg from "../../../assets/trainingbg.png";
+import cert from "../../../assets/cert.png"
 
 // const TRAINING_TEMPLATES: Record<
 //   string,
@@ -456,7 +456,7 @@ export default function TrainingCertificatePage() {
                 maxWidth: 1200,
                 margin: "0 auto",
                 aspectRatio: "2000 / 1414",
-                backgroundImage: `url(${traningBg})`,
+                backgroundImage: `url(${cert})`,
                 backgroundSize: "100% 100%",
                 backgroundRepeat: "no-repeat",
                 fontFamily: "'Poppins', Arial, sans-serif",
