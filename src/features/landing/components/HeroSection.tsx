@@ -46,8 +46,14 @@ export default function HeroSection() {
             </p>
 
             <div className="mt-12">
-              <div className="rounded-[32px] border border-slate-200 bg-white p-3 shadow-[0_40px_120px_-80px_rgba(15,23,42,0.15)]">
-                <div className="flex flex-col gap-3 md:flex-row">
+              <form
+  onSubmit={(e) => {
+    e.preventDefault();
+    handleVerify();
+  }}
+  className="rounded-[32px] border border-slate-200 bg-white p-3 shadow-[0_40px_120px_-80px_rgba(15,23,42,0.15)]"
+>
+  <div className="flex flex-col gap-3 md:flex-row">
                   <div className="flex min-w-0 flex-1 items-center gap-4 rounded-2xl bg-slate-50 px-5 py-4">
                     <Search size={24} className="text-slate-400" />
                     <input
@@ -60,14 +66,14 @@ export default function HeroSection() {
                   </div>
 
                   <button
-                    onClick={handleVerify}
-                    className="inline-flex h-16 w-full items-center justify-center gap-3 rounded-2xl bg-red-600 px-8 text-base font-semibold text-white transition hover:bg-red-700 hover:shadow-xl md:w-auto"
-                  >
+  type="submit"
+  className="inline-flex h-16 w-full items-center justify-center gap-3 rounded-2xl bg-red-600 px-8 text-base font-semibold text-white transition hover:bg-red-700 hover:shadow-xl md:w-auto"
+>
                     Verify
                     <ChevronRight size={20} />
                   </button>
                 </div>
-              </div>
+</form>
             </div>
 
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
