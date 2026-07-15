@@ -22,13 +22,13 @@ export default function VerificationHero({
       shadow-2xl
       "
     >
-      <div className="px-10 lg:px-14 py-10 lg:py-12">
+      <div className="px-5 sm:px-8 lg:px-14 py-8 lg:py-12">
 
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-10">
+        <div className="flex flex-col xl:flex-row items-center xl:items-center justify-between gap-10">
 
           {/* Left */}
 
-          <div className="flex items-center gap-8">
+          <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-6 lg:gap-8">
 
             {/* Shield */}
 
@@ -40,8 +40,9 @@ export default function VerificationHero({
 
               <div
                 className="
-                w-36
-                h-36
+                w-24 h-24
+sm:w-28 sm:h-28
+lg:w-36 lg:h-36
                 rounded-full
                 bg-white/5
                 backdrop-blur
@@ -54,8 +55,9 @@ export default function VerificationHero({
               >
                 <div
                   className="
-                  w-24
-                  h-24
+                 w-16 h-16
+sm:w-20 sm:h-20
+lg:w-24 lg:h-24
                   rounded-full
                   bg-white
                   flex
@@ -65,7 +67,7 @@ export default function VerificationHero({
                   "
                 >
                   <ShieldCheck
-                    size={54}
+                    size={36}
                     className="text-green-600"
                   />
                 </div>
@@ -97,11 +99,13 @@ export default function VerificationHero({
                 Verification Success
               </span>
 
-              <h1 className="mt-5 text-5xl font-bold text-white">
+              <h1 className="mt-5 text-text-3xl
+sm:text-4xl
+lg:text-5xl font-bold text-white">
                 Credential Verified
               </h1>
 
-              <p className="mt-4 text-gray-200 text-lg leading-8 max-w-xl">
+              <p className="mt-4 text-gray-200 text-base sm:text-lg leading-7 max-w-xl">
                 This credential has been successfully verified
                 against Tiiron Technologies' official records.
               </p>
@@ -110,8 +114,11 @@ export default function VerificationHero({
                 className="
                 mt-6
                 inline-flex
-                items-center
-                gap-3
+                flex-wrap
+items-center
+justify-center
+sm:justify-start
+gap-2
                 bg-[#6A4B2D]
                 px-5
                 py-3
@@ -137,17 +144,20 @@ export default function VerificationHero({
 
           <div
             className="
-            min-w-[320px]
+            w-full
+max-w-sm
+xl:min-w-[320px]
             bg-white/10
             backdrop-blur-xl
             border
             border-white/20
             rounded-2xl
-            px-8
-            py-5
+            px-5
+sm:px-8
+py-5
             "
           >
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
 
               <span className="text-red-200 font-medium">
                 Verification ID
@@ -157,7 +167,7 @@ export default function VerificationHero({
                 |
               </span>
 
-              <span className="text-white font-bold tracking-wide">
+              <span className="text-white font-bold tracking-wide break-all text-center sm:text-right">
                 {verificationId}
               </span>
 

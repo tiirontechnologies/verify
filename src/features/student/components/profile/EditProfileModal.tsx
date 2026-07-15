@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
+import toast from "react-hot-toast";
 
 import { updateProfile } from "../../../../api/studentProfile.api";
 import type { StudentProfile } from "../../../../types/studentProfile";
@@ -38,8 +39,10 @@ export default function EditProfileModal({
 
     batch: profile.batch,
 
-  });
+    skills: profile.skills || [],
 
+  });
+const [skillInput, setSkillInput] = useState("");
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -55,6 +58,43 @@ export default function EditProfileModal({
     });
 
   };
+
+const addSkill = () => {
+
+  const skill = skillInput.trim();
+
+  if (!skill) return;
+
+  setFormData((prev) => {
+
+    if (
+      prev.skills.some(
+        (s) => s.toLowerCase() === skill.toLowerCase()
+      )
+    ) {
+      return prev;
+    }
+
+    const updated = {
+      ...prev,
+      skills: [...prev.skills, skill],
+    };
+
+    console.log("Updated Skills:", updated.skills);
+
+    return updated;
+  });
+
+  setSkillInput("");
+
+};
+
+const removeSkill = (index: number) => {
+  setFormData((prev) => ({
+    ...prev,
+    skills: prev.skills.filter((_, i) => i !== index),
+  }));
+};
 
   const handleSubmit = async () => {
 
@@ -77,6 +117,8 @@ export default function EditProfileModal({
         department: formData.department,
 
         batch: formData.batch,
+
+        skills: formData.skills,
 
       });
 
@@ -104,11 +146,14 @@ export default function EditProfileModal({
 
         batch: data.batch,
 
+        skills: data.skills,
+
       });
+      toast.success("Your profile has been updated successfully.");
 
     } catch (error) {
 
-      alert("Unable to update profile.");
+      toast.error("Unable to update your profile. Please try again.");
 
     } finally {
 
@@ -278,6 +323,81 @@ export default function EditProfileModal({
             />
 
           </div>
+
+          <div className="md:col-span-2">
+
+  <label className="font-medium">
+    Skills
+  </label>
+
+  <div className="flex mt-2 gap-2">
+
+    <input
+      value={skillInput}
+      onChange={(e) =>
+        setSkillInput(e.target.value)
+      }
+      placeholder="Add a skill"
+      className="flex-1 border rounded-xl p-3"
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          addSkill();
+        }
+      }}
+    />
+
+    <button
+      type="button"
+      onClick={addSkill}
+      className="px-5 rounded-xl bg-red-600 text-white hover:bg-red-700"
+    >
+      Add
+    </button>
+
+  </div>
+
+  <div className="space-y-3 mt-4">
+
+  {formData.skills.map((skill, index) => (
+
+    <div
+      key={index}
+      className="flex items-center gap-3"
+    >
+
+      <input
+        value={skill}
+        onChange={(e) => {
+
+          const updatedSkills = [...formData.skills];
+
+          updatedSkills[index] = e.target.value;
+
+          setFormData({
+            ...formData,
+            skills: updatedSkills,
+          });
+
+        }}
+        className="flex-1 border rounded-xl p-3"
+      />
+
+<button
+  type="button"
+  onClick={() => removeSkill(index)}
+  className="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700"
+>
+  Remove
+</button>
+
+    </div>
+
+  ))}
+
+</div>
+
+</div>
 
           <div className="md:col-span-2">
 

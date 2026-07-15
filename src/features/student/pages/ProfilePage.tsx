@@ -53,10 +53,8 @@ const [showEditModal, setShowEditModal] = useState(false);
         mobile: data.mobile,
 
         dateOfBirth: data.dateOfBirth
-          ? new Date(
-              data.dateOfBirth
-            ).toLocaleDateString("en-GB")
-          : "",
+  ? data.dateOfBirth.split("T")[0]
+  : "",
 
         gender: data.gender,
 
@@ -252,8 +250,10 @@ if (!profile) {
                 </div>
 
                 <p className="text-gray-500">
-                  {profile.dateOfBirth || "Not Updated"}
-                </p>
+  {profile.dateOfBirth
+    ? new Date(profile.dateOfBirth).toLocaleDateString("en-GB")
+    : "Not Updated"}
+</p>
               </div>
 
               <div>

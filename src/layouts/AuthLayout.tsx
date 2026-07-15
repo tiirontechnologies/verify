@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 import TiironLogo from "../assets/Tiiron_Technologies_Logo.png";
 
@@ -45,12 +47,45 @@ export default function AuthLayout({
           >
             {/* Logo */}
 
-<img
-  src={TiironLogo}
-  alt="Tiiron Technologies"
-  className="h-14 w-auto"
-/>
+<div className="flex items-center justify-between">
 
+  <Link
+    to="/"
+    className="flex items-center"
+  >
+    <img
+      src={TiironLogo}
+      alt="Tiiron Technologies"
+      className="h-14 w-auto"
+    />
+  </Link>
+
+  <Link
+    to="/"
+    className="
+      inline-flex
+      items-center
+      gap-2
+      px-4
+      py-2
+      rounded-xl
+      border
+      border-slate-200
+      text-slate-600
+      hover:text-red-600
+      hover:border-red-200
+      hover:bg-red-50
+      transition-all
+      duration-200
+    "
+  >
+    <ArrowLeft size={18} />
+    <span className="font-medium">
+      Back to Home
+    </span>
+  </Link>
+
+</div>
 {/* Heading */}
 
 <div className="mt-6">
@@ -80,7 +115,7 @@ export default function AuthLayout({
 
   <div className="text-center">
 
-    <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto">
+    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto">
 
       <span className="text-2xl">
         🛡️
@@ -100,7 +135,7 @@ export default function AuthLayout({
 
   <div className="text-center border-x border-slate-200">
 
-    <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto">
+    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-blue-50 flex items-center justify-center mx-auto">
 
       <span className="text-2xl">
         🔒
@@ -120,7 +155,7 @@ export default function AuthLayout({
 
   <div className="text-center">
 
-    <div className="w-14 h-14 rounded-2xl bg-purple-50 flex items-center justify-center mx-auto">
+    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-purple-50 flex items-center justify-center mx-auto">
 
       <span className="text-2xl">
         🌐
@@ -155,11 +190,10 @@ export default function AuthLayout({
   "
 >
 
-  <div className="grid grid-cols-3 gap-6">
+<div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+    <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-3">
 
-    <div className="flex items-center gap-4">
-
-      <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center text-red-600 text-2xl">
+      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-red-50 flex items-center justify-center text-red-600 text-2xl">
         📄
       </div>
 
@@ -177,9 +211,9 @@ export default function AuthLayout({
 
     </div>
 
-    <div className="flex items-center gap-4">
+    <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-3">
 
-      <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 text-2xl">
+      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 text-2xl">
         🏛️
       </div>
 
@@ -197,9 +231,9 @@ export default function AuthLayout({
 
     </div>
 
-    <div className="flex items-center gap-4">
+    <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-3">
 
-      <div className="w-14 h-14 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600 text-2xl">
+      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-purple-50 flex items-center justify-center text-purple-600 text-2xl">
         🎯
       </div>
 

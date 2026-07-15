@@ -1,4 +1,4 @@
-import illustration from "../../../assets/login img.png";
+import illustration from "../../../assets/login img-Photoroom.png";
 
 export default function HeroIllustration() {
   return (
