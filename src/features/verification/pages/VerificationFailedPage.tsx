@@ -20,7 +20,7 @@ export default function VerificationFailedPage() {
         </div>
 
         <h1 className="relative mt-8 text-4xl font-semibold text-slate-800 sm:text-5xl">
-          Certificate Not Found
+          Certificate Not Found. 
         </h1>
 
         <p className="relative mx-auto mt-5 max-w-2xl text-lg leading-8 text-slate-500">
