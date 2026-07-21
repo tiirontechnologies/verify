@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+// import { useEffect, useRef } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LandingPage from "./features/landing/pages/LandingPage";
 import VerificationPage from "./features/verification/pages/VerificationPage";
@@ -18,29 +18,36 @@ import PasswordResetSuccessPage from "./features/auth/pages/PasswordResetSuccess
 import GenerateCertificatePage from "./features/student/pages/GenerateCertificatePage";
 import InternshipCertificatePage from "./features/student/pages/InternshipCertificatePage";
 import TrainingCertificatePage from "./features/student/pages/TrainingCertificatePage";
-import useMeRedirect from "./features/auth/hooks/useMeRedirect";
+// import useMeRedirect from "./features/auth/hooks/useMeRedirect";
+import BookDemoPage from "./components/demo/BookDemoPage";
+import StudentUploadPage from "./features/organization/pages/StudentUploadPage";
+import UpdateStudentPage from "./features/organization/pages/UpdateStudentPage";
+import CertificateTemplatesPage from "./features/organization/pages/CertificateTemplatesPage";
+import OrganizationProfilePage from "./features/organization/pages/OrganizationProfilePage";
+import AdvertisementsPage from "./features/organization/pages/AdvertisementsPage";
+import OrganizationSignupPage from "./features/auth/pages/OrganizationSignupPage";
 
-function AuthBootstrap() {
-  const redirectToDashboard = useMeRedirect();
-  const hasCheckedRef = useRef(false);
+// function AuthBootstrap() {
+//   const redirectToDashboard = useMeRedirect();
+//   const hasCheckedRef = useRef(false);
 
-  useEffect(() => {
-    if (hasCheckedRef.current) {
-      return;
-    }
+//   useEffect(() => {
+//     if (hasCheckedRef.current) {
+//       return;
+//     }
 
-    hasCheckedRef.current = true;
+//     hasCheckedRef.current = true;
 
-    redirectToDashboard();
-  }, [redirectToDashboard]);
+//     redirectToDashboard();
+//   }, [redirectToDashboard]);
 
-  return null;
-}
+//   return null;
+// }
 
 function App() {
   return (
     <BrowserRouter>
-      <AuthBootstrap />
+      {/* <AuthBootstrap /> */}
       <Routes>
 
         <Route
@@ -48,6 +55,10 @@ function App() {
           element={<LandingPage />}
         />
 
+        <Route
+          path="/book-demo"
+          element={<BookDemoPage />}
+        />
         <Route
           path="/verification/:id"
           element={<VerificationPage />}
@@ -157,6 +168,58 @@ function App() {
       <OrganizationDashboard />
     </ProtectedRoute>
   }
+/>
+
+<Route
+path="/organization/student-upload"
+element={
+  <ProtectedRoute>
+      <StudentUploadPage />
+    </ProtectedRoute>
+}
+/>
+<Route
+path="/organization/update-student"
+element={
+  <ProtectedRoute>
+      <UpdateStudentPage />
+    </ProtectedRoute>
+}
+/>
+
+<Route
+path="/organization/templates"
+element={
+  <ProtectedRoute>
+      <CertificateTemplatesPage />
+    </ProtectedRoute>
+}
+/>
+<Route
+path="/organization/profile"
+element={
+  <ProtectedRoute>
+      <OrganizationProfilePage />
+    </ProtectedRoute>
+}
+/>
+
+<Route
+path="/organization/ads"
+element={
+  <ProtectedRoute>
+      <AdvertisementsPage />
+    </ProtectedRoute>
+}
+/>
+
+<Route
+path="/signup"
+element={
+  
+      <OrganizationSignupPage />
+  
+}
 />
 
       </Routes>

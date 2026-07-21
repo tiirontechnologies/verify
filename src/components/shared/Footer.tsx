@@ -6,7 +6,7 @@ const quickLinks = [
   { label: "Our Products", href: "https://tiirontechnologies.com/products" },
   { label: "Services Offered", href: "https://tiirontechnologies.com/services" },
   { label: "Help & Support", href: "https://tiirontechnologies.com/help" },
-  { label: "Request a Demo", href: "https://tiirontechnologies.com/demo" },
+  { label: "Request a Demo", href: "/book-demo" },
 ];
 
 const solutionLinks = [
