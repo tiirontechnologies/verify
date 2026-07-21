@@ -1,4 +1,4 @@
-import heroImage from "../../../assets/Hero right side img .png";
+import heroImage from "../../../assets/VERIFY_HERO_IMAGE-Photoroom.png";
 
 export default function HeroIllustration() {
   return (

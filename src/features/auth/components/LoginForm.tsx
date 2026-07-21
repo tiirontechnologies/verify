@@ -53,23 +53,49 @@ const handleLogin = async () => {
     setLoading(true);
     setError("");
 
-    const response = await login(email, password);
-
+const response = await login(email, password, role);
     if (!response.success) {
       throw new Error("Login failed");
     }
 
-    localStorage.setItem("user", JSON.stringify(response.user));
+    const loggedInRole = response.user.role;
 
-    if (response.user?.role === "student") {
-      navigate("/student/dashboard", { replace: true });
-    } else if (response.user?.role === "admin") {
-      navigate("/organization/dashboard", { replace: true });
-    } else {
-      navigate("/login", { replace: true });
+    // // Prevent logging in from the wrong tab
+    // if (role === "student" && loggedInRole !== "student") {
+    //   setError("Invalid Credentials.");
+    //   return;
+    // }
+
+    // if (role === "admin" && loggedInRole !== "admin") {
+    //   setError("Invalid Credentials");
+    //   return;
+    // }
+
+    // Store only user details
+    sessionStorage.setItem(
+      "user",
+      JSON.stringify(response.user)
+    );
+
+    if (loggedInRole === "student") {
+      navigate("/student/dashboard", {
+        replace: true,
+      });
+      return;
+    }
+
+    if (loggedInRole === "admin") {
+      navigate("/organization/dashboard", {
+        replace: true,
+      });
+      return;
     }
   } catch (err: any) {
-    setError(err.response?.data?.message || "Invalid email or password");
+    setError(
+      err.response?.data?.message ||
+      err.message ||
+      "Invalid email or password"
+    );
   } finally {
     setLoading(false);
   }
@@ -81,13 +107,17 @@ const handleGoogleLogin = () => {
   return (
 <div className="w-full px-6">
 <div className="text-center">
-  <h1 className="text-[42px] font-bold text-slate-900">
-    Login to Your Account
-  </h1>
+ <h1 className="text-[42px] font-bold text-slate-900">
+  {role === "student"
+    ? "Student Login"
+    : "Organization Login"}
+</h1>
 
-  <p className="mt-3 text-[18px] text-slate-500">
-    Sign in to continue to your account
-  </p>
+<p className="mt-3 text-[18px] text-slate-500">
+  {role === "student"
+    ? "Sign in using your student credentials."
+    : "Sign in using your organization administrator account."}
+</p>
 </div>
 
       {/* Role */}
@@ -112,7 +142,7 @@ role==="admin"
 : "bg-white text-slate-700"
 }`}
 >
-Admin
+Organization
 </button>
 
       </div>
@@ -261,16 +291,20 @@ transition
 
       {/* Footer */}
 
-      {/* <div className="mt-8 text-center text-gray-500">
+{role === "admin" && (
+  <div className="mt-8 text-center">
+    <span className="text-slate-500">
+      Don't have an organization account?
+    </span>
 
-        Don't have an account?
-
-        <button className="text-red-500 ml-2 font-medium">
-          Create Account
-        </button>
-
-      </div> */}
-
+    <button
+      onClick={() => navigate("/signup")}
+      className="ml-2 font-semibold text-red-600 hover:text-red-700"
+    >
+      Sign Up
+    </button>
+  </div>
+)}
     </div>
   );
 }

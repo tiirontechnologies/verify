@@ -3,9 +3,13 @@ import {
   History,
   User,
   Settings,
+  UploadCloud,
   Users,
-  FileText,
-  FileBadge2,
+  FileBadge,
+  UserCog,
+  Megaphone,
+  Server,
+  Award,
 } from "lucide-react";
 
 export const sidebarMenus = {
@@ -23,7 +27,7 @@ export const sidebarMenus = {
     {
     label: "My Certificate",
     path: "/student/my-certificate",
-    icon: FileBadge2,
+    icon: Award,
 },
     // {
     //   label: "My Credentials",
@@ -42,26 +46,41 @@ export const sidebarMenus = {
     },
   ],
 
-  organization: [
+admin: [
     {
       label: "Dashboard",
       path: "/organization/dashboard",
       icon: LayoutDashboard,
     },
     {
-      label: "Students",
-      path: "/organization/students",
+      label: "Student Data Upload",
+      path: "/organization/student-upload",
+      icon: UploadCloud,
+    },
+    {
+      label: "Update Student Data",
+      path: "/organization/update-student",
       icon: Users,
     },
     {
-      label: "Credentials",
-      path: "/organization/credentials",
-      icon: FileText,
+      label: "Certificate Templates",
+      path: "/organization/templates",
+      icon: FileBadge,
     },
     {
-      label: "Settings",
-      path: "/organization/settings",
-      icon: Settings,
+      label: "Profile Management",
+      path: "/organization/profile",
+      icon: UserCog,
+    },
+    {
+      label: "Advertisements",
+      path: "/organization/ads",
+      icon: Megaphone,
+    },
+    {
+      label: "Self Hosted Platforms",
+      path: "/organization/self-hosted",
+      icon: Server,
     },
   ],
 };

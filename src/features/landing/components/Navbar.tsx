@@ -3,7 +3,7 @@ import { ChevronDown, Menu, X, User } from "lucide-react";
 import logo from "../../../assets/Tiiron_Technologies_Logo.png";
 
 const mainLinks = [
-  { label: "Home", href: "https://tiirontechnologies.com/" },
+  { label: "Home", href: "/" },
   { label: "Services", href: "https://tiirontechnologies.com/services" },
   { label: "Products", href: "https://tiirontechnologies.com/products" },
   { label: "About", href: "https://tiirontechnologies.com/about" },
@@ -13,7 +13,7 @@ const exploreLinks = [
   { label: "Pricing", href: "https://tiirontechnologies.com/pricing" },
   { label: "Testimonials", href: "https://tiirontechnologies.com/comingsoon" },
   { label: "Help & Support", href: "https://tiirontechnologies.com/help" },
-  { label: "Verify Credentials", href: "/" },
+  { label: "Book a Demo", href: "/book-demo" },
 ];
 
 export default function Navbar() {
@@ -25,7 +25,7 @@ export default function Navbar() {
     <>
       <header className="fixed top-0 z-50 w-full border-b border-slate-200 bg-white shadow-sm">
         <nav className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-3.5 lg:px-8">
-          <a href="https://tiirontechnologies.com/" className="flex items-center gap-2 pl-4 md:pl-6 lg:pl-0" aria-label="Tiiron Technologies Home">
+          <a href="/" className="flex items-center gap-2 pl-4 md:pl-6 lg:pl-0" aria-label="Tiiron Technologies Home">
             <img src={logo} alt="Tiiron Technologies Logo" className="h-10 w-auto" />
           </a>
 
@@ -72,10 +72,10 @@ export default function Navbar() {
               Login
             </a>
             <a
-              href="/"
+              href="/signup"
               className="hidden md:inline-block rounded-full bg-[#ef233c] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600"
             >
-              Verify Credential
+              Sign Up as Org
             </a>
             <button
               type="button"
@@ -120,8 +120,8 @@ export default function Navbar() {
               <a href="/login" className="rounded-full border border-slate-300 px-5 py-3 text-center text-sm font-semibold text-slate-900 transition hover:border-[#ef233c] hover:text-[#ef233c]">
                 Login
               </a>
-              <a href="/" className="rounded-full bg-[#ef233c] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-red-600">
-                Verify Credential
+              <a href="/book-demo" className="rounded-full bg-[#ef233c] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-red-600">
+                Book a Demo
               </a>
             </div>
           </nav>
