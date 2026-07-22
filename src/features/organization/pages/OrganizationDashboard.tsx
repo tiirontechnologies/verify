@@ -1,9 +1,30 @@
+import DashboardLayout from "../../../layouts/DashboardLayout";
+
+import OrganizationHero from "../components/dashboard/OrganizationHero";
+import OrganizationStats from "../components/dashboard/OrganizationStats";
+import AnalyticsOverview from "../components/dashboard/AnalyticsOverview";
+import QuickActions from "../components/dashboard/QuickActions";
+import RecentActivity from "../components/dashboard/RecentActivity";
+
 export default function OrganizationDashboard() {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <h1 className="text-2xl sm:text-4xl font-bold text-center">
-        Organization Dashboard
-      </h1>
-    </div>
+    <DashboardLayout>
+      <div className="space-y-8">
+        {/* Hero */}
+        <OrganizationHero />
+
+        {/* KPI Cards */}
+        <OrganizationStats />
+
+        {/* Analytics */}
+        <AnalyticsOverview />
+
+        {/* Quick Access to Modules */}
+        <QuickActions />
+
+        {/* Activity Feed */}
+        <RecentActivity />
+      </div>
+    </DashboardLayout>
   );
 }
