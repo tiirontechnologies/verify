@@ -75,7 +75,7 @@ export default function Navbar() {
               href="/signup"
               className="hidden md:inline-block rounded-full bg-[#ef233c] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600"
             >
-              Sign Up as Org
+             Organizaton Registration
             </a>
             <button
               type="button"
@@ -120,8 +120,8 @@ export default function Navbar() {
               <a href="/login" className="rounded-full border border-slate-300 px-5 py-3 text-center text-sm font-semibold text-slate-900 transition hover:border-[#ef233c] hover:text-[#ef233c]">
                 Login
               </a>
-              <a href="/book-demo" className="rounded-full bg-[#ef233c] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-red-600">
-                Book a Demo
+              <a href="/signup" className="rounded-full bg-[#ef233c] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-red-600">
+                Register Organization
               </a>
             </div>
           </nav>
