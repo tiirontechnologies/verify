@@ -1,5 +1,9 @@
 
+import { useNavigate } from "react-router-dom";
+
 export default function CTASection() {
+  const navigate= useNavigate();
+  
   return (
     <section className="py-14 bg-[#f8fafc]">
       <div className="max-w-7xl mx-auto px-4 md:px-8">
@@ -23,10 +27,12 @@ export default function CTASection() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-              <button className="inline-flex w-full items-center justify-center rounded-2xl bg-red-600 px-8 py-4 text-base font-semibold text-white transition hover:bg-red-700">
+              <button onClick={()=>navigate('/signup')} className="inline-flex w-full items-center justify-center rounded-2xl bg-red-600 px-8 py-4 text-base font-semibold text-white transition hover:bg-red-700">
                 Get Started
               </button>
-              <button className="inline-flex w-full items-center justify-center rounded-2xl border border-slate-300 bg-slate-50 px-8 py-4 text-base font-semibold text-slate-900 transition hover:border-slate-400 hover:bg-slate-100">
+              <button 
+              onClick={()=>navigate("/book-demo")}
+              className="inline-flex w-full items-center justify-center rounded-2xl border border-slate-300 bg-slate-50 px-8 py-4 text-base font-semibold text-slate-900 transition hover:border-slate-400 hover:bg-slate-100">
                 Schedule Demo
               </button>
             </div>
