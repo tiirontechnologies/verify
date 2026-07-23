@@ -2,8 +2,22 @@ import DashboardLayout from "../../../layouts/DashboardLayout";
 import StatsCard from "../../../components/shared/StatsCard";
 import CredentialCard from "../components/CredentialCard";
 import RecentActivity from "../components/RecentActivity";
+import { getMyCertificate } from "../../../api/certificate.api";
+import { useEffect,useState } from "react";
 
 export default function StudentDashboard() {
+  const [certId,setcertId] = useState("TTINT202600000");
+  useEffect(()=>{
+    const fetchData = async()=>{
+
+      const Cert = await getMyCertificate();
+      setcertId(Cert.data.certificateId);
+    }
+
+    fetchData();
+
+  },[]);
+
   return (
     <DashboardLayout>
 
@@ -70,7 +84,7 @@ export default function StudentDashboard() {
 
 {/* Activity */}
 
-<RecentActivity />
+<RecentActivity id={certId} />
 
       </div>
 

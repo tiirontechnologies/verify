@@ -1,6 +1,6 @@
 export default function ActivitySection() {
   return (
-    <div className="bg-white border border-red-100 rounded-2xl p-8 mt-8">
+    <div className="bg-white border-red-100 rounded-2xl p-8 mt-8">
 
       <div className="flex items-center justify-between mb-8">
 

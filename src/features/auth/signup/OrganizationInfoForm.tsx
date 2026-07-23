@@ -73,9 +73,11 @@ export default function OrganizationInfoForm({
 
         <Input
           icon={<Phone size={18} />}
+          type="tel"
           name="phone"
           value={formData.phone}
           onChange={handleChange}
+          // pattern="[0-9]*"
           label="Phone Number"
           placeholder="+91 9876543210"
         />
