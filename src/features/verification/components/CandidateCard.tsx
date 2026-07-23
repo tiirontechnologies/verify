@@ -16,7 +16,7 @@ export default function CandidateCard({
   certificate,
 }: Props) {
   return (
-    <div className="bg-white rounded-[32px] border border-gray-200 shadow-lg p-10">
+    <div className="bg-white rounded-[32px]  shadow-lg p-10">
 
       {/* Header */}
 
