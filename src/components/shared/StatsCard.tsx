@@ -8,7 +8,7 @@ export default function StatsCard({
   value,
 }: StatsCardProps) {
   return (
-    <div className="bg-white rounded-3xl p-6 shadow-sm border">
+    <div className="bg-white rounded-3xl p-6 shadow-sm shadow ">
 
       <p className="text-gray-500 text-sm">
         {title}

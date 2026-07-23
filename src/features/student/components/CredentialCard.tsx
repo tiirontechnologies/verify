@@ -14,7 +14,7 @@ export default function CredentialCard({
   const navigate = useNavigate();
 
   return (
-    <div className="bg-white rounded-3xl border p-6 shadow-sm hover:shadow-md transition">
+    <div className="bg-white rounded-3xl  p-6 shadow-sm hover:shadow-md transition">
 
       <div className="flex items-center justify-between">
 

@@ -11,22 +11,6 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-gray-50">
 
-      {/* <div className="flex">
-
-        <Sidebar />
-
-
-        <div className="flex-1">
-
-          <Topbar />
-
-          <main className="p-4 md:p-8">
-            {children}
-          </main>
-
-        </div>
-
-      </div> */}
 <div className="min-h-screen bg-gray-50">
   <Sidebar />
 

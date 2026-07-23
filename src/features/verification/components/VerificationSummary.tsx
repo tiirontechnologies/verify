@@ -10,7 +10,7 @@ export default function VerificationSummary({
 
   return (
 
-    <div className="bg-white rounded-3xl border shadow-lg p-8">
+    <div className="bg-white rounded-3xl  shadow-lg p-8">
 
       <h2 className="text-2xl font-bold mb-8">
         Verification Summary
