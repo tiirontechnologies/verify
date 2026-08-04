@@ -10,6 +10,7 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [createdCredentials, setCreatedCredentials] = useState<any[]>([]);
 
   const handleFileUpload = async (file: File) => {
     if (!file) return;
@@ -25,13 +26,19 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
 
     setUploading(true);
     setMessage(null);
+    setCreatedCredentials([]);
 
     try {
       const res = await organizationApi.uploadStudents(file);
+      const data = res.data?.data;
       setMessage({
         type: "success",
         text: res.data?.message || "Students and certificate data imported successfully!",
       });
+
+      if (data?.createdCredentials?.length) {
+        setCreatedCredentials(data.createdCredentials);
+      }
 
       if (onUploadSuccess) {
         onUploadSuccess();
@@ -80,6 +87,54 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
             <AlertCircle size={20} className="text-red-600 shrink-0" />
           )}
           <span>{message.text}</span>
+        </div>
+      )}
+
+      {createdCredentials.length > 0 && (
+        <div className="mb-6 rounded-2xl border border-blue-200 bg-blue-50/70 p-5">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-blue-900">
+              Generated Student Initial Credentials ({createdCredentials.filter(c => c.isNewUser).length} New Accounts)
+            </h3>
+            <span className="text-xs text-blue-700 font-medium">
+              Share these credentials with students for portal login
+            </span>
+          </div>
+
+          <div className="mt-3 max-h-48 overflow-y-auto rounded-xl border border-blue-200 bg-white">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-blue-100/50 text-blue-900 sticky top-0 font-semibold">
+                <tr>
+                  <th className="p-2.5">Student Name</th>
+                  <th className="p-2.5">Email (Login ID)</th>
+                  <th className="p-2.5">Initial Password</th>
+                  <th className="p-2.5">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {createdCredentials.map((cred, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50">
+                    <td className="p-2.5 font-medium text-gray-800">{cred.name}</td>
+                    <td className="p-2.5 text-gray-600 font-mono">{cred.email}</td>
+                    <td className="p-2.5 font-mono text-slate-800 font-bold">
+                      {cred.initialPassword || "(Existing Account)"}
+                    </td>
+                    <td className="p-2.5">
+                      {cred.isNewUser ? (
+                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">
+                          Created
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-600">
+                          Linked
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

@@ -1,5 +1,7 @@
 import FabricEditor from "../../organization/components/documentTemplate/editor/FabricEditor";
+import { useNavigate } from "react-router-dom";
 
 export default function DocumentTemplateDesigner() {
-  return <FabricEditor />;
+  const navigate = useNavigate();
+  return <FabricEditor onBack={() => navigate(-1)} />;
 }

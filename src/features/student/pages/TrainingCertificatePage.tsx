@@ -245,7 +245,9 @@ export default function TrainingCertificatePage() {
       try {
         const response = await getMyCertificate();
         const certList = Array.isArray(response.data) ? response.data : [response.data];
-        const data = certList.find((c: any) => c.certificateType === "training") || certList[0];
+        const data = certList.find(
+          (c: any) => (c.certificateType || "").toLowerCase() === "training"
+        );
 
         if (!data) {
           setError("No Training Certificate Found");

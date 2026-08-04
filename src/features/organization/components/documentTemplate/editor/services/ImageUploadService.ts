@@ -16,11 +16,23 @@ export class ImageUploadService {
         if (!dataUrl) return;
 
         const image = await FabricImage.fromURL(dataUrl);
+        const canvasW = canvas.width || 747;
+        const canvasH = canvas.height || 1056;
+        const imgW = image.width || 300;
+        const imgH = image.height || 300;
+
+        // Proportional scale to fit within canvas bounds (max 50% of canvas width or height)
+        const maxW = canvasW * 0.5;
+        const maxH = canvasH * 0.5;
+        const scale = Math.min(maxW / imgW, maxH / imgH, 1);
+
         image.set({
-          left: canvas.width ? canvas.width / 2 - 100 : 150,
-          top: canvas.height ? canvas.height / 2 - 100 : 150,
-          scaleX: 0.35,
-          scaleY: 0.35,
+          scaleX: scale,
+          scaleY: scale,
+          originX: "center",
+          originY: "center",
+          left: canvasW / 2,
+          top: canvasH / 2,
         });
 
         canvas.add(image);
@@ -49,9 +61,9 @@ export class ImageUploadService {
 
         const image = await FabricImage.fromURL(dataUrl);
 
-        // Scale background image to fit canvas
-        const canvasWidth = canvas.width || 1056;
-        const canvasHeight = canvas.height || 747;
+        // Scale background image to fit current canvas dimensions
+        const canvasWidth = canvas.width || 747;
+        const canvasHeight = canvas.height || 1056;
 
         const scaleX = canvasWidth / (image.width || canvasWidth);
         const scaleY = canvasHeight / (image.height || canvasHeight);
@@ -73,4 +85,4 @@ export class ImageUploadService {
 
     input.click();
   }
-}
+}

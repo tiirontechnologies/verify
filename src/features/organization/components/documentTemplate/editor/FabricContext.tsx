@@ -15,6 +15,8 @@ interface FabricContextType {
   setActiveObject: (obj: any) => void;
   orientation: "landscape" | "portrait";
   setOrientation: (orientation: "landscape" | "portrait") => void;
+  zoomLevel: number;
+  setZoomLevel: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const FabricContext = createContext<FabricContextType | null>(null);
@@ -31,6 +33,7 @@ export function FabricProvider({
   const [orientation, setOrientation] = useState<"landscape" | "portrait">(
     initialOrientation
   );
+  const [zoomLevel, setZoomLevel] = useState<number>(1.0);
 
   return (
     <FabricContext.Provider
@@ -41,6 +44,8 @@ export function FabricProvider({
         setActiveObject,
         orientation,
         setOrientation,
+        zoomLevel,
+        setZoomLevel,
       }}
     >
       {children}

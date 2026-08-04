@@ -10,7 +10,7 @@ interface HeaderProps {
 }
 
 export default function Header({ template, onBack }: HeaderProps) {
-  const { canvas, orientation, setOrientation } = useFabric();
+  const { canvas, orientation, setOrientation, zoomLevel, setZoomLevel } = useFabric();
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [templateName, setTemplateName] = useState(template?.name || "");
   const [documentType, setDocumentType] = useState(template?.documentType || "internship");
@@ -84,7 +84,7 @@ export default function Header({ template, onBack }: HeaderProps) {
 
   return (
     <>
-      <header className="flex h-16 items-center justify-between border-b bg-white px-6 shadow-sm">
+      <header className="flex h-16 items-center justify-between border-b bg-white px-6 shadow-sm z-30">
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
@@ -101,6 +101,41 @@ export default function Header({ template, onBack }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Zoom Controls */}
+          <div className="flex items-center rounded-xl border border-gray-200 bg-gray-50 p-1 text-xs font-medium">
+            <button
+              onClick={() => setZoomLevel((prev) => Math.max(0.4, Number((prev - 0.1).toFixed(1))))}
+              className="px-2 py-1 rounded-md text-gray-600 hover:bg-white transition font-bold"
+              title="Zoom Out"
+            >
+              −
+            </button>
+            <span className="px-2 font-mono text-[11px] text-gray-700 min-w-[45px] text-center">
+              {Math.round(zoomLevel * 100)}%
+            </span>
+            <button
+              onClick={() => setZoomLevel((prev) => Math.min(1.5, Number((prev + 0.1).toFixed(1))))}
+              className="px-2 py-1 rounded-md text-gray-600 hover:bg-white transition font-bold"
+              title="Zoom In"
+            >
+              +
+            </button>
+            <button
+              onClick={() => setZoomLevel(orientation === "landscape" ? 0.75 : 0.65)}
+              className="px-2 py-1 ml-1 rounded-md text-red-600 hover:bg-white transition font-semibold"
+              title="Fit Canvas to Viewport"
+            >
+              Fit
+            </button>
+            <button
+              onClick={() => setZoomLevel(1.0)}
+              className="px-2 py-1 rounded-md text-gray-600 hover:bg-white transition"
+              title="Reset 100%"
+            >
+              100%
+            </button>
+          </div>
+
           {/* Orientation Switcher */}
           <div className="flex items-center rounded-xl border border-gray-200 bg-gray-50 p-1 text-xs font-semibold">
             <button
@@ -128,11 +163,24 @@ export default function Header({ template, onBack }: HeaderProps) {
           <button
             onClick={() => {
               if (!canvas) return;
+              if (window.confirm("Are you sure you want to clear all objects from the canvas?")) {
+                FabricToolService.clearCanvas(canvas);
+              }
+            }}
+            className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition"
+            title="Clear Canvas"
+          >
+            Clear
+          </button>
+
+          <button
+            onClick={() => {
+              if (!canvas) return;
               FabricToolService.deleteSelected(canvas);
             }}
-            className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3.5 py-2 text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition"
+            className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 transition"
           >
-            <Trash2 size={16} /> Delete Object
+            <Trash2 size={15} /> Delete Object
           </button>
 
           <button

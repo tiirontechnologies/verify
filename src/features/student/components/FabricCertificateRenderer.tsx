@@ -50,16 +50,17 @@ export default function FabricCertificateRenderer({
         if (obj.text && typeof obj.text === "string") {
           let updatedText = obj.text;
 
-          updatedText = updatedText.replace(/\{\{studentName\}\}/gi, studentData.studentName || "");
-          updatedText = updatedText.replace(/\{\{course\}\}/gi, studentData.course || "");
-          updatedText = updatedText.replace(/\{\{role\}\}/gi, studentData.role || "");
-          updatedText = updatedText.replace(/\{\{certificateId\}\}/gi, studentData.certificateId || "");
-          updatedText = updatedText.replace(/\{\{issueDate\}\}/gi, studentData.issueDate || "");
-          updatedText = updatedText.replace(/\{\{startDate\}\}/gi, studentData.startDate || "");
-          updatedText = updatedText.replace(/\{\{endDate\}\}/gi, studentData.endDate || "");
-          updatedText = updatedText.replace(/\{\{organization\}\}/gi, studentData.organization || "");
-          updatedText = updatedText.replace(/\{\{mentor\}\}/gi, studentData.mentor || "");
-          updatedText = updatedText.replace(/\{\{director\}\}/gi, studentData.director || "");
+          // Replace all dynamic placeholder variants with real student DB values
+          updatedText = updatedText.replace(/\{\{(studentName|student_name|name)\}\}/gi, studentData.studentName || "");
+          updatedText = updatedText.replace(/\{\{(course|courseName)\}\}/gi, studentData.course || "");
+          updatedText = updatedText.replace(/\{\{(role|designation)\}\}/gi, studentData.role || "");
+          updatedText = updatedText.replace(/\{\{(certificateId|certificate_id|certId)\}\}/gi, studentData.certificateId || "");
+          updatedText = updatedText.replace(/\{\{(issueDate|issue_date)\}\}/gi, studentData.issueDate || "");
+          updatedText = updatedText.replace(/\{\{(startDate|start_date)\}\}/gi, studentData.startDate || "");
+          updatedText = updatedText.replace(/\{\{(endDate|end_date)\}\}/gi, studentData.endDate || "");
+          updatedText = updatedText.replace(/\{\{(organization|organizationName)\}\}/gi, studentData.organization || "");
+          updatedText = updatedText.replace(/\{\{(mentor|mentorName)\}\}/gi, studentData.mentor || "");
+          updatedText = updatedText.replace(/\{\{(director|directorName)\}\}/gi, studentData.director || "");
 
           obj.text = updatedText;
         }
@@ -80,6 +81,19 @@ export default function FabricCertificateRenderer({
     const renderCanvas = async () => {
       try {
         await canvas.loadFromJSON(clonedData);
+        if (canvas.backgroundImage) {
+          const bg = canvas.backgroundImage as any;
+          if (bg.width && bg.height) {
+            bg.set({
+              scaleX: width / bg.width,
+              scaleY: height / bg.height,
+              originX: "left",
+              originY: "top",
+              left: 0,
+              top: 0,
+            });
+          }
+        }
         canvas.renderAll();
       } catch (err) {
         console.error("Failed to load certificate canvas JSON:", err);
@@ -91,7 +105,7 @@ export default function FabricCertificateRenderer({
     return () => {
       canvas.dispose();
     };
-  }, [templateData, studentData]);
+  }, [templateData, studentData, width, height]);
 
   const handleDownload = () => {
     if (!canvasRef.current) return;

@@ -133,7 +133,9 @@ export default function InternshipCertificatePage() {
       try {
         const response = await getMyCertificate();
         const certList = Array.isArray(response.data) ? response.data : [response.data];
-        const data = certList.find((c: any) => c.certificateType === "internship") || certList[0];
+        const data = certList.find(
+          (c: any) => (c.certificateType || "").toLowerCase() === "internship"
+        );
 
         if (!data) {
           setError("No Internship Certificate Found");

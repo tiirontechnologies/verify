@@ -154,55 +154,105 @@ export default function LeftSidebar() {
           <div className="space-y-4">
             <div>
               <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                <Type size={16} className="text-red-600" /> Text Elements
+                <Type size={16} className="text-red-600" /> Text Elements & Styles
               </h3>
               <p className="text-xs text-gray-500 mt-1">
-                Add static text to your certificate template.
+                Add static headers, signatures, or decorative text to your certificate template.
               </p>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               <button
                 onClick={() => {
                   if (!canvas) return;
                   FabricToolService.addText(canvas, "CERTIFICATE OF COMPLETION", {
-                    fontSize: 32,
+                    fontSize: 34,
                     fontWeight: "bold",
+                    fontFamily: "'Cinzel', serif",
                     fill: "#081F5C",
+                    textAlign: "center",
                   });
                 }}
-                className="w-full rounded-xl border border-gray-200 bg-white p-3 text-left hover:border-red-500 hover:bg-red-50 transition"
+                className="w-full rounded-xl border border-gray-200 bg-white p-3 text-left hover:border-red-500 hover:bg-red-50 transition shadow-xs group"
               >
-                <div className="text-lg font-bold text-gray-900">Add Header</div>
-                <div className="text-xs text-gray-400">Large bold title</div>
+                <div className="text-base font-bold text-[#081F5C] group-hover:text-red-600 font-serif">
+                  CERTIFICATE TITLE
+                </div>
+                <div className="text-[11px] text-gray-400">Cinzel Royal Serif • 34px</div>
               </button>
 
               <button
                 onClick={() => {
                   if (!canvas) return;
-                  FabricToolService.addText(canvas, "This is proudly presented to", {
-                    fontSize: 20,
+                  FabricToolService.addText(canvas, "This certificate is proudly presented to", {
+                    fontSize: 18,
+                    fontFamily: "'Playfair Display', serif",
+                    fontStyle: "italic",
                     fill: "#4b5563",
+                    textAlign: "center",
                   });
                 }}
-                className="w-full rounded-xl border border-gray-200 bg-white p-3 text-left hover:border-red-500 hover:bg-red-50 transition"
+                className="w-full rounded-xl border border-gray-200 bg-white p-3 text-left hover:border-red-500 hover:bg-red-50 transition shadow-xs group"
               >
-                <div className="text-base font-semibold text-gray-800">Add Subtitle</div>
-                <div className="text-xs text-gray-400">Medium section label</div>
+                <div className="text-sm font-serif italic text-gray-700 group-hover:text-red-600">
+                  This certificate is proudly presented to
+                </div>
+                <div className="text-[11px] text-gray-400">Playfair Display Italic • 18px</div>
               </button>
 
               <button
                 onClick={() => {
                   if (!canvas) return;
-                  FabricToolService.addText(canvas, "For successfully completing the internship program with outstanding performance.", {
-                    fontSize: 16,
-                    fill: "#374151",
+                  FabricToolService.addText(canvas, "{{studentName}}", {
+                    fontSize: 42,
+                    fontWeight: "bold",
+                    fontFamily: "'Great Vibes', cursive",
+                    fill: "#081F5C",
+                    textAlign: "center",
                   });
                 }}
-                className="w-full rounded-xl border border-gray-200 bg-white p-3 text-left hover:border-red-500 hover:bg-red-50 transition"
+                className="w-full rounded-xl border border-gray-200 bg-white p-3 text-left hover:border-red-500 hover:bg-red-50 transition shadow-xs group"
               >
-                <div className="text-sm font-normal text-gray-700">Add Body Text</div>
-                <div className="text-xs text-gray-400">Standard paragraph text</div>
+                <div className="text-xl text-[#081F5C] group-hover:text-red-600 font-serif" style={{ fontFamily: "'Great Vibes', cursive" }}>
+                  Student Name Calligraphy
+                </div>
+                <div className="text-[11px] text-gray-400">Great Vibes Cursive • 42px</div>
+              </button>
+
+              <button
+                onClick={() => {
+                  if (!canvas) return;
+                  FabricToolService.addText(canvas, "For successfully completing the program with outstanding performance.", {
+                    fontSize: 15,
+                    fontFamily: "'Poppins', sans-serif",
+                    fill: "#374151",
+                    textAlign: "center",
+                  });
+                }}
+                className="w-full rounded-xl border border-gray-200 bg-white p-3 text-left hover:border-red-500 hover:bg-red-50 transition shadow-xs group"
+              >
+                <div className="text-xs font-normal text-gray-700 group-hover:text-red-600">
+                  Standard Body Description Paragraph
+                </div>
+                <div className="text-[11px] text-gray-400">Poppins Sans-Serif • 15px</div>
+              </button>
+
+              <button
+                onClick={() => {
+                  if (!canvas) return;
+                  FabricToolService.addText(canvas, "Authorized Director", {
+                    fontSize: 22,
+                    fontFamily: "'Alex Brush', cursive",
+                    fill: "#1f2937",
+                    textAlign: "center",
+                  });
+                }}
+                className="w-full rounded-xl border border-gray-200 bg-white p-3 text-left hover:border-red-500 hover:bg-red-50 transition shadow-xs group"
+              >
+                <div className="text-lg text-gray-800 group-hover:text-red-600" style={{ fontFamily: "'Alex Brush', cursive" }}>
+                  Signature Style
+                </div>
+                <div className="text-[11px] text-gray-400">Alex Brush Script • 22px</div>
               </button>
             </div>
           </div>

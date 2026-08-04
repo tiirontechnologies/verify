@@ -18,10 +18,13 @@ export default function Canvas({
     setActiveObject,
     orientation,
     setOrientation,
+    zoomLevel,
   } = useFabric();
 
   const width = orientation === "landscape" ? 1056 : 747;
   const height = orientation === "landscape" ? 747 : 1056;
+
+  const prevDimensionsRef = useRef({ width, height });
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -57,17 +60,55 @@ export default function Canvas({
     };
   }, []);
 
-  // Update canvas size when orientation changes
+  // Update canvas size, scale background image, and adjust object positions on orientation change
   useEffect(() => {
     if (!canvas) return;
+
+    const oldW = prevDimensionsRef.current.width;
+    const oldH = prevDimensionsRef.current.height;
+
     canvas.setDimensions({ width, height });
+
+    // 1. Re-scale Background Image smoothly using natural image dimensions
+    if (canvas.backgroundImage) {
+      const bg = canvas.backgroundImage as any;
+      const el = bg._element || (bg.getElement && bg.getElement()) || bg;
+      const naturalW = el?.naturalWidth || el?.width || bg.width;
+      const naturalH = el?.naturalHeight || el?.height || bg.height;
+
+      if (naturalW && naturalH) {
+        bg.set({
+          scaleX: width / naturalW,
+          scaleY: height / naturalH,
+          originX: "left",
+          originY: "top",
+          left: 0,
+          top: 0,
+        });
+      }
+    }
+
+    // 2. Proportionally scale positions of objects if orientation dimensions changed
+    if (oldW !== width || oldH !== height) {
+      const scaleX = width / oldW;
+      const scaleY = height / oldH;
+
+      canvas.getObjects().forEach((obj) => {
+        obj.set({
+          left: (obj.left || 0) * scaleX,
+          top: (obj.top || 0) * scaleY,
+        });
+        obj.setCoords();
+      });
+    }
+
+    prevDimensionsRef.current = { width, height };
     canvas.renderAll();
   }, [canvas, orientation, width, height]);
 
   // Handle keyboard shortcuts (Backspace / Delete to remove selected object, Arrow keys to move)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Do not delete object if user is typing in standard form input/textarea/select
       const activeEl = document.activeElement;
       const isInput =
         activeEl &&
@@ -82,7 +123,6 @@ export default function Canvas({
       const activeObj = canvas.getActiveObject();
       if (!activeObj) return;
 
-      // Do not delete object if user is inside Fabric inline text editing mode
       if ((activeObj as any).isEditing) return;
 
       if (e.key === "Backspace" || e.key === "Delete") {
@@ -126,7 +166,8 @@ export default function Canvas({
     if (!canvas || !template?.design?.data) return;
 
     const targetOrientation =
-      template.design.orientation || template.design.data?.orientation;
+      template.design.orientation || template.design.data?.orientation || "landscape";
+
     if (
       targetOrientation === "portrait" ||
       targetOrientation === "landscape"
@@ -134,9 +175,32 @@ export default function Canvas({
       setOrientation(targetOrientation);
     }
 
+    const targetW = targetOrientation === "portrait" ? 747 : 1056;
+    const targetH = targetOrientation === "portrait" ? 1056 : 747;
+
     const loadCanvasData = async () => {
       try {
+        canvas.setDimensions({ width: targetW, height: targetH });
         await canvas.loadFromJSON(template.design.data);
+
+        if (canvas.backgroundImage) {
+          const bg = canvas.backgroundImage as any;
+          const el = bg._element || (bg.getElement && bg.getElement()) || bg;
+          const naturalW = el?.naturalWidth || el?.width || bg.width;
+          const naturalH = el?.naturalHeight || el?.height || bg.height;
+
+          if (naturalW && naturalH) {
+            bg.set({
+              scaleX: targetW / naturalW,
+              scaleY: targetH / naturalH,
+              originX: "left",
+              originY: "top",
+              left: 0,
+              top: 0,
+            });
+          }
+        }
+
         canvas.renderAll();
       } catch (err) {
         console.error("Failed to load canvas JSON in editor:", err);
@@ -147,8 +211,14 @@ export default function Canvas({
   }, [canvas, template, setOrientation]);
 
   return (
-    <div className="flex h-full flex-1 items-center justify-center overflow-auto bg-gray-100 p-6">
-      <div className="rounded-xl border border-gray-300 bg-white shadow-2xl transition-all duration-300">
+    <div className="flex h-full flex-1 items-center justify-center overflow-auto bg-gray-100/90 p-8 select-none">
+      <div
+        className="rounded-2xl border border-gray-300 bg-white shadow-2xl transition-all duration-300 ease-out origin-center"
+        style={{
+          transform: `scale(${zoomLevel})`,
+          maxWidth: "100%",
+        }}
+      >
         <canvas
           ref={canvasRef}
           width={width}

@@ -14,12 +14,26 @@ import {
 } from "lucide-react";
 
 const FONT_FAMILIES = [
-  { label: "Arial", value: "Arial" },
-  { label: "Poppins", value: "Poppins" },
-  { label: "Great Vibes (Cursive)", value: "'Great Vibes', cursive" },
-  { label: "Georgia", value: "Georgia" },
-  { label: "Times New Roman", value: "'Times New Roman'" },
-  { label: "Courier New", value: "'Courier New'" },
+  // Calligraphy & Script Fonts
+  { label: "Great Vibes (Calligraphy)", value: "'Great Vibes', cursive" },
+  { label: "Alex Brush (Signature)", value: "'Alex Brush', cursive" },
+  { label: "Dancing Script (Handwritten)", value: "'Dancing Script', cursive" },
+  { label: "Parisienne (Elegant Cursive)", value: "'Parisienne', cursive" },
+  { label: "Allura (Classic Script)", value: "'Allura', cursive" },
+
+  // Classic Serif Fonts
+  { label: "Cinzel (Royal Serif)", value: "'Cinzel', serif" },
+  { label: "Playfair Display (Premium Serif)", value: "'Playfair Display', serif" },
+  { label: "Cormorant Garamond (Editorial)", value: "'Cormorant Garamond', serif" },
+  { label: "Georgia (Traditional)", value: "Georgia, serif" },
+  { label: "Times New Roman", value: "'Times New Roman', serif" },
+
+  // Modern Sans-Serif Fonts
+  { label: "Montserrat (Modern Clean)", value: "'Montserrat', sans-serif" },
+  { label: "Poppins (Geometric Sans)", value: "'Poppins', sans-serif" },
+  { label: "Inter (Neutral Clean)", value: "'Inter', sans-serif" },
+  { label: "Roboto (Standard Sans)", value: "'Roboto', sans-serif" },
+  { label: "Arial", value: "Arial, sans-serif" },
 ];
 
 export default function RightSidebar() {

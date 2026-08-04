@@ -11,6 +11,7 @@ interface Props {
 const initialForm = {
   name: "",
   documentType: "internship",
+  orientation: "landscape",
   status: "active",
 };
 
@@ -195,6 +196,28 @@ export default function ImportTemplateModal({
 
               <option value="custom">
                 Custom
+              </option>
+            </select>
+          </div>
+
+          {/* Orientation */}
+          <div>
+            <label className="mb-2 block text-sm font-medium">
+              Orientation
+            </label>
+
+            <select
+              name="orientation"
+              value={form.orientation}
+              onChange={handleChange}
+              className="w-full rounded-xl border px-4 py-3 outline-none focus:border-red-500"
+            >
+              <option value="landscape">
+                Landscape (1056 x 747)
+              </option>
+
+              <option value="portrait">
+                Portrait (747 x 1056)
               </option>
             </select>
           </div>
