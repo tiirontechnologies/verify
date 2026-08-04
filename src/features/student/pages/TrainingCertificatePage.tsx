@@ -13,7 +13,8 @@ import type { CertificateData } from "../../../types/certificate";
 
 // 👇 training certificate ka background image (same ya alag, jo bhi use karna ho)
 // import traningBg from "../../../assets/trainingbg.png";
-import cert2 from "../../../assets/cert2.png"
+import cert2 from "../../../assets/cert2.png";
+import FabricCertificateRenderer from "../components/FabricCertificateRenderer";
 
 
 
@@ -226,7 +227,6 @@ const outerStyle: CSSProperties = {
   width: "100%",
 } as CSSProperties;
 
-
 const CAPTURE_WIDTH = 1200;
 
 export default function TrainingCertificatePage() {
@@ -235,6 +235,7 @@ export default function TrainingCertificatePage() {
   const outerRef = useRef<HTMLDivElement>(null);
 // const { description, plainDescription } = getTrainingContent(certificate);
   const [certificate, setCertificate] = useState<CertificateData | null>(null);
+  const [templateData, setTemplateData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [downloadingImage, setDownloadingImage] = useState(false);
@@ -243,11 +244,24 @@ export default function TrainingCertificatePage() {
     const fetchCertificate = async () => {
       try {
         const response = await getMyCertificate();
-        const data = response.data;
+        const certList = Array.isArray(response.data) ? response.data : [response.data];
+        const data = certList.find((c: any) => c.certificateType === "training") || certList[0];
+
+        if (!data) {
+          setError("No Training Certificate Found");
+          return;
+        }
+
+        if (data.template?.design?.data) {
+          setTemplateData({
+            ...data.template.design.data,
+            orientation: data.template.design.orientation || "landscape",
+          });
+        }
 
         setCertificate({
           id: data._id,
-          type: data.certificateType.toLowerCase(),
+          type: data.certificateType?.toLowerCase(),
 
           studentName: data.studentName,
           email: data.email,
@@ -282,7 +296,7 @@ export default function TrainingCertificatePage() {
           status: data.status,
         });
       } catch (err: any) {
-        setError(err.response?.data?.message || "No Training Certificate Found");
+        setError(err.response?.data?.message || "No Certificate Found");
       } finally {
         setLoading(false);
       }
@@ -439,6 +453,37 @@ export default function TrainingCertificatePage() {
 
   if (!certificate) {
     return null;
+  }
+
+  if (templateData) {
+    return (
+      <DashboardLayout>
+        <div className="bg-slate-100 min-h-screen -m-6 p-4 sm:p-8 space-y-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2 text-red-600 hover:text-red-700 transition font-medium text-sm"
+          >
+            <ArrowLeft size={18} /> Back to Dashboard
+          </button>
+
+          <FabricCertificateRenderer
+            templateData={templateData}
+            studentData={{
+              studentName: certificate.studentName,
+              course: certificate.course,
+              role: certificate.role,
+              certificateId: certificate.certificateId,
+              issueDate: certificate.issueDate,
+              startDate: certificate.startDate,
+              endDate: certificate.endDate,
+              organization: certificate.organization,
+              mentor: certificate.mentor,
+              director: certificate.director,
+            }}
+          />
+        </div>
+      </DashboardLayout>
+    );
   }
 
   // const { description } = getTrainingContent(certificate);

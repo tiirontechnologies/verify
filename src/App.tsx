@@ -18,11 +18,13 @@ import PasswordResetSuccessPage from "./features/auth/pages/PasswordResetSuccess
 import GenerateCertificatePage from "./features/student/pages/GenerateCertificatePage";
 import InternshipCertificatePage from "./features/student/pages/InternshipCertificatePage";
 import TrainingCertificatePage from "./features/student/pages/TrainingCertificatePage";
+import DocumentTemplateDesigner from "./features/organization/pages/DocumentTemplateDesigner";
 // import useMeRedirect from "./features/auth/hooks/useMeRedirect";
 import BookDemoPage from "./components/demo/BookDemoPage";
 import StudentUploadPage from "./features/organization/pages/StudentUploadPage";
 import UpdateStudentPage from "./features/organization/pages/UpdateStudentPage";
 import CertificateTemplatesPage from "./features/organization/pages/CertificateTemplatesPage";
+import TemplatePreviewPage from "./features/organization/pages/TemplatePreviewPage";
 import OrganizationProfilePage from "./features/organization/pages/OrganizationProfilePage";
 import AdvertisementsPage from "./features/organization/pages/AdvertisementsPage";
 import OrganizationSignupPage from "./features/auth/pages/OrganizationSignupPage";
@@ -108,6 +110,14 @@ function App() {
     </ProtectedRoute>
   }
 />
+{/* <Route
+    path="/docx-editor"
+    element={<DocxEditorPage />}
+/> */}
+<Route
+  path="/designer"
+  element={<DocumentTemplateDesigner />}
+/>
 
 <Route
   path="/student/history"
@@ -116,6 +126,7 @@ function App() {
       <VerificationHistory />
     </ProtectedRoute>
   }
+  
 />
 
  <Route
@@ -134,7 +145,25 @@ function App() {
     </ProtectedRoute>
   }
 />
+<Route
 
+    path="/certificate-templates/:id"
+
+    element={<TemplatePreviewPage/>}
+
+/>
+<Route
+  path="/certificate-templates/:id/edit"
+  element={
+    <ProtectedRoute>
+      <DocumentTemplateDesigner />
+    </ProtectedRoute>
+  }
+/>
+<Route
+    path="/designer"
+    element={<DocumentTemplateDesigner />}
+/>
 <Route
   path="/student/settings"
   element={

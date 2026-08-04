@@ -1,94 +1,233 @@
+import { useState } from "react";
 import {
-  ArrowRight,
-  CheckCircle2,
   FileBadge2,
+  CheckCircle2,
+  Eye,
+  Edit3,
+  Trash2,
+  Star,
 } from "lucide-react";
 
-const templates = [
-  {
-    name: "Internship Certificate",
-    category: "Internship",
-    updated: "18 Jul 2026",
-    status: "Default",
-  },
-  {
-    name: "Training Certificate",
-    category: "Training",
-    updated: "16 Jul 2026",
-    status: "Active",
-  },
-  {
-    name: "Workshop Certificate",
-    category: "Workshop",
-    updated: "12 Jul 2026",
-    status: "Active",
-  },
-  {
-    name: "Appreciation Certificate",
-    category: "Recognition",
-    updated: "10 Jul 2026",
-    status: "Draft",
-  },
+interface TemplateCardProps {
+  templates: any[];
+  selectedTemplate: any;
+  onSelect: (template: any) => void;
+  onPreview: (template: any) => void;
+  onEdit: (template: any) => void;
+  onDelete: (template: any) => void;
+  onSetDefault: (template: any) => void;
+  loading: boolean;
+}
+
+const CATEGORIES = [
+  { id: "all", label: "All Templates" },
+  { id: "internship", label: "Internship" },
+  { id: "training", label: "Training" },
+  { id: "offer-letter", label: "Offer Letter" },
+  { id: "appreciation-letter", label: "Appreciation" },
+  { id: "custom", label: "Custom" },
 ];
 
-export default function TemplateCards() {
+export default function TemplateCards({
+  templates,
+  selectedTemplate,
+  onSelect,
+  onPreview,
+  onEdit,
+  onDelete,
+  onSetDefault,
+  loading,
+}: TemplateCardProps) {
+  const [activeCategory, setActiveCategory] = useState("all");
+
+  const filteredTemplates = templates.filter((t) => {
+    if (activeCategory === "all") return true;
+    return t.documentType === activeCategory;
+  });
+
+  if (loading) {
+    return (
+      <section className="rounded-3xl border border-gray-200 bg-white shadow-sm">
+        <div className="border-b border-gray-100 p-6">
+          <h2 className="text-2xl font-bold text-gray-900">
+            Available Templates
+          </h2>
+          <p className="mt-2 text-gray-500">Loading templates...</p>
+        </div>
+
+        <div className="grid gap-6 p-6 md:grid-cols-2 xl:grid-cols-3">
+          {[1, 2, 3].map((item) => (
+            <div
+              key={item}
+              className="h-64 animate-pulse rounded-2xl bg-gray-100"
+            />
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className="rounded-3xl border border-gray-200 bg-white shadow-sm">
-      <div className="border-b border-gray-100 p-6">
-        <h2 className="text-2xl font-bold text-gray-900">
-          Available Templates
-        </h2>
-
-        <p className="mt-2 text-gray-500">
-          Choose a certificate template to preview or edit.
-        </p>
-      </div>
-
-      <div className="grid gap-6 p-6 md:grid-cols-2 xl:grid-cols-4">
-        {templates.map((template) => (
-          <button
-            key={template.name}
-            className="group rounded-2xl border border-gray-200 p-6 text-left transition-all hover:-translate-y-1 hover:border-red-300 hover:shadow-lg"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-red-600">
-                <FileBadge2 />
-              </div>
-
-              <CheckCircle2 className="text-green-500" />
-            </div>
-
-            <h3 className="mt-6 text-lg font-semibold text-gray-900">
-              {template.name}
-            </h3>
-
-            <p className="mt-2 text-sm text-gray-500">
-              {template.category}
+    <section className="rounded-3xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+      <div className="border-b border-gray-100 p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Available Templates ({filteredTemplates.length})
+            </h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Bifurcated by Document Type. Select the active default template for students.
             </p>
+          </div>
+        </div>
 
-            <div className="mt-5 rounded-xl bg-gray-50 p-3">
-              <div className="text-xs uppercase tracking-wide text-gray-400">
-                Last Updated
-              </div>
+        {/* Category Bifurcation Tabs */}
+        <div className="flex flex-wrap items-center gap-2 pt-2">
+          {CATEGORIES.map((cat) => {
+            const count =
+              cat.id === "all"
+                ? templates.length
+                : templates.filter((t) => t.documentType === cat.id).length;
 
-              <div className="mt-1 font-medium text-gray-700">
-                {template.updated}
-              </div>
-            </div>
-
-            <div className="mt-5 flex items-center justify-between">
-              <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
-                {template.status}
-              </span>
-
-              <ArrowRight
-                size={18}
-                className="transition group-hover:translate-x-1"
-              />
-            </div>
-          </button>
-        ))}
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition ${
+                  activeCategory === cat.id
+                    ? "bg-red-600 text-white shadow-md font-bold"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                }`}
+              >
+                {cat.label}
+                <span
+                  className={`rounded-full px-2 py-0.5 text-[10px] ${
+                    activeCategory === cat.id
+                      ? "bg-red-700 text-white"
+                      : "bg-gray-200 text-gray-700"
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
+
+      {!filteredTemplates.length ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <FileBadge2 size={60} className="text-gray-300" />
+          <h3 className="mt-6 text-xl font-semibold text-gray-800">
+            No Templates Found for {activeCategory}
+          </h3>
+          <p className="mt-2 text-gray-500 text-sm">
+            Create a new template for this document type to get started.
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-6 p-6 md:grid-cols-2 xl:grid-cols-3">
+          {filteredTemplates.map((template) => {
+            const isSelected = selectedTemplate?._id === template._id;
+
+            return (
+              <div
+                key={template._id}
+                onClick={() => onSelect(template)}
+                className={`group flex flex-col justify-between rounded-2xl border p-6 transition-all duration-200 bg-white hover:-translate-y-1 hover:shadow-xl cursor-pointer ${
+                  isSelected
+                    ? "border-red-500 ring-2 ring-red-100 shadow-md"
+                    : "border-gray-200 hover:border-red-300"
+                }`}
+              >
+                <div>
+                  {/* Header */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+                      <FileBadge2 size={24} />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {template.isDefault ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700 border border-green-200 shadow-sm">
+                          <CheckCircle2 size={13} /> Active Default
+                        </span>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSetDefault(template);
+                          }}
+                          className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-100 border border-amber-200 transition"
+                          title="Set as active template for this document type"
+                        >
+                          <Star size={13} /> Set as Default
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Title & Document Type */}
+                  <h3 className="mt-5 text-lg font-bold text-gray-900 group-hover:text-red-600 transition">
+                    {template.name}
+                  </h3>
+                  <span className="mt-1 inline-block uppercase text-[11px] font-bold tracking-wider text-red-600 bg-red-50 px-2.5 py-0.5 rounded-md">
+                    {template.documentType}
+                  </span>
+
+                  {/* Metadata */}
+                  <div className="mt-4 rounded-xl bg-gray-50 p-3 text-xs text-gray-500 flex justify-between">
+                    <span>Engine: {template.design?.editor || "Fabric.js"}</span>
+                    <span>
+                      {new Date(template.updatedAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Action Buttons inside Card */}
+                <div className="mt-6 flex items-center gap-2 border-t pt-4">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onPreview(template);
+                    }}
+                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 hover:border-gray-300 transition"
+                    title="Preview Template"
+                  >
+                    <Eye size={15} className="text-gray-600" /> Preview
+                  </button>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(template);
+                    }}
+                    className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-red-600 px-3 py-2 text-xs font-semibold text-white hover:bg-red-700 shadow-sm transition"
+                    title="Edit Template"
+                  >
+                    <Edit3 size={15} /> Edit
+                  </button>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(template);
+                    }}
+                    className="flex items-center justify-center rounded-xl border border-gray-200 bg-gray-50 p-2 text-red-600 hover:bg-red-50 hover:border-red-200 transition"
+                    title="Delete Template"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </section>
   );
 }
