@@ -46,6 +46,7 @@ import OrganizationSignupPage from "./features/auth/pages/OrganizationSignupPage
 //   return null;
 // }
 
+// this is app function 
 function App() {
   return (
     <BrowserRouter>
