@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CloudUpload, FileSpreadsheet, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { CloudUpload, FileSpreadsheet, CheckCircle2, AlertCircle, Loader2, Download } from "lucide-react";
 import { organizationApi } from "../../../../api/organization.api";
 
 interface UploadDropzoneProps {
@@ -166,26 +166,63 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
             : "Upload your student roster sheet (.xlsx, .xls, .csv) to auto-generate certificate records."}
         </p>
 
-        <label
-          className={`mt-8 inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-red-600 px-7 py-3.5 font-semibold text-white shadow-md transition hover:bg-red-700 ${
-            uploading ? "opacity-60 pointer-events-none" : ""
-          }`}
-        >
-          <FileSpreadsheet size={18} />
-          {uploading ? "Uploading..." : "Browse Excel File"}
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+          <label
+            className={`inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-red-600 px-7 py-3.5 font-semibold text-white shadow-md transition hover:bg-red-700 ${
+              uploading ? "opacity-60 pointer-events-none" : ""
+            }`}
+          >
+            <FileSpreadsheet size={18} />
+            {uploading ? "Uploading..." : "Browse Excel File"}
 
-          <input
-            type="file"
-            accept=".xlsx,.xls,.csv"
-            onChange={(e) => {
-              if (e.target.files && e.target.files[0]) {
-                handleFileUpload(e.target.files[0]);
-              }
+            <input
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  handleFileUpload(e.target.files[0]);
+                }
+              }}
+              disabled={uploading}
+              className="hidden"
+            />
+          </label>
+
+          <button
+            type="button"
+            onClick={() => {
+              const headers = [
+                "Student Name",
+                "Email",
+                "Certificate Type",
+                "Course",
+                "Role",
+                "Start Date",
+                "End Date",
+                "Mentor",
+                "Director",
+              ];
+              const sampleRows = [
+                '"Aarav Sharma","aarav.sharma@example.com","offer-letter, training, internship","Full Stack Development","Software Engineer Intern","2026-09-01","2026-12-01","Rahul Sharma","Nitesh Singh"',
+                '"Priya Patel","priya.patel@example.com","offer-letter, internship","Data Science & AI","Data Analyst Intern","2026-05-01","2026-08-01","Anjali Gupta","Nitesh Singh"',
+                '"Rohan Verma","rohan.verma@example.com","training","Python Programming","Trainee","2026-06-15","2026-07-15","Vikram Malhotra","Nitesh Singh"',
+                '"Sneha Reddy","sneha.reddy@example.com","appreciation-letter","Cloud Architecture","Participant","2026-07-01","2026-07-31","Rahul Sharma","Nitesh Singh"',
+              ];
+              const csvContent =
+                "data:text/csv;charset=utf-8," + [headers.join(","), ...sampleRows].join("\n");
+              const encodedUri = encodeURI(csvContent);
+              const link = document.createElement("a");
+              link.setAttribute("href", encodedUri);
+              link.setAttribute("download", "student_upload_sample_template.csv");
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
             }}
-            disabled={uploading}
-            className="hidden"
-          />
-        </label>
+            className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3.5 font-semibold transition text-sm"
+          >
+            <Download size={18} /> Download Sample CSV
+          </button>
+        </div>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <span className="rounded-full bg-white px-4 py-1.5 text-xs font-semibold text-gray-600 shadow-sm border border-gray-100">

@@ -44,7 +44,7 @@ export default function ProtectedRoute({
 
         localStorage.setItem("user", JSON.stringify(nestedUser || data?.user || { role }));
         setStatus("authenticated");
-      } catch (error) {
+      } catch {
         setStatus("unauthenticated");
       }
     };

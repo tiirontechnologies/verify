@@ -29,4 +29,16 @@ export const organizationApi = {
 
   getRecentCertificates: () =>
     api.get("/api/organization/recent-certificates"),
+
+  updateStudent: (id: string, data: any) =>
+    api.put(`/api/organization/students/${id}`, data),
+
+  deleteStudent: (id: string) =>
+    api.delete(`/api/organization/students/${id}`),
+
+  bulkDeleteStudents: (ids: string[]) =>
+    api.post("/api/organization/students/bulk-delete", { ids }),
+
+  bulkUpdateStatus: (ids: string[], status: "active" | "revoked") =>
+    api.put("/api/organization/students/bulk-status", { ids, status }),
 };

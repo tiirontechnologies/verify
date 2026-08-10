@@ -74,7 +74,7 @@ const [showEditModal, setShowEditModal] = useState(false);
       });
 
     } catch (error) {
-
+      console.error("Failed to load profile:", error);
     } finally {
 
       setLoading(false);

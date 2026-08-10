@@ -16,8 +16,8 @@ export class ImageUploadService {
         if (!dataUrl) return;
 
         const image = await FabricImage.fromURL(dataUrl);
-        const canvasW = canvas.width || 747;
-        const canvasH = canvas.height || 1056;
+        const canvasW = canvas.width || 1056;
+        const canvasH = canvas.height || 747;
         const imgW = image.width || 300;
         const imgH = image.height || 300;
 
@@ -45,7 +45,10 @@ export class ImageUploadService {
     input.click();
   }
 
-  static async uploadBackground(canvas: Canvas) {
+  static async uploadBackground(
+    canvas: Canvas,
+    onOrientationDetect?: (orientation: "landscape" | "portrait") => void
+  ) {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
@@ -61,12 +64,24 @@ export class ImageUploadService {
 
         const image = await FabricImage.fromURL(dataUrl);
 
-        // Scale background image to fit current canvas dimensions
-        const canvasWidth = canvas.width || 747;
-        const canvasHeight = canvas.height || 1056;
+        const el = (image as any)._element || ((image as any).getElement && (image as any).getElement()) || image;
+        const imgW = el?.naturalWidth || el?.width || image.width || 1;
+        const imgH = el?.naturalHeight || el?.height || image.height || 1;
 
-        const scaleX = canvasWidth / (image.width || canvasWidth);
-        const scaleY = canvasHeight / (image.height || canvasHeight);
+        // Auto detect orientation from natural image aspect ratio
+        const detectedOrientation: "landscape" | "portrait" = imgH > imgW ? "portrait" : "landscape";
+
+        if (onOrientationDetect) {
+          onOrientationDetect(detectedOrientation);
+        }
+
+        const canvasWidth = detectedOrientation === "portrait" ? 747 : 1056;
+        const canvasHeight = detectedOrientation === "portrait" ? 1056 : 747;
+
+        canvas.setDimensions({ width: canvasWidth, height: canvasHeight });
+
+        const scaleX = canvasWidth / imgW;
+        const scaleY = canvasHeight / imgH;
 
         image.set({
           scaleX: scaleX,
@@ -85,4 +100,4 @@ export class ImageUploadService {
 
     input.click();
   }
-}
+}

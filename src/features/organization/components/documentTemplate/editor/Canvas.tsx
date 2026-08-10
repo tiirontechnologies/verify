@@ -1,16 +1,14 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { Canvas as FabricCanvas } from "fabric";
-
 import { useFabric } from "./FabricContext";
 
 interface CanvasProps {
   template?: any;
 }
 
-export default function Canvas({
-  template,
-}: CanvasProps) {
+export default function Canvas({ template }: CanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const {
     canvas,
@@ -19,13 +17,18 @@ export default function Canvas({
     orientation,
     setOrientation,
     zoomLevel,
+    setZoomLevel,
   } = useFabric();
 
-  const width = orientation === "landscape" ? 1056 : 747;
-  const height = orientation === "landscape" ? 747 : 1056;
+  // Standard dimensions
+  const isLandscape = orientation === "landscape";
+  const width = isLandscape ? 1056 : 816;
+  const height = isLandscape ? 816 : 1056;
 
+  // Track previous dimensions for scale recalculation
   const prevDimensionsRef = useRef({ width, height });
 
+  // Initialize Fabric canvas instance once
   useEffect(() => {
     if (!canvasRef.current) return;
 
@@ -34,17 +37,16 @@ export default function Canvas({
       height,
       backgroundColor: "#ffffff",
       preserveObjectStacking: true,
-      selection: true,
     });
 
     setCanvas(fabricCanvas);
 
     fabricCanvas.on("selection:created", (e) => {
-      setActiveObject(e.selected?.[0] ?? null);
+      setActiveObject(e.selected?.[0] || null);
     });
 
     fabricCanvas.on("selection:updated", (e) => {
-      setActiveObject(e.selected?.[0] ?? null);
+      setActiveObject(e.selected?.[0] || null);
     });
 
     fabricCanvas.on("selection:cleared", () => {
@@ -58,7 +60,28 @@ export default function Canvas({
       setCanvas(null);
       setActiveObject(null);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Auto calculate optimal zoom to maximize canvas space in current screen container
+  const calculateAutoZoom = useCallback(() => {
+    if (!containerRef.current) return;
+    const parentW = containerRef.current.clientWidth - 80;
+    const parentH = containerRef.current.clientHeight - 80;
+
+    if (parentW > 0 && parentH > 0) {
+      const zoomW = parentW / width;
+      const zoomH = parentH / height;
+      const autoZoom = Math.min(zoomW, zoomH, 1.15);
+      setZoomLevel(Number(Math.max(0.45, autoZoom).toFixed(2)));
+    }
+  }, [width, height, setZoomLevel]);
+
+  useEffect(() => {
+    calculateAutoZoom();
+    window.addEventListener("resize", calculateAutoZoom);
+    return () => window.removeEventListener("resize", calculateAutoZoom);
+  }, [calculateAutoZoom]);
 
   // Update canvas size, scale background image, and adjust object positions on orientation change
   useEffect(() => {
@@ -73,8 +96,8 @@ export default function Canvas({
     if (canvas.backgroundImage) {
       const bg = canvas.backgroundImage as any;
       const el = bg._element || (bg.getElement && bg.getElement()) || bg;
-      const naturalW = el?.naturalWidth || el?.width || bg.width;
-      const naturalH = el?.naturalHeight || el?.height || bg.height;
+      const naturalW = bg.width || el?.naturalWidth || el?.width;
+      const naturalH = bg.height || el?.naturalHeight || el?.height;
 
       if (naturalW && naturalH) {
         bg.set({
@@ -110,20 +133,28 @@ export default function Canvas({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const activeEl = document.activeElement;
-      const isInput =
+      const isFormInput =
         activeEl &&
         (activeEl.tagName === "INPUT" ||
           activeEl.tagName === "TEXTAREA" ||
           activeEl.tagName === "SELECT" ||
-          (activeEl as HTMLElement).isContentEditable);
+          (activeEl as HTMLElement).isContentEditable ||
+          activeEl.classList.contains("fabric-hidden-textarea"));
 
-      if (isInput) return;
+      if (isFormInput) return;
       if (!canvas) return;
 
       const activeObj = canvas.getActiveObject();
       if (!activeObj) return;
 
-      if ((activeObj as any).isEditing) return;
+      // DO NOT delete object or prevent default if text editing is active in Fabric
+      const isEditingText =
+        Boolean((activeObj as any).isEditing) ||
+        Boolean((activeObj as any).inMode) ||
+        ((activeObj.type === "i-text" || activeObj.type === "textbox") &&
+          Boolean((activeObj as any).isEditing));
+
+      if (isEditingText) return;
 
       if (e.key === "Backspace" || e.key === "Delete") {
         e.preventDefault();
@@ -162,6 +193,7 @@ export default function Canvas({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [canvas, setActiveObject]);
 
+  // Load existing template design JSON into Fabric canvas
   useEffect(() => {
     if (!canvas || !template?.design?.data) return;
 
@@ -186,8 +218,8 @@ export default function Canvas({
         if (canvas.backgroundImage) {
           const bg = canvas.backgroundImage as any;
           const el = bg._element || (bg.getElement && bg.getElement()) || bg;
-          const naturalW = el?.naturalWidth || el?.width || bg.width;
-          const naturalH = el?.naturalHeight || el?.height || bg.height;
+          const naturalW = bg.width || el?.naturalWidth || el?.width;
+          const naturalH = bg.height || el?.naturalHeight || el?.height;
 
           if (naturalW && naturalH) {
             bg.set({
@@ -211,9 +243,16 @@ export default function Canvas({
   }, [canvas, template, setOrientation]);
 
   return (
-    <div className="flex h-full flex-1 items-center justify-center overflow-auto bg-gray-100/90 p-8 select-none">
+    <div
+      ref={containerRef}
+      className="flex h-full flex-1 items-center justify-center overflow-auto bg-slate-950 p-6 sm:p-12 select-none relative"
+      style={{
+        backgroundImage: "radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px)",
+        backgroundSize: "24px 24px",
+      }}
+    >
       <div
-        className="rounded-2xl border border-gray-300 bg-white shadow-2xl transition-all duration-300 ease-out origin-center"
+        className="rounded-2xl border border-slate-700 bg-white shadow-[0_25px_80px_rgba(0,0,0,0.6)] transition-all duration-300 ease-out origin-center ring-1 ring-slate-800 overflow-hidden"
         style={{
           transform: `scale(${zoomLevel})`,
           maxWidth: "100%",

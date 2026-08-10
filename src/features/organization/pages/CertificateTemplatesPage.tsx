@@ -18,9 +18,9 @@ export default function CertificateTemplatesPage() {
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const fetchTemplates = async () => {
+  const fetchTemplates = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
 
       const { data } = await documentTemplateApi.getTemplates();
       const templateList = data.templates || [];
@@ -72,20 +72,49 @@ export default function CertificateTemplatesPage() {
   };
 
   useEffect(() => {
-    fetchTemplates();
+    let isMounted = true;
+
+    documentTemplateApi
+      .getTemplates()
+      .then(({ data }) => {
+        if (!isMounted) return;
+        const templateList = data.templates || [];
+        setTemplates(templateList);
+
+        if (templateList.length > 0) {
+          setSelectedTemplate((prev: any) => {
+            if (!prev) return templateList[0];
+            return (
+              templateList.find((item: any) => item._id === prev._id) || templateList[0]
+            );
+          });
+        } else {
+          setSelectedTemplate(null);
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to fetch templates:", error);
+      })
+      .finally(() => {
+        if (isMounted) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   if (isEditorOpen) {
     return (
-      <DashboardLayout>
-        <FabricEditor
-          template={editingTemplate}
-          onBack={() => {
-            setIsEditorOpen(false);
-            fetchTemplates();
-          }}
-        />
-      </DashboardLayout>
+      <FabricEditor
+        template={editingTemplate}
+        onBack={() => {
+          setIsEditorOpen(false);
+          fetchTemplates();
+        }}
+      />
     );
   }
 

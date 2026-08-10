@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Upload, X, FileText } from "lucide-react";
 import { documentTemplateApi } from "../../../../api/documentTemplateApi";
 
@@ -31,13 +31,16 @@ export default function ImportTemplateModal({
   const [form, setForm] =
     useState(initialForm);
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
       setForm(initialForm);
       setSelectedFile(null);
       setDragging(false);
     }
-  }, [open]);
+  }
 
   if (!open) return null;
 

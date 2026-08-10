@@ -10,20 +10,28 @@ export default function RecentUploads({ refreshTrigger }: RecentUploadsProps) {
   const [certificates, setCertificates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchRecentCertificates = async () => {
-    try {
-      setLoading(true);
-      const res = await organizationApi.getRecentCertificates();
-      setCertificates(res.data?.certificates || []);
-    } catch (err) {
-      console.error("Failed to fetch recent certificates:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchRecentCertificates();
+    let isMounted = true;
+
+    organizationApi
+      .getRecentCertificates()
+      .then((res) => {
+        if (isMounted) {
+          setCertificates(res.data?.certificates || []);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch recent certificates:", err);
+      })
+      .finally(() => {
+        if (isMounted) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [refreshTrigger]);
 
   return (

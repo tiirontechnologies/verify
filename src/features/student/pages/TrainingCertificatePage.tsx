@@ -255,9 +255,15 @@ export default function TrainingCertificatePage() {
         }
 
         if (data.template?.design?.data) {
+          const orientation =
+            data.template.orientation ||
+            data.template.design?.orientation ||
+            data.template.design?.data?.orientation ||
+            (data.template.design?.data?.height > data.template.design?.data?.width ? "portrait" : "landscape");
+
           setTemplateData({
             ...data.template.design.data,
-            orientation: data.template.design.orientation || "landscape",
+            orientation,
           });
         }
 
@@ -481,6 +487,7 @@ export default function TrainingCertificatePage() {
               organization: certificate.organization,
               mentor: certificate.mentor,
               director: certificate.director,
+              email: certificate.email || "",
             }}
           />
         </div>

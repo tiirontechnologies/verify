@@ -1,0 +1,184 @@
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import DashboardLayout from "../../../layouts/DashboardLayout";
+import { getMyCertificate } from "../../../api/certificate.api";
+import FabricCertificateRenderer from "../components/FabricCertificateRenderer";
+import OfferLetterDocument from "../components/OfferLetterDocument";
+import { ArrowLeft, AlertCircle } from "lucide-react";
+
+interface DocumentViewerPageProps {
+  forcedType?: string;
+}
+
+export default function DocumentViewerPage({ forcedType }: DocumentViewerPageProps) {
+  const { certificateId } = useParams<{ certificateId?: string }>();
+  const navigate = useNavigate();
+
+  const [documentData, setDocumentData] = useState<any>(null);
+  const [templateData, setTemplateData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchDoc = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        const response = await getMyCertificate();
+        const list = Array.isArray(response.data) ? response.data : [response.data];
+        const validList = list.filter(Boolean);
+
+        let match = null;
+
+        if (certificateId) {
+          match = validList.find(
+            (c) =>
+              c._id === certificateId ||
+              c.certificateId === certificateId ||
+              c.certificateId?.toLowerCase() === certificateId.toLowerCase()
+          );
+        }
+
+        if (!match && forcedType) {
+          match = validList.find(
+            (c) => (c.certificateType || "").toLowerCase() === forcedType.toLowerCase()
+          );
+        }
+
+        if (!match && validList.length > 0) {
+          // If fallback needed
+          match = validList[0];
+        }
+
+        if (!match) {
+          setError(
+            forcedType
+              ? `No ${forcedType.replace("-", " ")} document found for your account.`
+              : "Requested document was not found."
+          );
+          return;
+        }
+
+        setDocumentData(match);
+
+        if (match.template?.design?.data) {
+          const orientation =
+            match.template.orientation ||
+            match.template.design?.orientation ||
+            match.template.design?.data?.orientation ||
+            (match.template.design?.data?.height > match.template.design?.data?.width ? "portrait" : "landscape");
+
+          setTemplateData({
+            ...match.template.design.data,
+            orientation,
+          });
+        }
+      } catch (err: any) {
+        console.error("Failed to load document:", err);
+        setError(err?.message || "Failed to load document details.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDoc();
+  }, [certificateId, forcedType]);
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex min-h-[70vh] items-center justify-center px-4">
+          <div className="flex flex-col items-center">
+            <div className="relative">
+              <div className="h-20 w-20 rounded-full border-4 border-red-100"></div>
+              <div className="absolute inset-0 h-20 w-20 rounded-full border-4 border-transparent border-t-red-600 animate-spin"></div>
+            </div>
+            <h2 className="mt-8 text-2xl font-bold text-gray-900">
+              Loading Document
+            </h2>
+            <p className="mt-2 text-sm text-gray-500">
+              Fetching security metadata and template details...
+            </p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error || !documentData) {
+    return (
+      <DashboardLayout>
+        <div className="min-h-[70vh] flex items-center justify-center p-6">
+          <div className="w-full max-w-lg bg-white rounded-3xl border border-slate-200 p-8 text-center shadow-lg">
+            <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle size={32} />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900">Document Unavailable</h2>
+            <p className="text-sm text-slate-500 mt-2">
+              {error || "The document you are looking for has not been assigned or issued yet."}
+            </p>
+            <button
+              onClick={() => navigate("/student/my-certificate")}
+              className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition"
+            >
+              <ArrowLeft size={16} /> Back to My Credentials
+            </button>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const certType = (documentData.certificateType || "internship").toLowerCase();
+
+  return (
+    <DashboardLayout>
+      <div className="bg-slate-100 min-h-screen -m-4 sm:-m-8 p-4 sm:p-8 space-y-4">
+        {/* Render Fabric canvas template if template exists */}
+        {templateData ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+              <button
+                onClick={() => navigate(-1)}
+                className="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium text-sm transition"
+              >
+                <ArrowLeft size={18} /> Back
+              </button>
+              <span className="text-xs font-semibold uppercase bg-slate-100 text-slate-700 px-3 py-1 rounded-md">
+                {documentData.certificateType} • {documentData.certificateId}
+              </span>
+            </div>
+
+            <FabricCertificateRenderer
+              templateData={templateData}
+              studentData={{
+                studentName: documentData.studentName,
+                course: documentData.course,
+                role: documentData.role,
+                certificateId: documentData.certificateId,
+                issueDate: documentData.issueDate,
+                startDate: documentData.startDate,
+                endDate: documentData.endDate,
+                organization: documentData.organization,
+                mentor: documentData.mentor,
+                director: documentData.director,
+                email: documentData.email || "",
+              }}
+            />
+          </div>
+        ) : certType === "offer-letter" ? (
+          <OfferLetterDocument
+            documentData={documentData}
+            onBack={() => navigate(-1)}
+          />
+        ) : (
+          /* Default document view for non-offer letter certificates if no Fabric template is attached */
+          <OfferLetterDocument
+            documentData={documentData}
+            onBack={() => navigate(-1)}
+          />
+        )}
+      </div>
+    </DashboardLayout>
+  );
+}

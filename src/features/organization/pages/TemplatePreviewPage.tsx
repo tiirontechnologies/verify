@@ -6,6 +6,7 @@ import FabricCertificateRenderer from "../../student/components/FabricCertificat
 
 const SAMPLE_PREVIEW_STUDENT = {
   studentName: "Rahul Sharma",
+  email: "rahul.sharma@example.com",
   course: "Full Stack Web Development",
   role: "Software Developer Intern",
   certificateId: "TIIRON-2026-98421",
@@ -23,21 +24,29 @@ export default function TemplatePreviewPage() {
   const [template, setTemplate] = useState<any>();
   const [loading, setLoading] = useState(true);
 
-  const loadTemplate = async () => {
-    try {
-      const { data } = await documentTemplateApi.getTemplateById(id!);
-      setTemplate(data.template);
-    } catch (error) {
-      console.error("Failed to load template:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    if (id) {
-      loadTemplate();
-    }
+    if (!id) return;
+    let isMounted = true;
+
+    documentTemplateApi
+      .getTemplateById(id)
+      .then(({ data }) => {
+        if (isMounted) {
+          setTemplate(data.template);
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to load template:", error);
+      })
+      .finally(() => {
+        if (isMounted) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [id]);
 
   if (loading) {
