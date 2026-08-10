@@ -147,7 +147,7 @@ const role: "student" | "admin" = storedUser
         <div className="border-t border-gray-100 p-5">
           <button
             onClick={handleLogout}
-            className="group flex w-full items-center justify-center gap-3 rounded-2xl bg-red-600 px-5 py-3 text-white font-medium shadow-lg shadow-red-600/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-red-700 hover:shadow-red-600/30"
+            className="group flex w-full items-center justify-center gap-3 rounded-2xl border border-red-600 text-red-600 px-5 py-3 hover:text-white font-medium shadow-lg shadow-red-600/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-red-600 hover:shadow-red-600/30"
           >
             <LogOut
               size={20}

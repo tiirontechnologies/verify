@@ -15,7 +15,7 @@ export default function StatusCard({
       {/* Main Status */}
 
       <div
-        className={`rounded-3xl p-8 border shadow-lg ${
+        className={`rounded-3xl p-8  shadow-lg ${
           verified
             ? "bg-green-50 border-green-200"
             : "bg-red-50 border-red-200"
@@ -42,7 +42,7 @@ export default function StatusCard({
 
       {/* Details */}
 
-      <div className="bg-white rounded-3xl border shadow-lg p-8">
+      <div className="bg-white rounded-3xl shadow-lg p-8">
 
         <h3 className="text-2xl font-bold">
           {certificate.organization}
