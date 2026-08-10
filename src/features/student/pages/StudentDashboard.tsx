@@ -42,6 +42,7 @@ export default function StudentDashboard() {
     ? "..."
     : String(certificates.filter((c) => c.status === "active").length);
   const orgName = certificates[0]?.organization || "Tiiron Technologies";
+  const activityCertId = certificates[0]?.certificateId || certificates[0]?._id || "";
 
   return (
     <DashboardLayout>
@@ -286,9 +287,11 @@ export default function StudentDashboard() {
         </div>
 
         {/* Activity Component */}
-        <div className="rounded-3xl bg-white border border-slate-200 p-2 shadow-sm">
-          <RecentActivity />
-        </div>
+        {activityCertId && (
+          <div className="rounded-3xl bg-white border border-slate-200 p-2 shadow-sm">
+            <RecentActivity id={activityCertId} />
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
