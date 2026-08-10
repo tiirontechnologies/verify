@@ -32,7 +32,7 @@ export default function DocumentViewerPage({ forcedType }: DocumentViewerPagePro
 
         if (certificateId) {
           match = validList.find(
-            (c) =>
+            (c: any) =>
               c._id === certificateId ||
               c.certificateId === certificateId ||
               c.certificateId?.toLowerCase() === certificateId.toLowerCase()
@@ -41,7 +41,7 @@ export default function DocumentViewerPage({ forcedType }: DocumentViewerPagePro
 
         if (!match && forcedType) {
           match = validList.find(
-            (c) => (c.certificateType || "").toLowerCase() === forcedType.toLowerCase()
+            (c: any) => (c.certificateType || "").toLowerCase() === forcedType.toLowerCase()
           );
         }
 
