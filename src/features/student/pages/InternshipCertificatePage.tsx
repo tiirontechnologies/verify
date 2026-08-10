@@ -133,7 +133,9 @@ export default function InternshipCertificatePage() {
       try {
         const response = await getMyCertificate();
         const certList = Array.isArray(response.data) ? response.data : [response.data];
-        const data = certList.find((c: any) => c.certificateType === "internship") || certList[0];
+        const data = certList.find(
+          (c: any) => (c.certificateType || "").toLowerCase() === "internship"
+        );
 
         if (!data) {
           setError("No Internship Certificate Found");
@@ -141,9 +143,15 @@ export default function InternshipCertificatePage() {
         }
 
         if (data.template?.design?.data) {
+          const orientation =
+            data.template.orientation ||
+            data.template.design?.orientation ||
+            data.template.design?.data?.orientation ||
+            (data.template.design?.data?.height > data.template.design?.data?.width ? "portrait" : "landscape");
+
           setTemplateData({
             ...data.template.design.data,
-            orientation: data.template.design.orientation || "landscape",
+            orientation,
           });
         }
 
@@ -329,6 +337,7 @@ export default function InternshipCertificatePage() {
               organization: certificate.organization,
               mentor: certificate.mentor,
               director: certificate.director,
+              email: certificate.email || "",
             }}
           />
         </div>

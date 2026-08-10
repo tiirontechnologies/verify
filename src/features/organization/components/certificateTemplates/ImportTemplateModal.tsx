@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Upload, X, FileText } from "lucide-react";
 import { documentTemplateApi } from "../../../../api/documentTemplateApi";
 
@@ -11,6 +11,7 @@ interface Props {
 const initialForm = {
   name: "",
   documentType: "internship",
+  orientation: "landscape",
   status: "active",
 };
 
@@ -30,13 +31,16 @@ export default function ImportTemplateModal({
   const [form, setForm] =
     useState(initialForm);
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
       setForm(initialForm);
       setSelectedFile(null);
       setDragging(false);
     }
-  }, [open]);
+  }
 
   if (!open) return null;
 
@@ -195,6 +199,28 @@ export default function ImportTemplateModal({
 
               <option value="custom">
                 Custom
+              </option>
+            </select>
+          </div>
+
+          {/* Orientation */}
+          <div>
+            <label className="mb-2 block text-sm font-medium">
+              Orientation
+            </label>
+
+            <select
+              name="orientation"
+              value={form.orientation}
+              onChange={handleChange}
+              className="w-full rounded-xl border px-4 py-3 outline-none focus:border-red-500"
+            >
+              <option value="landscape">
+                Landscape (1056 x 747)
+              </option>
+
+              <option value="portrait">
+                Portrait (747 x 1056)
               </option>
             </select>
           </div>

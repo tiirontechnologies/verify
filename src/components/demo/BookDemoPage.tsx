@@ -493,34 +493,34 @@ export default function BookDemoPage() {
                     <h4 className="font-bold text-sm">Enterprise Client</h4>
                     <p className="text-xs text-slate-500">Tiiron Technologies</p>
                   </div> */}
-                    <div className="mt-2">
-                <p className="text-center text-[11px]  uppercase tracking-wider font-bold text-slate-900 sm:text-left">
-                  Enterprise Client
-                </p>
+                  <div className="mt-2">
+                    <p className="text-center text-[11px]  uppercase tracking-wider font-bold text-slate-900 sm:text-left">
+                      Enterprise Client
+                    </p>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
-                  {CLIENTS.map(({ name, icon: Icon }) => (
-                    <div
-                      key={name}
-                      className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-center transition hover:border-red-200 hover:bg-red-50"
-                    >
-                      <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white shadow-sm">
-                        <Icon size={14} className="text-red-600" />
-                      </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+                      {CLIENTS.map(({ name, icon: Icon }) => (
+                        <div
+                          key={name}
+                          className="flex flex-col items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2 py-3 text-center transition hover:border-red-200 hover:bg-red-50"
+                        >
+                          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white shadow-sm">
+                            <Icon size={14} className="text-red-600" />
+                          </div>
 
-                      <span className="text-[11px] font-semibold text-slate-600 sm:text-xs">
-                        {name}
-                      </span>
+                          <span className="text-[11px] font-semibold text-slate-600 sm:text-xs">
+                            {name}
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
                 </div>
               </div>
             </div>
-                </div>
-              </div>
 
-              {/* Logos */}
-            
+            {/* Logos */}
+
 
             {/* RIGHT */}
             <DemoForm />

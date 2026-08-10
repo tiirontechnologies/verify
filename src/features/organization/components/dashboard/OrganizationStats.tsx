@@ -2,46 +2,62 @@ import {
   Users,
   FileBadge2,
   ShieldCheck,
-  Clock3,
+  Ban,
   TrendingUp,
 } from "lucide-react";
 
-const stats = [
-  {
-    title: "Total Students",
-    value: "1,248",
-    change: "+12%",
-    icon: Users,
-    iconBg: "bg-blue-50",
-    iconColor: "text-blue-600",
-  },
-  {
-    title: "Certificates Issued",
-    value: "5,842",
-    change: "+18%",
-    icon: FileBadge2,
-    iconBg: "bg-red-50",
-    iconColor: "text-red-600",
-  },
-  {
-    title: "Verification Success",
-    value: "98.7%",
-    change: "+1.4%",
-    icon: ShieldCheck,
-    iconBg: "bg-green-50",
-    iconColor: "text-green-600",
-  },
-  {
-    title: "Pending Requests",
-    value: "24",
-    change: "-8%",
-    icon: Clock3,
-    iconBg: "bg-yellow-50",
-    iconColor: "text-yellow-600",
-  },
-];
+interface OrganizationStatsProps {
+  totalStudents?: number;
+  totalCertificates?: number;
+  activeCount?: number;
+  revokedCount?: number;
+}
 
-export default function OrganizationStats() {
+export default function OrganizationStats({
+  totalStudents = 0,
+  totalCertificates = 0,
+  activeCount = 0,
+  revokedCount = 0,
+}: OrganizationStatsProps) {
+  const stats = [
+    {
+      title: "Total Students",
+      value: totalStudents.toLocaleString(),
+      change: "Active records",
+      icon: Users,
+      iconBg: "bg-blue-50",
+      iconColor: "text-blue-600",
+      trendColor: "text-blue-600",
+    },
+    {
+      title: "Certificates Issued",
+      value: totalCertificates.toLocaleString(),
+      change: "Total generated",
+      icon: FileBadge2,
+      iconBg: "bg-purple-50",
+      iconColor: "text-purple-600",
+      trendColor: "text-purple-600",
+    },
+    {
+      title: "Active Verified",
+      value: activeCount.toLocaleString(),
+      change: "Verified credentials",
+      icon: ShieldCheck,
+      iconBg: "bg-green-50",
+      iconColor: "text-green-600",
+      trendColor: "text-green-600",
+    },
+    {
+      title: "Revoked Certificates",
+      value: revokedCount.toLocaleString(),
+      change: "Invalidated",
+      icon: Ban,
+      iconBg: "bg-red-50",
+      iconColor: "text-red-600",
+      trendColor: "text-red-600",
+    },
+  ];
+
   return (
     <section className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
       {stats.map((stat) => {
@@ -71,16 +87,15 @@ export default function OrganizationStats() {
             </div>
 
             <div className="mt-8 flex items-center justify-between border-t pt-4">
-              <div className="flex items-center gap-2 text-green-600">
+              <div className={`flex items-center gap-1.5 ${stat.trendColor}`}>
                 <TrendingUp size={16} />
-
                 <span className="text-sm font-semibold">
                   {stat.change}
                 </span>
               </div>
 
               <span className="text-xs text-gray-400">
-                vs last month
+                Live DB
               </span>
             </div>
           </div>

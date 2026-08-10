@@ -10,6 +10,7 @@ export interface CreateTemplateRequest {
     | "experience-letter"
     | "appreciation-letter"
     | "custom";
+  orientation?: "landscape" | "portrait";
   status: "active" | "inactive";
 }
 
@@ -39,6 +40,9 @@ export const documentTemplateApi = {
 
     formData.append("name", data.name);
     formData.append("documentType", data.documentType);
+    if (data.orientation) {
+      formData.append("orientation", data.orientation);
+    }
     formData.append("status", data.status);
 
     // Multer field name

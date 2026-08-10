@@ -22,7 +22,7 @@ export default function CTASection() {
               </h2>
 
               <p className="mt-6 max-w-xl text-lg leading-8 text-slate-600 sm:text-xl">
-                Issue, verify, and manage credentials with confidence using a secure platform built for institutions, recruiters, and compliance-driven teams.
+                Issue, verify, and manage credentials with confidence using a secure platform built for institution, recruiters, and compliance-driven teams.
               </p>
             </div>
 

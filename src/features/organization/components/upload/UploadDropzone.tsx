@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CloudUpload, FileSpreadsheet, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { CloudUpload, FileSpreadsheet, CheckCircle2, AlertCircle, Loader2, Download } from "lucide-react";
 import { organizationApi } from "../../../../api/organization.api";
 
 interface UploadDropzoneProps {
@@ -10,6 +10,7 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
   const [uploading, setUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [createdCredentials, setCreatedCredentials] = useState<any[]>([]);
 
   const handleFileUpload = async (file: File) => {
     if (!file) return;
@@ -25,13 +26,19 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
 
     setUploading(true);
     setMessage(null);
+    setCreatedCredentials([]);
 
     try {
       const res = await organizationApi.uploadStudents(file);
+      const data = res.data?.data;
       setMessage({
         type: "success",
         text: res.data?.message || "Students and certificate data imported successfully!",
       });
+
+      if (data?.createdCredentials?.length) {
+        setCreatedCredentials(data.createdCredentials);
+      }
 
       if (onUploadSuccess) {
         onUploadSuccess();
@@ -83,6 +90,54 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
         </div>
       )}
 
+      {createdCredentials.length > 0 && (
+        <div className="mb-6 rounded-2xl border border-blue-200 bg-blue-50/70 p-5">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-blue-900">
+              Generated Student Initial Credentials ({createdCredentials.filter(c => c.isNewUser).length} New Accounts)
+            </h3>
+            <span className="text-xs text-blue-700 font-medium">
+              Share these credentials with students for portal login
+            </span>
+          </div>
+
+          <div className="mt-3 max-h-48 overflow-y-auto rounded-xl border border-blue-200 bg-white">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-blue-100/50 text-blue-900 sticky top-0 font-semibold">
+                <tr>
+                  <th className="p-2.5">Student Name</th>
+                  <th className="p-2.5">Email (Login ID)</th>
+                  <th className="p-2.5">Initial Password</th>
+                  <th className="p-2.5">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {createdCredentials.map((cred, idx) => (
+                  <tr key={idx} className="hover:bg-slate-50">
+                    <td className="p-2.5 font-medium text-gray-800">{cred.name}</td>
+                    <td className="p-2.5 text-gray-600 font-mono">{cred.email}</td>
+                    <td className="p-2.5 font-mono text-slate-800 font-bold">
+                      {cred.initialPassword || "(Existing Account)"}
+                    </td>
+                    <td className="p-2.5">
+                      {cred.isNewUser ? (
+                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">
+                          Created
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-600">
+                          Linked
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -111,26 +166,63 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
             : "Upload your student roster sheet (.xlsx, .xls, .csv) to auto-generate certificate records."}
         </p>
 
-        <label
-          className={`mt-8 inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-red-600 px-7 py-3.5 font-semibold text-white shadow-md transition hover:bg-red-700 ${
-            uploading ? "opacity-60 pointer-events-none" : ""
-          }`}
-        >
-          <FileSpreadsheet size={18} />
-          {uploading ? "Uploading..." : "Browse Excel File"}
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+          <label
+            className={`inline-flex cursor-pointer items-center gap-2 rounded-2xl bg-red-600 px-7 py-3.5 font-semibold text-white shadow-md transition hover:bg-red-700 ${
+              uploading ? "opacity-60 pointer-events-none" : ""
+            }`}
+          >
+            <FileSpreadsheet size={18} />
+            {uploading ? "Uploading..." : "Browse Excel File"}
 
-          <input
-            type="file"
-            accept=".xlsx,.xls,.csv"
-            onChange={(e) => {
-              if (e.target.files && e.target.files[0]) {
-                handleFileUpload(e.target.files[0]);
-              }
+            <input
+              type="file"
+              accept=".xlsx,.xls,.csv"
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  handleFileUpload(e.target.files[0]);
+                }
+              }}
+              disabled={uploading}
+              className="hidden"
+            />
+          </label>
+
+          <button
+            type="button"
+            onClick={() => {
+              const headers = [
+                "Student Name",
+                "Email",
+                "Certificate Type",
+                "Course",
+                "Role",
+                "Start Date",
+                "End Date",
+                "Mentor",
+                "Director",
+              ];
+              const sampleRows = [
+                '"Aarav Sharma","aarav.sharma@example.com","offer-letter, training, internship","Full Stack Development","Software Engineer Intern","2026-09-01","2026-12-01","Rahul Sharma","Nitesh Singh"',
+                '"Priya Patel","priya.patel@example.com","offer-letter, internship","Data Science & AI","Data Analyst Intern","2026-05-01","2026-08-01","Anjali Gupta","Nitesh Singh"',
+                '"Rohan Verma","rohan.verma@example.com","training","Python Programming","Trainee","2026-06-15","2026-07-15","Vikram Malhotra","Nitesh Singh"',
+                '"Sneha Reddy","sneha.reddy@example.com","appreciation-letter","Cloud Architecture","Participant","2026-07-01","2026-07-31","Rahul Sharma","Nitesh Singh"',
+              ];
+              const csvContent =
+                "data:text/csv;charset=utf-8," + [headers.join(","), ...sampleRows].join("\n");
+              const encodedUri = encodeURI(csvContent);
+              const link = document.createElement("a");
+              link.setAttribute("href", encodedUri);
+              link.setAttribute("download", "student_upload_sample_template.csv");
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
             }}
-            disabled={uploading}
-            className="hidden"
-          />
-        </label>
+            className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3.5 font-semibold transition text-sm"
+          >
+            <Download size={18} /> Download Sample CSV
+          </button>
+        </div>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <span className="rounded-full bg-white px-4 py-1.5 text-xs font-semibold text-gray-600 shadow-sm border border-gray-100">
