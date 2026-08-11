@@ -31,7 +31,7 @@ import axios from "axios";
 
 
 export const baseURL =
-  import.meta.env.VITE_API_URL ||"https://verify-backend-7yhv.onrender.com";
+  import.meta.env.VITE_API_URL || import.meta.env.DEV_URL ||"https://verify-backend-i8fz.onrender.com";
 
 if (!baseURL) {
   throw new Error(
