@@ -28,6 +28,7 @@ import CertificateTemplatesPage from "./features/organization/pages/CertificateT
 import TemplatePreviewPage from "./features/organization/pages/TemplatePreviewPage";
 import OrganizationProfilePage from "./features/organization/pages/OrganizationProfilePage";
 import AdvertisementsPage from "./features/organization/pages/AdvertisementsPage";
+import SelfHostedPlatformsPage from "./features/organization/pages/SelfHostedPlatformsPage";
 import OrganizationSignupPage from "./features/auth/pages/OrganizationSignupPage";
 
 // function AuthBootstrap() {
@@ -258,6 +259,23 @@ path="/organization/ads"
 element={
   <ProtectedRoute>
       <AdvertisementsPage />
+    </ProtectedRoute>
+}
+/>
+<Route
+path="/organization/advertisements"
+element={
+  <ProtectedRoute>
+      <AdvertisementsPage />
+    </ProtectedRoute>
+}
+/>
+
+<Route
+path="/organization/self-hosted"
+element={
+  <ProtectedRoute>
+      <SelfHostedPlatformsPage />
     </ProtectedRoute>
 }
 />
