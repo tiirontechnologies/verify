@@ -14,6 +14,8 @@ import {
   Sparkles,
   Layers,
   Layout,
+  Undo2,
+  Redo2,
 } from "lucide-react";
 
 interface HeaderProps {
@@ -23,13 +25,18 @@ interface HeaderProps {
   onTemplateUpdate?: (template: any) => void;
 }
 
-export default function Header({
-  template,
-  onBack,
-  onSaveSuccess,
-  onTemplateUpdate,
-}: HeaderProps) {
-  const { canvas, orientation, setOrientation, zoomLevel, setZoomLevel } = useFabric();
+export default function Header({ template, onBack }: HeaderProps) {
+  const {
+    canvas,
+    orientation,
+    setOrientation,
+    zoomLevel,
+    setZoomLevel,
+    canUndo,
+    canRedo,
+    undo,
+    redo,
+  } = useFabric();
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [templateName, setTemplateName] = useState(template?.name || "");
   const [documentType, setDocumentType] = useState(template?.documentType || "internship");
@@ -122,58 +129,75 @@ export default function Header({
   return (
     <>
       {/* Studio Bar Header */}
-      <header className="flex h-14 lg:h-16 items-center justify-between border-b border-slate-800 bg-slate-900 px-3 sm:px-6 text-white shadow-xl z-30">
+      <header className="flex flex-wrap items-center justify-between min-h-16 gap-3 border-b border-gray-200 bg-white px-4 sm:px-6 py-2.5 text-gray-900 shadow-sm z-30">
         {/* Left Section: Back & Title */}
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="flex items-center gap-1.5 sm:gap-2 rounded-xl bg-slate-800 border border-slate-700 px-2.5 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition shadow-sm shrink-0"
-            title="Return to Dashboard"
+            className="flex items-center gap-2 rounded-xl bg-gray-100 border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-200 hover:text-gray-900 transition shadow-xs"
           >
-            <ArrowLeft size={16} />
-            <span className="hidden sm:inline">Back to Dashboard</span>
-            <span className="sm:hidden text-[11px]">Back</span>
+            <ArrowLeft size={16} /> <span className="hidden sm:inline">Back to Dashboard</span>
           </button>
 
-          <div className="hidden sm:block h-5 w-[1px] bg-slate-800"></div>
+          <div className="hidden sm:block h-5 w-[1px] bg-gray-200"></div>
 
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="hidden sm:flex h-9 w-9 shrink-0 rounded-xl bg-red-600/20 border border-red-500/30 items-center justify-center text-red-400">
+          <div className="flex items-center gap-2.5">
+            <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl bg-red-50 border border-red-200 flex items-center justify-center text-red-600 shrink-0">
               <Sparkles size={18} />
             </div>
-            <div className="truncate">
-              <div className="flex items-center gap-1.5 truncate">
-                <h1 className="text-xs sm:text-sm font-bold text-slate-100 tracking-tight truncate max-w-[140px] sm:max-w-[240px]">
-                  {currentTemplate?.name || templateName || "New Certificate Template"}
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xs sm:text-sm font-bold text-gray-900 tracking-tight truncate max-w-[150px] sm:max-w-[240px]">
+                  {template?.name ? template.name : "New Template"}
                 </h1>
-                <span className="hidden md:inline-block text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-red-600/30 text-red-300 border border-red-500/40 px-1.5 py-0.5 rounded">
+                <span className="hidden md:inline-block text-[10px] font-bold uppercase tracking-wider bg-red-50 text-red-600 border border-red-200 px-2 py-0.5 rounded">
                   {documentType.replace("-", " ")}
                 </span>
               </div>
-              <p className="hidden sm:block text-[10px] sm:text-[11px] text-slate-400">Fabric Studio Engine</p>
+              <p className="text-[10px] sm:text-[11px] text-gray-500 hidden sm:block font-medium">Fabric Studio Designer Engine</p>
             </div>
           </div>
         </div>
 
         {/* Right Section: Canvas Controls & Actions */}
-        <div className="flex items-center gap-1.5 sm:gap-3">
-          {/* Zoom Control Pill (Desktop/Tablet) */}
-          <div className="hidden md:flex items-center rounded-xl bg-slate-800 border border-slate-700 p-1 text-xs font-medium">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          {/* Undo / Redo Control Pill */}
+          <div className="flex items-center rounded-xl bg-gray-100 border border-gray-200 p-1 text-xs font-medium">
+            <button
+              onClick={undo}
+              disabled={!canUndo}
+              className="p-1.5 rounded-lg text-gray-700 hover:bg-white hover:text-gray-900 disabled:opacity-30 disabled:hover:bg-transparent transition shadow-xs"
+              title="Undo (Ctrl + Z)"
+            >
+              <Undo2 size={15} />
+            </button>
+            <button
+              onClick={redo}
+              disabled={!canRedo}
+              className="p-1.5 rounded-lg text-gray-700 hover:bg-white hover:text-gray-900 disabled:opacity-30 disabled:hover:bg-transparent transition shadow-xs"
+              title="Redo (Ctrl + Y)"
+            >
+              <Redo2 size={15} />
+            </button>
+          </div>
+
+          {/* Zoom Control Pill */}
+          <div className="flex items-center rounded-xl bg-gray-100 border border-gray-200 p-1 text-xs font-medium">
             <button
               onClick={() => setZoomLevel((prev) => Math.max(0.4, Number((prev - 0.1).toFixed(1))))}
-              className="p-1.5 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition"
+              className="p-1.5 rounded-lg text-gray-700 hover:bg-white hover:text-gray-900 transition shadow-xs"
               title="Zoom Out"
             >
               <ZoomOut size={14} />
             </button>
 
-            <span className="px-2 font-mono text-[11px] font-bold text-slate-200 min-w-[45px] text-center">
+            <span className="px-1.5 font-mono text-[11px] font-bold text-gray-800 min-w-[40px] text-center">
               {Math.round(zoomLevel * 100)}%
             </span>
 
             <button
               onClick={() => setZoomLevel((prev) => Math.min(1.5, Number((prev + 0.1).toFixed(1))))}
-              className="p-1.5 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition"
+              className="p-1.5 rounded-lg text-gray-700 hover:bg-white hover:text-gray-900 transition shadow-xs"
               title="Zoom In"
             >
               <ZoomIn size={14} />
@@ -181,7 +205,7 @@ export default function Header({
 
             <button
               onClick={() => setZoomLevel(orientation === "landscape" ? 0.75 : 0.65)}
-              className="px-2 py-1 ml-1 rounded-lg bg-red-600/30 text-red-300 hover:bg-red-600 hover:text-white transition text-[11px] font-semibold"
+              className="px-2 py-1 ml-0.5 rounded-lg bg-red-100 text-red-700 hover:bg-red-600 hover:text-white transition text-[10px] sm:text-[11px] font-semibold"
               title="Fit to Screen"
             >
               Fit
@@ -189,28 +213,28 @@ export default function Header({
           </div>
 
           {/* Orientation Pill */}
-          <div className="flex items-center rounded-xl bg-slate-800 border border-slate-700 p-0.5 sm:p-1 text-xs font-semibold shrink-0">
+          <div className="flex items-center rounded-xl bg-gray-100 border border-gray-200 p-1 text-xs font-semibold">
             <button
               onClick={() => setOrientation("landscape")}
-              className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1 sm:px-3 rounded-lg transition text-[11px] sm:text-xs ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition ${
                 orientation === "landscape"
-                  ? "bg-red-600 text-white shadow-md font-bold"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-red-600 text-white shadow-sm font-bold"
+                  : "text-gray-600 hover:text-gray-900"
               }`}
               title="Landscape Orientation"
             >
-              <Layout size={13} /> <span className="hidden sm:inline">Landscape</span><span className="sm:hidden">Land</span>
+              <Layout size={13} /> <span className="hidden lg:inline">Landscape</span>
             </button>
             <button
               onClick={() => setOrientation("portrait")}
-              className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1 sm:px-3 rounded-lg transition text-[11px] sm:text-xs ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition ${
                 orientation === "portrait"
-                  ? "bg-red-600 text-white shadow-md font-bold"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-red-600 text-white shadow-sm font-bold"
+                  : "text-gray-600 hover:text-gray-900"
               }`}
               title="Portrait Orientation"
             >
-              <Layers size={13} /> <span className="hidden sm:inline">Portrait</span><span className="sm:hidden">Port</span>
+              <Layers size={13} /> <span className="hidden lg:inline">Portrait</span>
             </button>
           </div>
 
@@ -222,7 +246,7 @@ export default function Header({
                 FabricToolService.clearCanvas(canvas);
               }
             }}
-            className="hidden sm:flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-800 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-semibold text-slate-300 hover:bg-red-600/20 hover:text-red-300 hover:border-red-500/30 transition"
+            className="hidden sm:flex items-center gap-1.5 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition"
             title="Clear Canvas"
           >
             <RotateCcw size={14} /> <span className="hidden md:inline">Clear</span>
@@ -233,19 +257,18 @@ export default function Header({
               if (!canvas) return;
               FabricToolService.deleteSelected(canvas);
             }}
-            className="hidden sm:flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-800 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-semibold text-slate-300 hover:bg-red-600/20 hover:text-red-300 hover:border-red-500/30 transition"
+            className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition"
             title="Delete Selected Element"
           >
-            <Trash2 size={14} /> <span className="hidden md:inline">Delete</span>
+            <Trash2 size={14} /> <span className="hidden sm:inline">Delete</span>
           </button>
 
           {/* Save Button */}
           <button
             onClick={() => setIsSaveModalOpen(true)}
-            className="flex items-center gap-1.5 sm:gap-2 rounded-xl bg-gradient-to-r from-red-600 to-red-700 px-3 py-1.5 sm:px-5 sm:py-2 text-xs font-bold text-white shadow-lg shadow-red-900/30 hover:from-red-500 hover:to-red-600 transition shrink-0"
+            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-red-700 px-4 sm:px-5 py-2 text-xs font-bold text-white shadow-md shadow-red-200 hover:from-red-700 hover:to-red-800 transition"
           >
-            <Save size={15} />
-            <span className="inline">Save</span>
+            <Save size={16} /> <span className="hidden xs:inline">Save Template</span>
           </button>
         </div>
       </header>

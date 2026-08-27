@@ -15,25 +15,25 @@ import {
 
 const FONT_FAMILIES = [
   // Calligraphy & Script Fonts
-  { label: "Great Vibes (Calligraphy)", value: "'Great Vibes', cursive" },
-  { label: "Alex Brush (Signature)", value: "'Alex Brush', cursive" },
-  { label: "Dancing Script (Handwritten)", value: "'Dancing Script', cursive" },
-  { label: "Parisienne (Cursive)", value: "'Parisienne', cursive" },
-  { label: "Allura (Classic Script)", value: "'Allura', cursive" },
+  { label: "Great Vibes (Calligraphy)", value: "Great Vibes" },
+  { label: "Alex Brush (Signature)", value: "Alex Brush" },
+  { label: "Dancing Script (Handwritten)", value: "Dancing Script" },
+  { label: "Parisienne (Cursive)", value: "Parisienne" },
+  { label: "Allura (Classic Script)", value: "Allura" },
 
   // Classic Serif Fonts
-  { label: "Cinzel (Royal Serif)", value: "'Cinzel', serif" },
-  { label: "Playfair Display (Premium)", value: "'Playfair Display', serif" },
-  { label: "Cormorant Garamond", value: "'Cormorant Garamond', serif" },
-  { label: "Georgia", value: "Georgia, serif" },
-  { label: "Times New Roman", value: "'Times New Roman', serif" },
+  { label: "Cinzel (Royal Serif)", value: "Cinzel" },
+  { label: "Playfair Display (Premium)", value: "Playfair Display" },
+  { label: "Cormorant Garamond", value: "Cormorant Garamond" },
+  { label: "Georgia", value: "Georgia" },
+  { label: "Times New Roman", value: "Times New Roman" },
 
   // Modern Sans-Serif Fonts
-  { label: "Montserrat (Clean)", value: "'Montserrat', sans-serif" },
-  { label: "Poppins (Geometric)", value: "'Poppins', sans-serif" },
-  { label: "Inter (Neutral)", value: "'Inter', sans-serif" },
-  { label: "Roboto", value: "'Roboto', sans-serif" },
-  { label: "Arial", value: "Arial, sans-serif" },
+  { label: "Montserrat (Clean)", value: "Montserrat" },
+  { label: "Poppins (Geometric)", value: "Poppins" },
+  { label: "Inter (Neutral)", value: "Inter" },
+  { label: "Roboto", value: "Roboto" },
+  { label: "Arial", value: "Arial" },
 ];
 
 export default function RightSidebar() {
@@ -103,17 +103,13 @@ export default function RightSidebar() {
 
   const updateProp = (key: string, value: any) => {
     if (!activeObject || !canvas) return;
-    activeObject.set(key as any, value);
-
-    if (key === "text") {
-      if (typeof (activeObject as any).initDimensions === "function") {
-        (activeObject as any).initDimensions();
-      }
-      if ((activeObject as any).hiddenTextarea) {
-        (activeObject as any).hiddenTextarea.value = value;
-      }
+    activeObject.set(key, value);
+    if ((activeObject as any).initDimensions) {
+      (activeObject as any).initDimensions();
     }
-
+    if ((activeObject as any)._clearCache) {
+      (activeObject as any)._clearCache();
+    }
     canvas.renderAll();
   };
 

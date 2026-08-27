@@ -30,7 +30,7 @@ const DYNAMIC_PLACEHOLDERS = [
 ];
 
 export default function LeftSidebar() {
-  const { canvas, orientation, setOrientation } = useFabric();
+  const { canvas, setOrientation, setCanvasDimensions } = useFabric();
   const [activeTab, setActiveTab] = useState<"placeholders" | "text" | "media" | "shapes">("placeholders");
   const [customVar, setCustomVar] = useState("");
   const [collapsed, setCollapsed] = useState(false);
@@ -233,7 +233,7 @@ export default function LeftSidebar() {
                     FabricToolService.addText(canvas, "CERTIFICATE OF COMPLETION", {
                       fontSize: 34,
                       fontWeight: "bold",
-                      fontFamily: "'Cinzel', serif",
+                      fontFamily: "Cinzel",
                       fill: "#081F5C",
                       textAlign: "center",
                     });
@@ -251,7 +251,7 @@ export default function LeftSidebar() {
                     if (!canvas) return;
                     FabricToolService.addText(canvas, "This certificate is proudly presented to", {
                       fontSize: 18,
-                      fontFamily: "'Playfair Display', serif",
+                      fontFamily: "Playfair Display",
                       fontStyle: "italic",
                       fill: "#4b5563",
                       textAlign: "center",
@@ -271,14 +271,14 @@ export default function LeftSidebar() {
                     FabricToolService.addText(canvas, "{{studentName}}", {
                       fontSize: 42,
                       fontWeight: "bold",
-                      fontFamily: "'Great Vibes', cursive",
+                      fontFamily: "Great Vibes",
                       fill: "#081F5C",
                       textAlign: "center",
                     });
                   }}
                   className="w-full rounded-2xl border border-slate-200 bg-white p-3.5 text-left hover:border-red-500 hover:shadow-md transition group"
                 >
-                  <div className="text-2xl text-[#081F5C] group-hover:text-red-600" style={{ fontFamily: "'Great Vibes', cursive" }}>
+                  <div className="text-2xl text-[#081F5C] group-hover:text-red-600" style={{ fontFamily: "Great Vibes" }}>
                     Student Name Calligraphy
                   </div>
                   <div className="text-[11px] text-slate-400 mt-1">Great Vibes Cursive • 42px</div>
@@ -289,7 +289,7 @@ export default function LeftSidebar() {
                     if (!canvas) return;
                     FabricToolService.addText(canvas, "For successfully completing the training program with outstanding performance.", {
                       fontSize: 15,
-                      fontFamily: "'Poppins', sans-serif",
+                      fontFamily: "Poppins",
                       fill: "#374151",
                       textAlign: "center",
                     });
@@ -307,14 +307,14 @@ export default function LeftSidebar() {
                     if (!canvas) return;
                     FabricToolService.addText(canvas, "Authorized Director", {
                       fontSize: 22,
-                      fontFamily: "'Alex Brush', cursive",
+                      fontFamily: "Alex Brush",
                       fill: "#1f2937",
                       textAlign: "center",
                     });
                   }}
                   className="w-full rounded-2xl border border-slate-200 bg-white p-3.5 text-left hover:border-red-500 hover:shadow-md transition group"
                 >
-                  <div className="text-xl text-slate-800 group-hover:text-red-600" style={{ fontFamily: "'Alex Brush', cursive" }}>
+                  <div className="text-xl text-slate-800 group-hover:text-red-600" style={{ fontFamily: "Alex Brush" }}>
                     Signature Script
                   </div>
                   <div className="text-[11px] text-slate-400 mt-1">Alex Brush Cursive • 22px</div>
@@ -339,8 +339,9 @@ export default function LeftSidebar() {
                 <button
                   onClick={() => {
                     if (!canvas) return;
-                    ImageUploadService.uploadBackground(canvas, (detectedOrientation) => {
+                    ImageUploadService.uploadBackground(canvas, (detectedOrientation, dims) => {
                       setOrientation(detectedOrientation);
+                      setCanvasDimensions(dims);
                     });
                   }}
                   className="w-full flex items-center gap-3 rounded-2xl border-2 border-dashed border-red-200 bg-red-50/40 p-4 text-left hover:border-red-500 hover:bg-red-50 transition shadow-xs group"

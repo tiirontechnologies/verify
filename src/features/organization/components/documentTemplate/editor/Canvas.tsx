@@ -1,7 +1,13 @@
 import { useEffect, useRef, useCallback } from "react";
 import { Canvas as FabricCanvas } from "fabric";
 import { useFabric } from "./FabricContext";
-import { Layout, Layers, ZoomIn, ZoomOut } from "lucide-react";
+import { ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
+
+function cleanFontFamily(font: string): string {
+  if (!font) return "Arial";
+  const first = font.split(",")[0].replace(/['"]/g, "").trim();
+  return first || "Arial";
+}
 
 interface CanvasProps {
   template?: any;
@@ -19,23 +25,22 @@ export default function Canvas({ template }: CanvasProps) {
     setOrientation,
     zoomLevel,
     setZoomLevel,
+    canvasDimensions,
+    setCanvasDimensions,
+    undo,
+    redo,
   } = useFabric();
 
-  // Standard A4 aspect ratio dimensions (1056 x 747)
-  const isLandscape = orientation === "landscape";
-  const width = isLandscape ? 1056 : 747;
-  const height = isLandscape ? 747 : 1056;
-
   // Track previous dimensions for scale recalculation
-  const prevDimensionsRef = useRef({ width, height });
+  const prevDimensionsRef = useRef({ width: canvasDimensions.width, height: canvasDimensions.height });
 
   // Initialize Fabric canvas instance once
   useEffect(() => {
     if (!canvasRef.current) return;
 
     const fabricCanvas = new FabricCanvas(canvasRef.current, {
-      width,
-      height,
+      width: canvasDimensions.width,
+      height: canvasDimensions.height,
       backgroundColor: "#ffffff",
       preserveObjectStacking: true,
     });
@@ -54,6 +59,33 @@ export default function Canvas({ template }: CanvasProps) {
       setActiveObject(null);
     });
 
+    fabricCanvas.on("object:added", (e: any) => {
+      const obj = e.target;
+      if (obj && (obj.type === "textbox" || obj.type === "i-text" || obj.type === "text")) {
+        const clean = cleanFontFamily(obj.fontFamily);
+        obj.set({
+          fontFamily: clean,
+          editable: true,
+          cursorColor: "#2563eb",
+          cursorWidth: 2,
+          cursorDelay: 250,
+          cursorDuration: 600,
+          selectionColor: "rgba(37, 99, 235, 0.25)",
+          editingBorderColor: "#2563eb",
+        });
+        if (obj.initDimensions) obj.initDimensions();
+        if (obj._clearCache) obj._clearCache();
+      }
+    });
+
+    fabricCanvas.on("text:changed", (e: any) => {
+      if (e.target && e.target.initDimensions) {
+        e.target.initDimensions();
+        if (e.target._clearCache) e.target._clearCache();
+        fabricCanvas.renderAll();
+      }
+    });
+
     fabricCanvas.renderAll();
 
     return () => {
@@ -67,22 +99,16 @@ export default function Canvas({ template }: CanvasProps) {
   // Auto calculate optimal zoom to maximize canvas space in current screen container
   const calculateAutoZoom = useCallback(() => {
     if (!containerRef.current) return;
-    const isMobile = window.innerWidth < 640;
-    const paddingX = isMobile ? 16 : 48;
-    const paddingY = isMobile ? 64 : 64; // Account for floating bottom control toolbar
-    const parentW = containerRef.current.clientWidth - paddingX;
-    const parentH = containerRef.current.clientHeight - paddingY;
+    const parentW = containerRef.current.clientWidth - 48;
+    const parentH = containerRef.current.clientHeight - 48;
 
     if (parentW > 0 && parentH > 0) {
-      const zoomW = parentW / width;
-      const zoomH = parentH / height;
-      const autoZoom = Math.min(zoomW, zoomH);
-      const minZoom = isMobile ? 0.25 : 0.35;
-      const maxZoom = 1.25;
-      const clampedZoom = Math.min(Math.max(autoZoom, minZoom), maxZoom);
-      setZoomLevel(Number(clampedZoom.toFixed(2)));
+      const zoomW = parentW / canvasDimensions.width;
+      const zoomH = parentH / canvasDimensions.height;
+      const autoZoom = Math.min(zoomW, zoomH, 1.1);
+      setZoomLevel(Number(Math.max(0.35, autoZoom).toFixed(2)));
     }
-  }, [width, height, setZoomLevel]);
+  }, [canvasDimensions.width, canvasDimensions.height, setZoomLevel]);
 
   useEffect(() => {
     calculateAutoZoom();
@@ -94,12 +120,10 @@ export default function Canvas({ template }: CanvasProps) {
   useEffect(() => {
     if (!canvas) return;
 
-    const oldW = prevDimensionsRef.current.width;
-    const oldH = prevDimensionsRef.current.height;
+    let targetW = orientation === "landscape" ? 1056 : 747;
+    let targetH = orientation === "landscape" ? 747 : 1056;
 
-    canvas.setDimensions({ width, height });
-
-    // 1. Re-scale Background Image smoothly using natural image dimensions
+    // 1. Re-scale Background Image smoothly preserving natural aspect ratio
     if (canvas.backgroundImage) {
       const bg = canvas.backgroundImage as any;
       const el = bg._element || (bg.getElement && bg.getElement()) || bg;
@@ -107,9 +131,18 @@ export default function Canvas({ template }: CanvasProps) {
       const naturalH = bg.height || el?.naturalHeight || el?.height;
 
       if (naturalW && naturalH) {
+        const imgRatio = naturalW / naturalH;
+        if (orientation === "landscape") {
+          targetW = 1056;
+          targetH = Math.round(1056 / imgRatio);
+        } else {
+          targetH = 1056;
+          targetW = Math.round(1056 * imgRatio);
+        }
+
         bg.set({
-          scaleX: width / naturalW,
-          scaleY: height / naturalH,
+          scaleX: targetW / naturalW,
+          scaleY: targetH / naturalH,
           originX: "left",
           originY: "top",
           left: 0,
@@ -118,10 +151,17 @@ export default function Canvas({ template }: CanvasProps) {
       }
     }
 
+    setCanvasDimensions({ width: targetW, height: targetH });
+
+    const oldW = prevDimensionsRef.current.width;
+    const oldH = prevDimensionsRef.current.height;
+
+    canvas.setDimensions({ width: targetW, height: targetH });
+
     // 2. Proportionally scale positions of objects if orientation dimensions changed
-    if (oldW !== width || oldH !== height) {
-      const scaleX = width / oldW;
-      const scaleY = height / oldH;
+    if (oldW !== targetW || oldH !== targetH) {
+      const scaleX = targetW / oldW;
+      const scaleY = targetH / oldH;
 
       canvas.getObjects().forEach((obj) => {
         obj.set({
@@ -132,15 +172,17 @@ export default function Canvas({ template }: CanvasProps) {
       });
     }
 
-    prevDimensionsRef.current = { width, height };
+    prevDimensionsRef.current = { width: targetW, height: targetH };
     canvas.renderAll();
     calculateAutoZoom();
-  }, [canvas, orientation, width, height, calculateAutoZoom]);
+  }, [canvas, orientation, setCanvasDimensions, calculateAutoZoom]);
 
-  // Handle keyboard shortcuts (Backspace / Delete to remove selected object, Arrow keys to move)
+  // Handle keyboard shortcuts (Undo / Redo, Backspace / Delete, Arrow keys)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const activeEl = document.activeElement;
+      
+      // 1. Check if user is typing in ANY HTML input or textarea
       const isFormInput =
         activeEl &&
         (activeEl.tagName === "INPUT" ||
@@ -153,16 +195,46 @@ export default function Canvas({ template }: CanvasProps) {
       if (!canvas) return;
 
       const activeObj = canvas.getActiveObject();
+
+      // 2. CRITICAL: IF ANY FABRIC TEXT OBJECT IS CURRENTLY BEING EDITED (text cursor active), DO NOT INTERFERE!
+      const isTextObj =
+        activeObj &&
+        (activeObj.type === "textbox" || activeObj.type === "i-text" || activeObj.type === "text");
+
+      const isEditingText =
+        Boolean((canvas as any).isEditing) ||
+        Boolean((activeObj as any)?.isEditing) ||
+        Boolean((activeObj as any)?.inMode) ||
+        isTextObj;
+
+      if (isEditingText) {
+        if (activeObj && (activeObj as any).isEditing) return;
+      }
+
+      const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+      const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+
+      // Handle Undo (Ctrl+Z) & Redo (Ctrl+Y or Ctrl+Shift+Z)
+      if (cmdOrCtrl) {
+        const key = e.key.toLowerCase();
+        if (key === "z") {
+          e.preventDefault();
+          if (e.shiftKey) {
+            redo();
+          } else {
+            undo();
+          }
+          return;
+        } else if (key === "y") {
+          e.preventDefault();
+          redo();
+          return;
+        }
+      }
+
       if (!activeObj) return;
 
-      // DO NOT delete object or prevent default if text editing is active in Fabric
-      const isEditingText =
-        Boolean((activeObj as any).isEditing) ||
-        Boolean((activeObj as any).inMode) ||
-        ((activeObj.type === "i-text" || activeObj.type === "textbox") &&
-          Boolean((activeObj as any).isEditing));
-
-      if (isEditingText) return;
+      if (isTextObj) return;
 
       if (e.key === "Backspace" || e.key === "Delete") {
         e.preventDefault();
@@ -199,7 +271,7 @@ export default function Canvas({ template }: CanvasProps) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [canvas, setActiveObject]);
+  }, [canvas, setActiveObject, undo, redo]);
 
   // Load existing template design JSON into Fabric canvas
   useEffect(() => {
@@ -215,12 +287,8 @@ export default function Canvas({ template }: CanvasProps) {
       setOrientation(targetOrientation);
     }
 
-    const targetW = targetOrientation === "portrait" ? 747 : 1056;
-    const targetH = targetOrientation === "portrait" ? 1056 : 747;
-
     const loadCanvasData = async () => {
       try {
-        canvas.setDimensions({ width: targetW, height: targetH });
         await canvas.loadFromJSON(template.design.data);
 
         if (canvas.backgroundImage) {
@@ -230,9 +298,15 @@ export default function Canvas({ template }: CanvasProps) {
           const naturalH = bg.height || el?.naturalHeight || el?.height;
 
           if (naturalW && naturalH) {
+            const imgRatio = naturalW / naturalH;
+            const fitW = targetOrientation === "portrait" ? Math.round(1056 * imgRatio) : 1056;
+            const fitH = targetOrientation === "portrait" ? 1056 : Math.round(1056 / imgRatio);
+
+            canvas.setDimensions({ width: fitW, height: fitH });
+
             bg.set({
-              scaleX: targetW / naturalW,
-              scaleY: targetH / naturalH,
+              scaleX: fitW / naturalW,
+              scaleY: fitH / naturalH,
               originX: "left",
               originY: "top",
               left: 0,
@@ -242,108 +316,66 @@ export default function Canvas({ template }: CanvasProps) {
         }
 
         canvas.renderAll();
+        calculateAutoZoom();
       } catch (err) {
         console.error("Failed to load canvas JSON in editor:", err);
       }
     };
 
     loadCanvasData();
-  }, [canvas, template, setOrientation]);
+  }, [canvas, template, setOrientation, calculateAutoZoom]);
 
   return (
     <div
       ref={containerRef}
-      className="flex h-full flex-1 items-center justify-center overflow-auto bg-slate-950 p-2 sm:p-6 select-none relative"
+      className="flex h-full flex-1 items-center justify-center overflow-auto bg-slate-100 p-4 sm:p-12 relative min-h-0"
       style={{
-        backgroundImage: "radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px)",
+        backgroundImage: "radial-gradient(rgba(0, 0, 0, 0.08) 1px, transparent 1px)",
         backgroundSize: "24px 24px",
       }}
     >
       {/* Outer Bounding Box sized matching Visual Scaled Canvas */}
       <div
-        className="relative flex items-center justify-center shrink-0 my-auto mx-auto"
+        className="rounded-2xl border border-gray-200 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.12)] transition-transform duration-300 ease-out origin-center ring-1 ring-gray-200/60 shrink-0"
         style={{
-          width: `${width * zoomLevel}px`,
-          height: `${height * zoomLevel}px`,
+          width: canvasDimensions.width,
+          height: canvasDimensions.height,
+          transform: `scale(${zoomLevel})`,
         }}
       >
-        {/* Unscaled Inner Canvas scaled from center via Transform */}
-        <div
-          className="absolute origin-center rounded-2xl border border-slate-700 bg-white shadow-[0_25px_80px_rgba(0,0,0,0.6)] transition-all duration-300 ease-out ring-1 ring-slate-800 overflow-hidden"
-          style={{
-            width: `${width}px`,
-            height: `${height}px`,
-            transform: `scale(${zoomLevel})`,
-          }}
-        >
-          <canvas
-            ref={canvasRef}
-            width={width}
-            height={height}
-          />
-        </div>
+        <canvas
+          ref={canvasRef}
+          width={canvasDimensions.width}
+          height={canvasDimensions.height}
+        />
       </div>
 
-      {/* Floating Canvas Controls Overlay (Landscape/Portrait & Zoom) */}
-      <div className="absolute bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 sm:gap-2 rounded-2xl bg-slate-900/90 border border-slate-700/80 p-1.5 shadow-2xl backdrop-blur-md text-white text-xs">
-        {/* Orientation Switcher */}
-        <div className="flex items-center rounded-xl bg-slate-800/90 p-0.5 border border-slate-700/60">
-          <button
-            onClick={() => setOrientation("landscape")}
-            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold transition ${
-              orientation === "landscape"
-                ? "bg-red-600 text-white shadow-md"
-                : "text-slate-400 hover:text-slate-200"
-            }`}
-            title="Switch to Landscape"
-          >
-            <Layout size={13} /> <span className="hidden sm:inline">Landscape</span><span className="sm:hidden">Land</span>
-          </button>
-          <button
-            onClick={() => setOrientation("portrait")}
-            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold transition ${
-              orientation === "portrait"
-                ? "bg-red-600 text-white shadow-md"
-                : "text-slate-400 hover:text-slate-200"
-            }`}
-            title="Switch to Portrait"
-          >
-            <Layers size={13} /> <span className="hidden sm:inline">Portrait</span><span className="sm:hidden">Port</span>
-          </button>
-        </div>
-
-        <div className="h-4 w-[1px] bg-slate-700"></div>
-
-        {/* Zoom Controls */}
-        <div className="flex items-center gap-0.5 sm:gap-1">
-          <button
-            onClick={() => setZoomLevel((prev) => Math.max(0.2, Number((prev - 0.05).toFixed(2))))}
-            className="p-1.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition"
-            title="Zoom Out"
-          >
-            <ZoomOut size={14} />
-          </button>
-
-          <span className="font-mono text-[11px] font-bold px-1 text-slate-200 min-w-[36px] text-center">
-            {Math.round(zoomLevel * 100)}%
-          </span>
-
-          <button
-            onClick={() => setZoomLevel((prev) => Math.min(1.5, Number((prev + 0.05).toFixed(2))))}
-            className="p-1.5 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition"
-            title="Zoom In"
-          >
-            <ZoomIn size={14} />
-          </button>
-
-          <button
-            onClick={calculateAutoZoom}
-            className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold transition border border-slate-700/60"
-            title="Fit to Screen"
-          >
-            Fit
-          </button>
-        </div>
+      {/* Quick Floating Zoom Bar for Mobile / Touch screens */}
+      <div className="md:hidden fixed bottom-16 right-4 z-40 flex items-center gap-1 rounded-2xl bg-white/95 border border-gray-200 p-1.5 shadow-xl text-gray-800 backdrop-blur-md">
+        <button
+          onClick={() => setZoomLevel((prev) => Math.max(0.35, Number((prev - 0.1).toFixed(1))))}
+          className="p-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200"
+          title="Zoom Out"
+        >
+          <ZoomOut size={16} />
+        </button>
+        <span className="px-2 font-mono text-xs font-bold min-w-[42px] text-center">
+          {Math.round(zoomLevel * 100)}%
+        </span>
+        <button
+          onClick={() => setZoomLevel((prev) => Math.min(1.5, Number((prev + 0.1).toFixed(1))))}
+          className="p-2 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200"
+          title="Zoom In"
+        >
+          <ZoomIn size={16} />
+        </button>
+        <button
+          onClick={() => setZoomLevel(0.75)}
+          className="p-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-100 font-bold"
+          title="Reset Zoom"
+        >
+          <Maximize2 size={16} />
+        </button>
       </div>
     </div>
   );
