@@ -29,6 +29,7 @@ import TemplatePreviewPage from "./features/organization/pages/TemplatePreviewPa
 import OrganizationProfilePage from "./features/organization/pages/OrganizationProfilePage";
 import AdvertisementsPage from "./features/organization/pages/AdvertisementsPage";
 import OrganizationSignupPage from "./features/auth/pages/OrganizationSignupPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 // function AuthBootstrap() {
 //   const redirectToDashboard = useMeRedirect();
@@ -269,6 +270,11 @@ element={
       <OrganizationSignupPage />
   
 }
+/>
+
+<Route
+  path="*"
+  element={<NotFoundPage />}
 />
 
       </Routes>

@@ -334,6 +334,7 @@ export default function Canvas({ template }: CanvasProps) {
         backgroundSize: "24px 24px",
       }}
     >
+      {/* Outer Bounding Box sized matching Visual Scaled Canvas */}
       <div
         className="rounded-2xl border border-gray-200 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.12)] transition-transform duration-300 ease-out origin-center ring-1 ring-gray-200/60 shrink-0"
         style={{

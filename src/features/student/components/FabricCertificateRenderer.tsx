@@ -19,11 +19,13 @@ interface FabricCertificateRendererProps {
     email?: string;
     [key: string]: any;
   };
+  hideHeader?: boolean;
 }
 
 export default function FabricCertificateRenderer({
   templateData,
   studentData,
+  hideHeader = false,
 }: FabricCertificateRendererProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -191,11 +193,7 @@ export default function FabricCertificateRenderer({
                 {orientation}
               </span>
             </div>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Issued by {studentData.organization || "Tiiron Technologies"}
-            </p>
           </div>
-        </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Zoom Controls Bar */}
