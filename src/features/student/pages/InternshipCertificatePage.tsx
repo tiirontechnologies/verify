@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../../layouts/DashboardLayout";
-import { ArrowLeft, Download, Award } from "lucide-react";
+import { Download } from "lucide-react";
 import { toPng } from "html-to-image";
 import { getMyCertificate } from "../../../api/certificate.api";
 import type { CertificateData } from "../../../types/certificate";
 import certificateBg from "../../../assets/certificate-bg.png";
 import FabricCertificateRenderer from "../components/FabricCertificateRenderer";
+import DocumentHeader from "../../../components/shared/DocumentHeader";
 
 const COURSE_TEMPLATES: Record<
   string,
@@ -298,7 +299,7 @@ export default function InternshipCertificatePage() {
             <div className="relative mt-8">
               <button
                 onClick={() => navigate(-1)}
-                className="rounded-2xl bg-red-600 px-6 py-3 font-semibold text-white transition hover:bg-red-700 text-sm"
+                className="rounded-2xl bg-red-600 px-6 py-3 font-semibold text-white transition hover:bg-red-700 text-sm cursor-pointer"
               >
                 Go Back
               </button>
@@ -316,13 +317,13 @@ export default function InternshipCertificatePage() {
   if (templateData) {
     return (
       <DashboardLayout>
-        <div className="bg-slate-100 min-h-screen -m-6 p-4 sm:p-8 space-y-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-red-600 hover:text-red-700 transition font-medium text-sm"
-          >
-            <ArrowLeft size={18} /> Back to Dashboard
-          </button>
+        <div className="bg-slate-100 min-h-screen -m-6 p-4 sm:p-8 space-y-6">
+          <DocumentHeader
+            title="Internship Certificate"
+            subtitle="View your official internship completion certificate."
+            docType="internship"
+            certificateId={certificate.certificateId}
+          />
 
           <FabricCertificateRenderer
             templateData={templateData}
@@ -339,6 +340,7 @@ export default function InternshipCertificatePage() {
               director: certificate.director,
               email: certificate.email || "",
             }}
+            hideHeader={true}
           />
         </div>
       </DashboardLayout>
@@ -349,43 +351,25 @@ export default function InternshipCertificatePage() {
 
   return (
     <DashboardLayout>
-      <div className="bg-slate-100 min-h-screen -m-6 p-4 sm:p-8">
-        <div className="relative overflow-hidden bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200 p-5 sm:p-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-5">
-          <div className="relative">
+      <div className="bg-slate-100 min-h-screen -m-6 p-4 sm:p-8 space-y-6">
+        <DocumentHeader
+          title="Internship Certificate"
+          subtitle="View your internship completion certificate and download it as an image."
+          docType="internship"
+          certificateId={certificate.certificateId}
+          actions={
             <button
-              onClick={() => navigate(-1)}
-              className="flex items-center gap-2 text-red-600 hover:text-red-700 mb-4 sm:mb-5 transition text-sm sm:text-base font-medium"
+              onClick={downloadCertificateImage}
+              disabled={downloadingImage}
+              className="bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white px-5 sm:px-7 py-2.5 sm:py-3.5 rounded-xl flex items-center justify-center gap-2 sm:gap-3 transition text-sm font-medium shadow-lg shadow-red-200 cursor-pointer"
             >
-              <ArrowLeft size={18} />
-              Back
+              <Download size={18} />
+              {downloadingImage ? "Preparing..." : "Download Image"}
             </button>
+          }
+        />
 
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="flex h-11 w-11 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-red-50 to-orange-100 shadow-inner">
-                <Award className="h-5 w-5 sm:h-7 sm:w-7 text-red-600" />
-              </div>
-              <div>
-                <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold text-slate-900">
-                  Internship Certificate
-                </h1>
-                <p className="text-slate-500 mt-1 text-xs sm:text-base">
-                  View your internship completion certificate and download it as an image.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <button
-            onClick={downloadCertificateImage}
-            disabled={downloadingImage}
-            className="relative bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white px-5 sm:px-7 py-2.5 sm:py-3.5 rounded-xl flex items-center justify-center gap-2 sm:gap-3 transition text-sm font-medium shadow-lg shadow-red-200 self-start sm:self-auto"
-          >
-            <Download size={18} />
-            {downloadingImage ? "Preparing..." : "Download Image"}
-          </button>
-        </div>
-
-        <div className="mt-6 sm:mt-8 bg-white rounded-2xl sm:rounded-3xl shadow-lg border p-3 sm:p-6">
+        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-lg border p-3 sm:p-6">
           <div style={outerStyle} ref={outerRef}>
             <div
               id="certificate"

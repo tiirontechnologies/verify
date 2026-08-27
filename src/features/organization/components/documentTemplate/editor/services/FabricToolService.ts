@@ -38,31 +38,60 @@ export class FabricToolService {
 
     const active = canvas.getActiveObject();
 
-    // If a text object is currently selected, insert the variable tag inline inside that text box
+    // If a text object is currently selected or editing, insert the variable tag inline inside that text box
     if (active && (active.type === "textbox" || active.type === "i-text" || (active as any).text !== undefined)) {
       const textObj = active as any;
       const currentText = textObj.text || "";
+      let newText = "";
+      let newCursorPos = 0;
 
       if (textObj.isEditing && textObj.selectionStart !== undefined && textObj.selectionEnd !== undefined) {
         const start = textObj.selectionStart;
         const end = textObj.selectionEnd;
-        const newText = currentText.slice(0, start) + cleanTag + currentText.slice(end);
-        textObj.set("text", newText);
-        textObj.selectionStart = start + cleanTag.length;
-        textObj.selectionEnd = start + cleanTag.length;
+        // Insert with space padding if needed for natural typing flow
+        const tagWithSpace = cleanTag + " ";
+        newText = currentText.slice(0, start) + tagWithSpace + currentText.slice(end);
+        newCursorPos = start + tagWithSpace.length;
       } else {
-        textObj.set("text", currentText ? `${currentText} ${cleanTag}` : cleanTag);
+        const tagWithSpace = currentText && !currentText.endsWith(" ") ? ` ${cleanTag} ` : `${cleanTag} `;
+        newText = currentText ? `${currentText}${tagWithSpace}` : tagWithSpace;
+        newCursorPos = newText.length;
+      }
+
+      textObj.set("text", newText);
+      if (typeof textObj.initDimensions === "function") {
+        textObj.initDimensions();
+      }
+
+      // Enter editing mode if not already editing
+      if (typeof textObj.enterEditing === "function" && !textObj.isEditing) {
+        textObj.enterEditing();
+      }
+
+      // Sync selection cursor positions
+      textObj.selectionStart = newCursorPos;
+      textObj.selectionEnd = newCursorPos;
+
+      // Sync Fabric's internal hidden textarea element
+      if (textObj.hiddenTextarea) {
+        textObj.hiddenTextarea.value = newText;
+        textObj.hiddenTextarea.focus();
+        try {
+          textObj.hiddenTextarea.setSelectionRange(newCursorPos, newCursorPos);
+        } catch (e) {
+          // ignore setSelectionRange errors on unsupported devices
+        }
       }
 
       canvas.renderAll();
       return;
     }
 
-    // Otherwise create a new Textbox containing the tag
-    const text = new Textbox(cleanTag, {
-      left: canvas.width ? canvas.width / 2 - 120 : 150,
+    // Otherwise create a new Textbox containing the tag with space padding
+    const text = new Textbox(`${cleanTag} `, {
+      left: canvas.width ? canvas.width / 2 - 140 : 150,
       top: canvas.height ? canvas.height / 2 - 20 : 150,
-      width: 260,
+      width: 320,
       fontSize: 22,
       fill: "#081F5C",
       fontFamily: "Arial",
@@ -72,6 +101,18 @@ export class FabricToolService {
 
     canvas.add(text);
     canvas.setActiveObject(text);
+
+    if (typeof text.enterEditing === "function") {
+      text.enterEditing();
+      const endPos = text.text.length;
+      text.selectionStart = endPos;
+      text.selectionEnd = endPos;
+      if (text.hiddenTextarea) {
+        text.hiddenTextarea.value = text.text;
+        text.hiddenTextarea.focus();
+      }
+    }
+
     canvas.renderAll();
   }
 

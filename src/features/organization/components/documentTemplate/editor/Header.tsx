@@ -19,19 +19,28 @@ import {
 interface HeaderProps {
   template?: any;
   onBack: () => void;
+  onSaveSuccess?: (message: string) => void;
+  onTemplateUpdate?: (template: any) => void;
 }
 
-export default function Header({ template, onBack }: HeaderProps) {
+export default function Header({
+  template,
+  onBack,
+  onSaveSuccess,
+  onTemplateUpdate,
+}: HeaderProps) {
   const { canvas, orientation, setOrientation, zoomLevel, setZoomLevel } = useFabric();
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [templateName, setTemplateName] = useState(template?.name || "");
   const [documentType, setDocumentType] = useState(template?.documentType || "internship");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [currentTemplate, setCurrentTemplate] = useState<any>(template);
 
   const [prevTemplate, setPrevTemplate] = useState(template);
   if (template !== prevTemplate) {
     setPrevTemplate(template);
+    setCurrentTemplate(template);
     if (template) {
       setTemplateName(template.name || "");
       setDocumentType(template.documentType || "internship");
@@ -55,8 +64,10 @@ export default function Header({ template, onBack }: HeaderProps) {
       const canvasJson = canvas.toJSON();
       (canvasJson as any).orientation = orientation;
 
-      if (template?._id) {
-        await documentTemplateApi.updateCanvasTemplate(template._id, {
+      let savedData: any = null;
+
+      if (currentTemplate?._id) {
+        const res = await documentTemplateApi.updateCanvasTemplate(currentTemplate._id, {
           name: templateName,
           documentType,
           design: {
@@ -66,8 +77,9 @@ export default function Header({ template, onBack }: HeaderProps) {
             data: canvasJson,
           },
         });
+        savedData = res.data?.template || currentTemplate;
       } else {
-        await documentTemplateApi.saveCanvasTemplate({
+        const res = await documentTemplateApi.saveCanvasTemplate({
           name: templateName,
           documentType,
           status: "active",
@@ -78,13 +90,24 @@ export default function Header({ template, onBack }: HeaderProps) {
             data: canvasJson,
           },
         });
+        savedData = res.data?.template;
       }
 
-      setMessage({ type: "success", text: "Template saved successfully!" });
+      if (savedData) {
+        setCurrentTemplate(savedData);
+        if (onTemplateUpdate) onTemplateUpdate(savedData);
+      }
+
+      const successText = "Template saved successfully!";
+      setMessage({ type: "success", text: successText });
+
+      // Close modal after brief delay without navigating away
       setTimeout(() => {
         setIsSaveModalOpen(false);
-        onBack();
-      }, 1000);
+        if (onSaveSuccess) {
+          onSaveSuccess("Template saved successfully! Click 'Back to Dashboard' whenever you are done.");
+        }
+      }, 500);
     } catch (err: any) {
       console.error("Save error:", err);
       setMessage({
@@ -99,40 +122,43 @@ export default function Header({ template, onBack }: HeaderProps) {
   return (
     <>
       {/* Studio Bar Header */}
-      <header className="flex h-16 items-center justify-between border-b border-slate-800 bg-slate-900 px-6 text-white shadow-xl z-30">
+      <header className="flex h-14 lg:h-16 items-center justify-between border-b border-slate-800 bg-slate-900 px-3 sm:px-6 text-white shadow-xl z-30">
         {/* Left Section: Back & Title */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <button
             onClick={onBack}
-            className="flex items-center gap-2 rounded-xl bg-slate-800 border border-slate-700 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition shadow-sm"
+            className="flex items-center gap-1.5 sm:gap-2 rounded-xl bg-slate-800 border border-slate-700 px-2.5 py-1.5 sm:px-3.5 sm:py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition shadow-sm shrink-0"
+            title="Return to Dashboard"
           >
-            <ArrowLeft size={16} /> Back to Dashboard
+            <ArrowLeft size={16} />
+            <span className="hidden sm:inline">Back to Dashboard</span>
+            <span className="sm:hidden text-[11px]">Back</span>
           </button>
 
-          <div className="h-5 w-[1px] bg-slate-800"></div>
+          <div className="hidden sm:block h-5 w-[1px] bg-slate-800"></div>
 
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-red-600/20 border border-red-500/30 flex items-center justify-center text-red-400">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="hidden sm:flex h-9 w-9 shrink-0 rounded-xl bg-red-600/20 border border-red-500/30 items-center justify-center text-red-400">
               <Sparkles size={18} />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-sm font-bold text-slate-100 tracking-tight">
-                  {template?.name ? template.name : "New Certificate Template"}
+            <div className="truncate">
+              <div className="flex items-center gap-1.5 truncate">
+                <h1 className="text-xs sm:text-sm font-bold text-slate-100 tracking-tight truncate max-w-[140px] sm:max-w-[240px]">
+                  {currentTemplate?.name || templateName || "New Certificate Template"}
                 </h1>
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-red-600/30 text-red-300 border border-red-500/40 px-2 py-0.5 rounded">
+                <span className="hidden md:inline-block text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-red-600/30 text-red-300 border border-red-500/40 px-1.5 py-0.5 rounded">
                   {documentType.replace("-", " ")}
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400">Fabric Studio Designer Engine</p>
+              <p className="hidden sm:block text-[10px] sm:text-[11px] text-slate-400">Fabric Studio Engine</p>
             </div>
           </div>
         </div>
 
         {/* Right Section: Canvas Controls & Actions */}
-        <div className="flex items-center gap-3">
-          {/* Zoom Control Pill */}
-          <div className="flex items-center rounded-xl bg-slate-800 border border-slate-700 p-1 text-xs font-medium">
+        <div className="flex items-center gap-1.5 sm:gap-3">
+          {/* Zoom Control Pill (Desktop/Tablet) */}
+          <div className="hidden md:flex items-center rounded-xl bg-slate-800 border border-slate-700 p-1 text-xs font-medium">
             <button
               onClick={() => setZoomLevel((prev) => Math.max(0.4, Number((prev - 0.1).toFixed(1))))}
               className="p-1.5 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition"
@@ -163,26 +189,28 @@ export default function Header({ template, onBack }: HeaderProps) {
           </div>
 
           {/* Orientation Pill */}
-          <div className="flex items-center rounded-xl bg-slate-800 border border-slate-700 p-1 text-xs font-semibold">
+          <div className="flex items-center rounded-xl bg-slate-800 border border-slate-700 p-0.5 sm:p-1 text-xs font-semibold shrink-0">
             <button
               onClick={() => setOrientation("landscape")}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition ${
+              className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1 sm:px-3 rounded-lg transition text-[11px] sm:text-xs ${
                 orientation === "landscape"
                   ? "bg-red-600 text-white shadow-md font-bold"
                   : "text-slate-400 hover:text-slate-200"
               }`}
+              title="Landscape Orientation"
             >
-              <Layout size={13} /> Landscape
+              <Layout size={13} /> <span className="hidden sm:inline">Landscape</span><span className="sm:hidden">Land</span>
             </button>
             <button
               onClick={() => setOrientation("portrait")}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition ${
+              className={`flex items-center gap-1 sm:gap-1.5 px-2 py-1 sm:px-3 rounded-lg transition text-[11px] sm:text-xs ${
                 orientation === "portrait"
                   ? "bg-red-600 text-white shadow-md font-bold"
                   : "text-slate-400 hover:text-slate-200"
               }`}
+              title="Portrait Orientation"
             >
-              <Layers size={13} /> Portrait
+              <Layers size={13} /> <span className="hidden sm:inline">Portrait</span><span className="sm:hidden">Port</span>
             </button>
           </div>
 
@@ -194,10 +222,10 @@ export default function Header({ template, onBack }: HeaderProps) {
                 FabricToolService.clearCanvas(canvas);
               }
             }}
-            className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-red-600/20 hover:text-red-300 hover:border-red-500/30 transition"
+            className="hidden sm:flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-800 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-semibold text-slate-300 hover:bg-red-600/20 hover:text-red-300 hover:border-red-500/30 transition"
             title="Clear Canvas"
           >
-            <RotateCcw size={14} /> Clear
+            <RotateCcw size={14} /> <span className="hidden md:inline">Clear</span>
           </button>
 
           <button
@@ -205,18 +233,19 @@ export default function Header({ template, onBack }: HeaderProps) {
               if (!canvas) return;
               FabricToolService.deleteSelected(canvas);
             }}
-            className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-red-600/20 hover:text-red-300 hover:border-red-500/30 transition"
+            className="hidden sm:flex items-center gap-1 rounded-xl border border-slate-700 bg-slate-800 px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-semibold text-slate-300 hover:bg-red-600/20 hover:text-red-300 hover:border-red-500/30 transition"
             title="Delete Selected Element"
           >
-            <Trash2 size={14} /> Delete
+            <Trash2 size={14} /> <span className="hidden md:inline">Delete</span>
           </button>
 
           {/* Save Button */}
           <button
             onClick={() => setIsSaveModalOpen(true)}
-            className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-red-700 px-5 py-2 text-xs font-bold text-white shadow-lg shadow-red-900/30 hover:from-red-500 hover:to-red-600 transition"
+            className="flex items-center gap-1.5 sm:gap-2 rounded-xl bg-gradient-to-r from-red-600 to-red-700 px-3 py-1.5 sm:px-5 sm:py-2 text-xs font-bold text-white shadow-lg shadow-red-900/30 hover:from-red-500 hover:to-red-600 transition shrink-0"
           >
-            <Save size={16} /> Save Template
+            <Save size={15} />
+            <span className="inline">Save</span>
           </button>
         </div>
       </header>

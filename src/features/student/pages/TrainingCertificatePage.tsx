@@ -4,8 +4,9 @@ import { useNavigate } from "react-router-dom";
 
 import DashboardLayout from "../../../layouts/DashboardLayout";
 
-import { ArrowLeft, Award, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import { toPng } from "html-to-image";
+import DocumentHeader from "../../../components/shared/DocumentHeader";
 
 // 👇 agar tumhara actual function ka naam alag hai to sirf yaha badlo
 import { getMyCertificate} from "../../../api/certificate.api";
@@ -466,13 +467,13 @@ export default function TrainingCertificatePage() {
   if (templateData) {
     return (
       <DashboardLayout>
-        <div className="bg-slate-100 min-h-screen -m-6 p-4 sm:p-8 space-y-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-red-600 hover:text-red-700 transition font-medium text-sm"
-          >
-            <ArrowLeft size={18} /> Back to Dashboard
-          </button>
+        <div className="bg-slate-100 min-h-screen -m-6 p-4 sm:p-8 space-y-6">
+          <DocumentHeader
+            title="Training Certificate"
+            subtitle="View your official training completion certificate."
+            docType="training"
+            certificateId={certificate.certificateId}
+          />
 
           <FabricCertificateRenderer
             templateData={templateData}
@@ -489,6 +490,7 @@ export default function TrainingCertificatePage() {
               director: certificate.director,
               email: certificate.email || "",
             }}
+            hideHeader={true}
           />
         </div>
       </DashboardLayout>
@@ -500,47 +502,26 @@ export default function TrainingCertificatePage() {
 
   return (
     <DashboardLayout>
-      <div className="bg-slate-100 min-h-screen -m-6 p-4 sm:p-8">
-        {/* Header */}
-        <div className="relative overflow-hidden bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200 p-5 sm:p-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-5">
-          <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-red-500/10 via-orange-400/5 to-transparent pointer-events-none" />
-
-          <div className="relative">
+      <div className="bg-slate-100 min-h-screen -m-6 p-4 sm:p-8 space-y-6">
+        <DocumentHeader
+          title="Training Certificate"
+          subtitle="View your training completion certificate and download it as an image."
+          docType="training"
+          certificateId={certificate.certificateId}
+          actions={
             <button
-              onClick={() => navigate(-1)}
-              className="flex items-center gap-2 text-red-600 hover:text-red-700 mb-4 sm:mb-5 transition text-sm sm:text-base font-medium"
+              onClick={downloadCertificateImage}
+              disabled={downloadingImage}
+              className="bg-red-600 hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed text-white px-5 sm:px-7 py-2.5 sm:py-3.5 rounded-xl flex items-center justify-center gap-2 sm:gap-3 transition text-sm font-medium shadow-lg shadow-red-200 cursor-pointer"
             >
-              <ArrowLeft size={18} />
-              Back
+              <Download size={18} />
+              {downloadingImage ? "Preparing..." : "Download Image"}
             </button>
-
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="flex h-11 w-11 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-red-50 to-orange-100 shadow-inner">
-                <Award className="h-5 w-5 sm:h-7 sm:w-7 text-red-600" />
-              </div>
-              <div>
-                <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold text-slate-900">
-                  Training Certificate
-                </h1>
-                <p className="text-slate-500 mt-1 text-xs sm:text-base">
-                  View your training completion certificate and download it as an image.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <button
-            onClick={downloadCertificateImage}
-            disabled={downloadingImage}
-            className="relative bg-red-600 hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed text-white px-5 sm:px-7 py-2.5 sm:py-3.5 rounded-xl flex items-center justify-center gap-2 sm:gap-3 transition text-sm sm:text-base font-medium shadow-lg shadow-red-200 self-start sm:self-auto"
-          >
-            <Download size={18} />
-            {downloadingImage ? "Preparing..." : "Download Image"}
-          </button>
-        </div>
+          }
+        />
 
         {/* Certificate */}
-        <div className="mt-6 sm:mt-8 bg-white rounded-2xl sm:rounded-3xl shadow-lg border border-slate-200 p-3 sm:p-6">
+        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-lg border border-slate-200 p-3 sm:p-6">
           <div style={outerStyle} ref={outerRef}>
             <div
               id="training-certificate"

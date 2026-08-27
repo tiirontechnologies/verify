@@ -4,6 +4,7 @@ import DashboardLayout from "../../../layouts/DashboardLayout";
 import { getMyCertificate } from "../../../api/certificate.api";
 import FabricCertificateRenderer from "../components/FabricCertificateRenderer";
 import OfferLetterDocument from "../components/OfferLetterDocument";
+import DocumentHeader from "../../../components/shared/DocumentHeader";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 
 interface DocumentViewerPageProps {
@@ -46,7 +47,6 @@ export default function DocumentViewerPage({ forcedType }: DocumentViewerPagePro
         }
 
         if (!match && validList.length > 0) {
-          // If fallback needed
           match = validList[0];
         }
 
@@ -119,7 +119,7 @@ export default function DocumentViewerPage({ forcedType }: DocumentViewerPagePro
             </p>
             <button
               onClick={() => navigate("/student/my-certificate")}
-              className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition"
+              className="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-xl transition cursor-pointer"
             >
               <ArrowLeft size={16} /> Back to My Credentials
             </button>
@@ -130,49 +130,46 @@ export default function DocumentViewerPage({ forcedType }: DocumentViewerPagePro
   }
 
   const certType = (documentData.certificateType || "internship").toLowerCase();
+  const formattedTitle = certType
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (l: string) => l.toUpperCase());
+
+  const titleText =
+    formattedTitle.includes("Certificate") || formattedTitle.includes("Letter")
+      ? formattedTitle
+      : `${formattedTitle} Document`;
 
   return (
     <DashboardLayout>
-      <div className="bg-slate-100 min-h-screen -m-4 sm:-m-8 p-4 sm:p-8 space-y-4">
+      <div className="bg-slate-100 min-h-screen -m-4 sm:-m-8 p-4 sm:p-8 space-y-6">
+        {/* Unified Document Header */}
+        <DocumentHeader
+          title={titleText}
+          subtitle={`Official ${certType.replace("-", " ")} issued to ${documentData.studentName || "you"}.`}
+          docType={certType}
+          certificateId={documentData.certificateId}
+        />
+
         {/* Render Fabric canvas template if template exists */}
         {templateData ? (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-              <button
-                onClick={() => navigate(-1)}
-                className="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium text-sm transition"
-              >
-                <ArrowLeft size={18} /> Back
-              </button>
-              <span className="text-xs font-semibold uppercase bg-slate-100 text-slate-700 px-3 py-1 rounded-md">
-                {documentData.certificateType} • {documentData.certificateId}
-              </span>
-            </div>
-
-            <FabricCertificateRenderer
-              templateData={templateData}
-              studentData={{
-                studentName: documentData.studentName,
-                course: documentData.course,
-                role: documentData.role,
-                certificateId: documentData.certificateId,
-                issueDate: documentData.issueDate,
-                startDate: documentData.startDate,
-                endDate: documentData.endDate,
-                organization: documentData.organization,
-                mentor: documentData.mentor,
-                director: documentData.director,
-                email: documentData.email || "",
-              }}
-            />
-          </div>
-        ) : certType === "offer-letter" ? (
-          <OfferLetterDocument
-            documentData={documentData}
-            onBack={() => navigate(-1)}
+          <FabricCertificateRenderer
+            templateData={templateData}
+            studentData={{
+              studentName: documentData.studentName,
+              course: documentData.course,
+              role: documentData.role,
+              certificateId: documentData.certificateId,
+              issueDate: documentData.issueDate,
+              startDate: documentData.startDate,
+              endDate: documentData.endDate,
+              organization: documentData.organization,
+              mentor: documentData.mentor,
+              director: documentData.director,
+              email: documentData.email || "",
+            }}
+            hideHeader={true}
           />
         ) : (
-          /* Default document view for non-offer letter certificates if no Fabric template is attached */
           <OfferLetterDocument
             documentData={documentData}
             onBack={() => navigate(-1)}

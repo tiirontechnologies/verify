@@ -11,6 +11,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
+  Layout,
+  Layers,
 } from "lucide-react";
 
 const DYNAMIC_PLACEHOLDERS = [
@@ -28,7 +30,7 @@ const DYNAMIC_PLACEHOLDERS = [
 ];
 
 export default function LeftSidebar() {
-  const { canvas, setOrientation } = useFabric();
+  const { canvas, orientation, setOrientation } = useFabric();
   const [activeTab, setActiveTab] = useState<"placeholders" | "text" | "media" | "shapes">("placeholders");
   const [customVar, setCustomVar] = useState("");
   const [collapsed, setCollapsed] = useState(false);
@@ -41,22 +43,22 @@ export default function LeftSidebar() {
   };
 
   return (
-    <div className="relative flex h-full border-r border-slate-200 bg-white shadow-sm z-20 transition-all duration-300">
+    <div className="relative flex h-full border-r border-slate-200 bg-white shadow-sm z-20 transition-all duration-300 w-full lg:w-auto shrink-0">
       {/* Icon Navigation Rail */}
-      <div className="flex flex-col border-r border-slate-200 bg-slate-900 p-2 space-y-4 text-white">
+      <div className="flex flex-col border-r border-slate-200 bg-slate-900 p-2 space-y-3 sm:space-y-4 text-white shrink-0">
         <button
           onClick={() => {
             setActiveTab("placeholders");
             setCollapsed(false);
           }}
-          className={`p-3 rounded-2xl transition flex flex-col items-center gap-1 text-[11px] font-bold ${
+          className={`p-2.5 sm:p-3 rounded-2xl transition flex flex-col items-center gap-1 text-[10px] sm:text-[11px] font-bold ${
             activeTab === "placeholders" && !collapsed
               ? "bg-red-600 text-white shadow-lg shadow-red-900/40"
               : "text-slate-400 hover:bg-slate-800 hover:text-white"
           }`}
           title="Dynamic Variables"
         >
-          <Sparkles size={20} />
+          <Sparkles size={18} />
           <span>Variables</span>
         </button>
 
@@ -65,14 +67,14 @@ export default function LeftSidebar() {
             setActiveTab("text");
             setCollapsed(false);
           }}
-          className={`p-3 rounded-2xl transition flex flex-col items-center gap-1 text-[11px] font-bold ${
+          className={`p-2.5 sm:p-3 rounded-2xl transition flex flex-col items-center gap-1 text-[10px] sm:text-[11px] font-bold ${
             activeTab === "text" && !collapsed
               ? "bg-red-600 text-white shadow-lg shadow-red-900/40"
               : "text-slate-400 hover:bg-slate-800 hover:text-white"
           }`}
           title="Text Elements"
         >
-          <Type size={20} />
+          <Type size={18} />
           <span>Text</span>
         </button>
 
@@ -81,14 +83,14 @@ export default function LeftSidebar() {
             setActiveTab("media");
             setCollapsed(false);
           }}
-          className={`p-3 rounded-2xl transition flex flex-col items-center gap-1 text-[11px] font-bold ${
+          className={`p-2.5 sm:p-3 rounded-2xl transition flex flex-col items-center gap-1 text-[10px] sm:text-[11px] font-bold ${
             activeTab === "media" && !collapsed
               ? "bg-red-600 text-white shadow-lg shadow-red-900/40"
               : "text-slate-400 hover:bg-slate-800 hover:text-white"
           }`}
           title="Media & Background"
         >
-          <ImageIcon size={20} />
+          <ImageIcon size={18} />
           <span>Media</span>
         </button>
 
@@ -97,18 +99,18 @@ export default function LeftSidebar() {
             setActiveTab("shapes");
             setCollapsed(false);
           }}
-          className={`p-3 rounded-2xl transition flex flex-col items-center gap-1 text-[11px] font-bold ${
+          className={`p-2.5 sm:p-3 rounded-2xl transition flex flex-col items-center gap-1 text-[10px] sm:text-[11px] font-bold ${
             activeTab === "shapes" && !collapsed
               ? "bg-red-600 text-white shadow-lg shadow-red-900/40"
               : "text-slate-400 hover:bg-slate-800 hover:text-white"
           }`}
           title="Shapes & Lines"
         >
-          <Square size={20} />
+          <Square size={18} />
           <span>Shapes</span>
         </button>
 
-        <div className="mt-auto pt-4 border-t border-slate-800">
+        <div className="mt-auto pt-4 border-t border-slate-800 hidden sm:block">
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="p-2.5 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition w-full flex justify-center"
@@ -121,17 +123,50 @@ export default function LeftSidebar() {
 
       {/* Expanded Content Drawer Panel */}
       {!collapsed && (
-        <div className="w-72 overflow-y-auto p-5 space-y-6 bg-slate-50/60 animate-in fade-in slide-in-from-left-4 duration-200">
+        <div className="flex-1 lg:w-72 overflow-y-auto p-4 sm:p-5 space-y-6 bg-slate-50/60 animate-in fade-in slide-in-from-left-4 duration-200">
           {/* Placeholders Tab */}
           {activeTab === "placeholders" && (
             <div className="space-y-4">
+              {/* Canvas Orientation Card */}
+              <div className="rounded-2xl border border-slate-200 bg-white p-3 space-y-2 shadow-xs">
+                <div className="text-[11px] font-bold text-slate-800 uppercase tracking-wider flex items-center justify-between">
+                  <span>Canvas Orientation</span>
+                  <span className="text-[10px] font-mono text-red-600 uppercase font-bold bg-red-50 border border-red-100 px-2 py-0.5 rounded-md">
+                    {orientation}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setOrientation("landscape")}
+                    className={`flex items-center justify-center gap-1.5 rounded-xl py-2 px-3 text-xs font-bold transition ${
+                      orientation === "landscape"
+                        ? "bg-red-600 text-white shadow-md"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    <Layout size={14} /> Landscape
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOrientation("portrait")}
+                    className={`flex items-center justify-center gap-1.5 rounded-xl py-2 px-3 text-xs font-bold transition ${
+                      orientation === "portrait"
+                        ? "bg-red-600 text-white shadow-md"
+                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                    }`}
+                  >
+                    <Layers size={14} /> Portrait
+                  </button>
+                </div>
+              </div>
               <div>
                 <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                   <Sparkles size={16} className="text-red-600" /> Dynamic Variables
                 </h3>
-                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                  Single click to add variables. They automatically populate with student credentials.
-                </p>
+                <div className="mt-2 rounded-xl bg-blue-50 border border-blue-200 p-2.5 text-[11px] text-blue-900 leading-relaxed font-medium">
+                  💡 <strong>Tip:</strong> Click any variable tag below to insert it into your selected text object, or type words like <em>"to"</em> directly on your keyboard!
+                </div>
               </div>
 
               {/* Custom Variable Form */}

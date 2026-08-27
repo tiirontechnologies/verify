@@ -19,11 +19,13 @@ interface FabricCertificateRendererProps {
     email?: string;
     [key: string]: any;
   };
+  hideHeader?: boolean;
 }
 
 export default function FabricCertificateRenderer({
   templateData,
   studentData,
+  hideHeader = false,
 }: FabricCertificateRendererProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [downloading, setDownloading] = useState(false);
@@ -123,33 +125,35 @@ export default function FabricCertificateRenderer({
   return (
     <div className="space-y-6">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-xl bg-red-50 flex items-center justify-center text-red-600">
-            <Award size={28} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-gray-900">Official Document Preview</h2>
-              <span className="text-[11px] font-semibold uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                {orientation}
-              </span>
+      {!hideHeader && (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-xl bg-red-50 flex items-center justify-center text-red-600">
+              <Award size={28} />
             </div>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Issued by {studentData.organization || "Tiiron Technologies"}
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-bold text-gray-900">Official Document Preview</h2>
+                <span className="text-[11px] font-semibold uppercase px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                  {orientation}
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Issued by {studentData.organization || "Tiiron Technologies"}
+              </p>
+            </div>
           </div>
-        </div>
 
-        <button
-          onClick={handleDownload}
-          disabled={downloading}
-          className="flex items-center justify-center gap-2 rounded-xl bg-red-600 px-6 py-3 font-semibold text-white shadow-lg shadow-red-200 hover:bg-red-700 disabled:opacity-60 transition"
-        >
-          {downloading ? <RefreshCw size={18} className="animate-spin" /> : <Download size={18} />}
-          {downloading ? "Generating PNG..." : "Download Certificate PNG"}
-        </button>
-      </div>
+          <button
+            onClick={handleDownload}
+            disabled={downloading}
+            className="flex items-center justify-center gap-2 rounded-xl bg-red-600 px-6 py-3 font-semibold text-white shadow-lg shadow-red-200 hover:bg-red-700 disabled:opacity-60 transition"
+          >
+            {downloading ? <RefreshCw size={18} className="animate-spin" /> : <Download size={18} />}
+            {downloading ? "Generating PNG..." : "Download Certificate PNG"}
+          </button>
+        </div>
+      )}
 
       {/* Rendered Canvas Container supporting Portrait & Landscape */}
       <div className="flex justify-center overflow-x-auto bg-slate-900/5 p-4 sm:p-8 rounded-3xl border border-slate-200 shadow-inner">

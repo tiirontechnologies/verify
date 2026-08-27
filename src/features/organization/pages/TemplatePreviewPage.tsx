@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, FileBadge2, CheckCircle2 } from "lucide-react";
+import { FileBadge2, CheckCircle2 } from "lucide-react";
 import { documentTemplateApi } from "../../../api/documentTemplateApi";
 import FabricCertificateRenderer from "../../student/components/FabricCertificateRenderer";
+import DocumentHeader from "../../../components/shared/DocumentHeader";
 
 const SAMPLE_PREVIEW_STUDENT = {
   studentName: "Rahul Sharma",
@@ -68,7 +69,7 @@ export default function TemplatePreviewPage() {
           <h2 className="mt-4 text-2xl font-bold text-gray-800">Template Not Found</h2>
           <button
             onClick={() => navigate(-1)}
-            className="mt-6 rounded-xl bg-red-600 px-6 py-2.5 font-semibold text-white hover:bg-red-700"
+            className="mt-6 rounded-xl bg-red-600 px-6 py-2.5 font-semibold text-white hover:bg-red-700 cursor-pointer"
           >
             Go Back
           </button>
@@ -78,32 +79,23 @@ export default function TemplatePreviewPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-50 flex items-center justify-between border-b bg-white px-8 py-4 shadow-sm">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-red-600 transition"
-          >
-            <ArrowLeft size={18} /> Back to Templates
-          </button>
-          <div className="h-5 w-[1px] bg-gray-300"></div>
-          <div>
-            <h2 className="text-base font-bold text-gray-900">{template.name}</h2>
-            <p className="text-xs text-gray-500 capitalize">Type: {template.documentType} • Live Sample Preview</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 border border-green-200">
-            <CheckCircle2 size={14} /> Active Template
-          </span>
-        </div>
+    <div className="min-h-screen bg-slate-100 p-6 space-y-6">
+      <div className="max-w-7xl mx-auto">
+        <DocumentHeader
+          title={template.name}
+          subtitle={`Live sample preview of document template.`}
+          docType={template.documentType}
+          backText="Back to Templates"
+          actions={
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 border border-green-200">
+              <CheckCircle2 size={14} /> Active Template
+            </span>
+          }
+        />
       </div>
 
       {/* Render Canvas Preview */}
-      <div className="p-6 max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {template.design?.data ? (
           <FabricCertificateRenderer
             templateData={{
@@ -114,6 +106,7 @@ export default function TemplatePreviewPage() {
                 "landscape",
             }}
             studentData={SAMPLE_PREVIEW_STUDENT}
+            hideHeader={true}
           />
         ) : (
           <div className="flex justify-center p-12">

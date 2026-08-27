@@ -85,7 +85,7 @@ export default function RightSidebar() {
 
   if (!activeObject) {
     return (
-      <div className="w-80 border-l border-slate-200 bg-white p-6 text-center text-slate-400 flex flex-col items-center justify-center space-y-3 z-20">
+      <div className="w-full lg:w-80 h-full border-l border-slate-200 bg-white p-6 text-center text-slate-400 flex flex-col items-center justify-center space-y-3 z-20">
         <div className="h-14 w-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-300">
           <Sliders size={28} />
         </div>
@@ -103,12 +103,31 @@ export default function RightSidebar() {
 
   const updateProp = (key: string, value: any) => {
     if (!activeObject || !canvas) return;
-    activeObject.set(key, value);
+    activeObject.set(key as any, value);
+
+    if (key === "text") {
+      if (typeof (activeObject as any).initDimensions === "function") {
+        (activeObject as any).initDimensions();
+      }
+      if ((activeObject as any).hiddenTextarea) {
+        (activeObject as any).hiddenTextarea.value = value;
+      }
+    }
+
     canvas.renderAll();
   };
 
+  const handleInsertVariableInText = (varTag: string) => {
+    if (!isText || !activeObject) return;
+    const current = text || "";
+    const spacePadding = current && !current.endsWith(" ") ? ` ${varTag} ` : `${varTag} `;
+    const updated = current + spacePadding;
+    setText(updated);
+    updateProp("text", updated);
+  };
+
   return (
-    <div className="w-80 border-l border-slate-200 bg-white p-5 overflow-y-auto space-y-6 z-20 shadow-sm">
+    <div className="w-full lg:w-80 h-full border-l border-slate-200 bg-white p-5 overflow-y-auto space-y-6 z-20 shadow-sm">
       {/* Header Bar */}
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div className="flex items-center gap-2">
@@ -136,15 +155,42 @@ export default function RightSidebar() {
             <label className="block text-xs font-bold text-slate-700 mb-1">
               Text Content
             </label>
-            <input
-              type="text"
+            <textarea
+              rows={3}
               value={text}
               onChange={(e) => {
                 setText(e.target.value);
                 updateProp("text", e.target.value);
               }}
-              className="w-full rounded-xl border border-slate-200 px-3.5 py-2 text-xs focus:border-red-500 focus:ring-2 focus:ring-red-100 outline-none font-medium"
+              placeholder="Enter text or variables e.g. {{startDate}} to {{endDate}}"
+              className="w-full rounded-xl border border-slate-200 p-3 text-xs focus:border-red-500 focus:ring-2 focus:ring-red-100 outline-none font-medium resize-y"
             />
+            
+            {/* Quick Variable Insertion Chips */}
+            <div className="mt-2 space-y-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Insert Variable at End:
+              </span>
+              <div className="flex flex-wrap gap-1">
+                {[
+                  "{{startDate}}",
+                  "{{endDate}}",
+                  "{{studentName}}",
+                  "{{course}}",
+                  "{{organization}}",
+                  "{{certificateId}}",
+                ].map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => handleInsertVariableInText(v)}
+                    className="rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 px-2 py-0.5 text-[10px] font-mono font-bold text-red-700 transition"
+                  >
+                    + {v.replace(/[{}]/g, "")}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div>
