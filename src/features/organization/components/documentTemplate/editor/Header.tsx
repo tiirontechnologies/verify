@@ -25,7 +25,13 @@ interface HeaderProps {
   onTemplateUpdate?: (template: any) => void;
 }
 
-export default function Header({ template, onBack }: HeaderProps) {
+// export default function Header({ template, onBack }: HeaderProps) {
+export default function Header({
+  template,
+  onBack,
+  onSaveSuccess,
+  onTemplateUpdate,
+}: HeaderProps) {
   const {
     canvas,
     orientation,

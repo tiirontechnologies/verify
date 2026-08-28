@@ -107,7 +107,7 @@ export default function OtpVerificationPage() {
       setResending(true);
       setError("");
 
-      await resendPasswordResetOtp({ email });
+      await resendPasswordResetOtp(email );
 
       setSuccessMsg("A new OTP has been sent to your email.");
       setTimer(60);

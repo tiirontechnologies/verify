@@ -118,64 +118,97 @@ export default function FabricCertificateRenderer({
       window.removeEventListener("resize", calculateFitZoom);
   }, [zoomMode, calculateFitZoom]);
 
+  // useEffect(() => {
+  //   if (!canvasRef.current || !templateData) return;
+
+  //   const cloned = JSON.parse(JSON.stringify(templateData));
+
+  //   if (cloned.objects) {
+  //     processFabricCanvasObjects(cloned.objects, studentData);
+  //   }
+
+  //   const canvas = new StaticCanvas(canvasRef.current, {
+  //     width: dimensions.width,
+  //     height: dimensions.height,
+  //     backgroundColor: "#fff",
+  //   });
+
+  //   const render = async () => {
+  //     try {
+  //       await canvas.loadFromJSON(cloned);
+
+  //       if (canvas.backgroundImage) {
+  //         const bg: any = canvas.backgroundImage;
+  //         const el =
+  //           bg._element ||
+  //           (bg.getElement && bg.getElement()) ||
+  //           bg;
+
+  //         const naturalW =
+  //           bg.width || el?.naturalWidth || el?.width;
+
+  //         const naturalH =
+  //           bg.height || el?.naturalHeight || el?.height;
+
+  //         if (naturalW && naturalH) {
+  //           bg.set({
+  //             scaleX: dimensions.width / naturalW,
+  //             scaleY: dimensions.height / naturalH,
+  //             originX: "left",
+  //             originY: "top",
+  //             left: 0,
+  //             top: 0,
+  //           });
+  //         }
+
+  //         if (el && !el.complete) {
+  //           el.onload = () => canvas.renderAll();
+  //         }
+  //       }
+
+  //       canvas.renderAll();
+  //     } catch (e) {
+  //       console.error(e);
+  //     }
+  //   };
+
+  //   render();
+
+  //   return () => canvas.dispose();
+  // }, [templateData, studentData, dimensions]);
+
+
   useEffect(() => {
-    if (!canvasRef.current || !templateData) return;
+  if (!canvasRef.current || !templateData) return;
 
-    const cloned = JSON.parse(JSON.stringify(templateData));
+  const cloned = JSON.parse(JSON.stringify(templateData));
 
-    if (cloned.objects) {
-      processFabricCanvasObjects(cloned.objects, studentData);
+  if (cloned.objects) {
+    processFabricCanvasObjects(cloned.objects, studentData);
+  }
+
+  const canvas = new StaticCanvas(canvasRef.current, {
+    width: dimensions.width,
+    height: dimensions.height,
+    backgroundColor: "#fff",
+  });
+
+  const render = async () => {
+    try {
+      await canvas.loadFromJSON(cloned);
+      canvas.renderAll();
+    } catch (e) {
+      console.error(e);
     }
+  };
 
-    const canvas = new StaticCanvas(canvasRef.current, {
-      width: dimensions.width,
-      height: dimensions.height,
-      backgroundColor: "#fff",
-    });
+  render();
 
-    const render = async () => {
-      try {
-        await canvas.loadFromJSON(cloned);
+  return () => {
+    void canvas.dispose(); 
+  };
+}, [templateData, studentData, dimensions]);
 
-        if (canvas.backgroundImage) {
-          const bg: any = canvas.backgroundImage;
-          const el =
-            bg._element ||
-            (bg.getElement && bg.getElement()) ||
-            bg;
-
-          const naturalW =
-            bg.width || el?.naturalWidth || el?.width;
-
-          const naturalH =
-            bg.height || el?.naturalHeight || el?.height;
-
-          if (naturalW && naturalH) {
-            bg.set({
-              scaleX: dimensions.width / naturalW,
-              scaleY: dimensions.height / naturalH,
-              originX: "left",
-              originY: "top",
-              left: 0,
-              top: 0,
-            });
-          }
-
-          if (el && !el.complete) {
-            el.onload = () => canvas.renderAll();
-          }
-        }
-
-        canvas.renderAll();
-      } catch (e) {
-        console.error(e);
-      }
-    };
-
-    render();
-
-    return () => canvas.dispose();
-  }, [templateData, studentData, dimensions]);
 
   const handleDownload = () => {
     if (!canvasRef.current) return;

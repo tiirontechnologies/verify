@@ -136,28 +136,29 @@ export default function LeftSidebar() {
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setOrientation("landscape")}
-                    className={`flex items-center justify-center gap-1.5 rounded-xl py-2 px-3 text-xs font-bold transition ${
-                      orientation === "landscape"
-                        ? "bg-red-600 text-white shadow-md"
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                    }`}
-                  >
-                    <Layout size={14} /> Landscape
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setOrientation("portrait")}
-                    className={`flex items-center justify-center gap-1.5 rounded-xl py-2 px-3 text-xs font-bold transition ${
-                      orientation === "portrait"
-                        ? "bg-red-600 text-white shadow-md"
-                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                    }`}
-                  >
-                    <Layers size={14} /> Portrait
-                  </button>
+          <button
+  type="button"
+  onClick={() => setOrientation(0)} // landscape
+  className={`flex items-center justify-center gap-1.5 rounded-xl py-2 px-3 text-xs font-bold transition ${
+    orientation === 0
+      ? "bg-red-600 text-white shadow-md"
+      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+  }`}
+>
+  Landscape
+</button>
+
+<button
+  type="button"
+  onClick={() => setOrientation(1)} // portrait
+  className={`flex items-center justify-center gap-1.5 rounded-xl py-2 px-3 text-xs font-bold transition ${
+    orientation === 1
+      ? "bg-red-600 text-white shadow-md"
+      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+  }`}
+>
+  Portrait
+</button>
                 </div>
               </div>
               <div>

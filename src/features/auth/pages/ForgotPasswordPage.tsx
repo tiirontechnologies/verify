@@ -31,7 +31,7 @@ export default function ForgotPasswordPage() {
       setLoading(true);
       setError("");
 
-      await requestPasswordReset({ email });
+      await requestPasswordReset(email);
 
       navigate("/verify-otp", {
         state: { email },
