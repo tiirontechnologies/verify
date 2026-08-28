@@ -11,8 +11,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
-  Layout,
-  Layers,
+  // Layout,
+  // Layers,
 } from "lucide-react";
 
 const DYNAMIC_PLACEHOLDERS = [
@@ -136,11 +136,11 @@ export default function LeftSidebar() {
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-          <button
+<button
   type="button"
-  onClick={() => setOrientation(0)} // landscape
+  onClick={() => setOrientation("landscape")}
   className={`flex items-center justify-center gap-1.5 rounded-xl py-2 px-3 text-xs font-bold transition ${
-    orientation === 0
+    orientation === "landscape"
       ? "bg-red-600 text-white shadow-md"
       : "bg-slate-100 text-slate-700 hover:bg-slate-200"
   }`}
@@ -150,9 +150,9 @@ export default function LeftSidebar() {
 
 <button
   type="button"
-  onClick={() => setOrientation(1)} // portrait
+  onClick={() => setOrientation("portrait")}
   className={`flex items-center justify-center gap-1.5 rounded-xl py-2 px-3 text-xs font-bold transition ${
-    orientation === 1
+    orientation === "portrait"
       ? "bg-red-600 text-white shadow-md"
       : "bg-slate-100 text-slate-700 hover:bg-slate-200"
   }`}

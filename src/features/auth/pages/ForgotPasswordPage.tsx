@@ -52,8 +52,8 @@ export default function ForgotPasswordPage() {
 
       <main className="flex-1 flex items-center justify-center py-6 sm:py-10">
         <AuthLayout
-          title="Reset Your Password"
-          subtitle="Follow the simple steps to securely recover access to your Tiiron account."
+          // title="Reset Your Password"
+          // subtitle="Follow the simple steps to securely recover access to your Tiiron account."
         >
           <div className="w-full">
             <Link
