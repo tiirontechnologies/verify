@@ -7,10 +7,10 @@ import {
   Image as ImageIcon,
   Square,
   Sparkles,
-  Wallpaper,
+  // Wallpaper,
   ChevronLeft,
   ChevronRight,
-  Plus,
+  // Plus,
 } from "lucide-react";
 
 const DYNAMIC_PLACEHOLDERS = [
