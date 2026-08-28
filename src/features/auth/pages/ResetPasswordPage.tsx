@@ -1,74 +1,79 @@
-import AuthLayout from "../../../layouts/AuthLayout";
-<<<<<<< Updated upstream
-import { useNavigate } from "react-router-dom";
-=======
+import { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import {
+  Lock,
+  Eye,
+  EyeOff,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  ShieldCheck,
+} from "lucide-react";
+
 import Navbar from "../../landing/components/Navbar";
 import Footer from "../../../components/shared/Footer";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Lock, Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, ShieldCheck } from "lucide-react";
+import AuthLayout from "../../../layouts/AuthLayout";
 import { resetPassword } from "../../../api/auth.api";
->>>>>>> Stashed changes
 
 export default function ResetPasswordPage() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const email = location.state?.email || "your account";
+  const token = location.state?.token || "";
+
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const hasMinLength = newPassword.length >= 8;
+  const hasLetter = /[A-Za-z]/.test(newPassword);
+  const hasNumber = /\d/.test(newPassword);
+  const isMatch =
+    newPassword === confirmPassword && confirmPassword.length > 0;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!isMatch) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError("");
+
+      // await resetPassword(
+      //   token,
+      //   password: newPassword,
+      // );
+
+      await resetPassword(email, token, newPassword);
+
+      navigate("/password-reset-success");
+    } catch (err: any) {
+      setError(
+        err?.response?.data?.message || "Failed to reset password."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-<<<<<<< Updated upstream
-    <AuthLayout>
-
-      <div className="bg-white shadow-xl rounded-3xl p-8 md:p-10 w-full max-w-md">
-
-        <h1 className="text-4xl font-bold">
-          Reset Password
-        </h1>
-
-        <p className="text-gray-500 mt-3">
-          Create a new password for your account.
-        </p>
-
-        <div className="mt-8">
-
-          <label className="text-sm text-gray-500">
-            New Password
-          </label>
-
-          <input
-            type="password"
-            className="w-full border rounded-2xl px-5 py-4 mt-2"
-          />
-
-        </div>
-
-        <div className="mt-6">
-
-          <label className="text-sm text-gray-500">
-            Confirm Password
-          </label>
-
-          <input
-            type="password"
-            className="w-full border rounded-2xl px-5 py-4 mt-2"
-          />
-
-        </div>
-
-       <button
-  onClick={() => navigate("/password-reset-success")}
-  className="w-full bg-red-600 text-white py-4 rounded-2xl mt-8 hover:bg-red-700"
->
-  Reset Password
-</button>
-
-      </div>
-
-    </AuthLayout>
-=======
     <div className="min-h-screen flex flex-col bg-slate-50">
       <Navbar />
 
       <main className="flex-1 flex items-center justify-center py-6 sm:py-10">
         <AuthLayout
-          title="Create New Password"
-          subtitle="Choose a strong password to secure your Tiiron account."
+          // title="Create New Password"
+          // subtitle="Choose a strong password to secure your Tiiron account."
         >
           <div className="w-full">
             <div className="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mb-4">
@@ -80,7 +85,8 @@ export default function ResetPasswordPage() {
             </h1>
 
             <p className="text-slate-500 mt-2 text-sm sm:text-base leading-relaxed">
-              Create a new, strong password for <span className="font-semibold text-slate-800">{email}</span>.
+              Create a new, strong password for{" "}
+              <span className="font-semibold text-slate-800">{email}</span>.
             </p>
 
             {error && (
@@ -95,10 +101,12 @@ export default function ResetPasswordPage() {
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
                   New Password
                 </label>
+
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
                     <Lock className="w-5 h-5" />
                   </div>
+
                   <input
                     type={showNewPassword ? "text" : "password"}
                     value={newPassword}
@@ -107,27 +115,36 @@ export default function ResetPasswordPage() {
                       if (error) setError("");
                     }}
                     placeholder="Enter new password"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-12 py-3.5 text-sm sm:text-base text-slate-900 outline-none transition focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-100"
                     disabled={loading}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-12 py-3.5 outline-none focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-100"
                   />
+
                   <button
                     type="button"
-                    onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                    onClick={() =>
+                      setShowNewPassword(!showNewPassword)
+                    }
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400"
                   >
-                    {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showNewPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
-                  Confirm New Password
+                  Confirm Password
                 </label>
+
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
                     <Lock className="w-5 h-5" />
                   </div>
+
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
@@ -135,46 +152,77 @@ export default function ResetPasswordPage() {
                       setConfirmPassword(e.target.value);
                       if (error) setError("");
                     }}
-                    placeholder="Re-enter new password"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-12 py-3.5 text-sm sm:text-base text-slate-900 outline-none transition focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-100"
+                    placeholder="Confirm password"
                     disabled={loading}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-12 py-3.5 outline-none focus:bg-white focus:border-red-500 focus:ring-2 focus:ring-red-100"
                   />
+
                   <button
                     type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                    onClick={() =>
+                      setShowConfirmPassword(!showConfirmPassword)
+                    }
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400"
                   >
-                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </div>
 
-              {/* Requirements list */}
-              <div className="p-4 bg-slate-50 rounded-2xl space-y-2 text-xs text-slate-600 border border-slate-100">
-                <div className="font-semibold text-slate-700 mb-1">Password Requirements:</div>
-                <div className={`flex items-center gap-2 ${hasMinLength ? "text-green-600 font-medium" : "text-slate-500"}`}>
-                  <CheckCircle2 className={`w-4 h-4 ${hasMinLength ? "text-green-600" : "text-slate-300"}`} />
+              <div className="p-4 bg-slate-50 rounded-2xl space-y-2 text-xs border">
+                <div className="font-semibold text-slate-700">
+                  Password Requirements
+                </div>
+
+                <div
+                  className={`flex items-center gap-2 ${
+                    hasMinLength ? "text-green-600" : "text-slate-500"
+                  }`}
+                >
+                  <CheckCircle2 className="w-4 h-4" />
                   At least 8 characters
                 </div>
-                <div className={`flex items-center gap-2 ${hasLetter && hasNumber ? "text-green-600 font-medium" : "text-slate-500"}`}>
-                  <CheckCircle2 className={`w-4 h-4 ${hasLetter && hasNumber ? "text-green-600" : "text-slate-300"}`} />
+
+                <div
+                  className={`flex items-center gap-2 ${
+                    hasLetter && hasNumber
+                      ? "text-green-600"
+                      : "text-slate-500"
+                  }`}
+                >
+                  <CheckCircle2 className="w-4 h-4" />
                   Contains letters and numbers
                 </div>
-                <div className={`flex items-center gap-2 ${isMatch ? "text-green-600 font-medium" : "text-slate-500"}`}>
-                  <CheckCircle2 className={`w-4 h-4 ${isMatch ? "text-green-600" : "text-slate-300"}`} />
+
+                <div
+                  className={`flex items-center gap-2 ${
+                    isMatch ? "text-green-600" : "text-slate-500"
+                  }`}
+                >
+                  <CheckCircle2 className="w-4 h-4" />
                   Passwords match
                 </div>
               </div>
 
               <button
                 type="submit"
-                disabled={loading || !hasMinLength || !hasLetter || !hasNumber || !isMatch}
-                className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3.5 sm:py-4 rounded-2xl mt-6 transition flex items-center justify-center gap-2 shadow-lg shadow-red-500/20 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer text-sm sm:text-base"
+                disabled={
+                  loading ||
+                  !hasMinLength ||
+                  !hasLetter ||
+                  !hasNumber ||
+                  !isMatch
+                }
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3.5 rounded-2xl transition flex items-center justify-center gap-2 disabled:opacity-60"
               >
                 {loading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Resetting Password...
+                    Resetting...
                   </>
                 ) : (
                   "Reset Password"
@@ -187,6 +235,5 @@ export default function ResetPasswordPage() {
 
       <Footer />
     </div>
->>>>>>> Stashed changes
   );
 }
