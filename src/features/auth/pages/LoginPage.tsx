@@ -9,7 +9,10 @@ export default function LoginPage() {
       <Navbar />
 
       <main className="flex-1 flex items-center justify-center py-6">
-        <AuthLayout>
+        <AuthLayout
+         title="Welcome Back!"
+  subtitle="Secure access to your dashboard to manage and verify credentials."
+        >
           <LoginForm />
         </AuthLayout>
       </main>

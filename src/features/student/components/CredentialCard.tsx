@@ -31,8 +31,7 @@ export default function CredentialCard({
         <BadgeCheck
           size={28}
           className="text-green-500"
-        />
-
+           />
       </div>
 
       <div className="mt-8 flex gap-3">
@@ -47,8 +46,8 @@ export default function CredentialCard({
   View
 
 </button>
-
-        {/* <button className="flex items-center gap-2 px-4 py-2 rounded-xl border hover:bg-gray-100 transition">
+{/* 
+        <button className="flex items-center gap-2 px-4 py-2 rounded-xl border hover:bg-gray-100 transition">
 
           <Download size={18} />
 

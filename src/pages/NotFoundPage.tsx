@@ -68,19 +68,19 @@ export default function NotFoundPage() {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-w-xl mx-auto">
               <Link
-                to="/login"
+                to="https://tiirontechnologies.com/products"
                 className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 hover:bg-red-50 hover:text-red-600 text-slate-700 text-xs font-semibold transition border border-slate-100"
               >
                 <ShieldCheck size={16} className="text-red-500" />
-                <span>Account Login</span>
+                <span>Our Products </span>
               </Link>
 
               <Link
-                to="/student/my-certificate"
+                to="https://tiirontechnologies.com/services"
                 className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 hover:bg-red-50 hover:text-red-600 text-slate-700 text-xs font-semibold transition border border-slate-100"
               >
                 <FileText size={16} className="text-blue-500" />
-                <span>My Credentials</span>
+                <span>Services Offered</span>
               </Link>
 
               <a

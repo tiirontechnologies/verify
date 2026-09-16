@@ -73,36 +73,12 @@ export default function OfferLetterDocument({
   const endDateFormatted = formatDate(documentData.endDate);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 ">
       {/* Top Bar / Actions */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm print:hidden">
-        <button
-          onClick={onBack}
-          className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 hover:text-red-600 transition"
-        >
-          <ArrowLeft size={18} /> Back to Dashboard
-        </button>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handlePrint}
-            className="inline-flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition"
-          >
-            <Printer size={16} /> Print / Save PDF
-          </button>
-          <button
-            onClick={handleDownloadImage}
-            disabled={downloading}
-            className="inline-flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-md shadow-red-200 transition disabled:opacity-50"
-          >
-            <Download size={16} />
-            {downloading ? "Exporting..." : "Download Image"}
-          </button>
-        </div>
-      </div>
+   
 
       {/* Offer Letter Document Container */}
-      <div className="flex justify-center overflow-x-auto pb-8">
+      <div className="flex justify-center overflow-x-auto pb-8 ">
         <div
           ref={letterRef}
           id="offer-letter-document"

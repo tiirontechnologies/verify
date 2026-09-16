@@ -30,6 +30,7 @@ import OrganizationProfilePage from "./features/organization/pages/OrganizationP
 import AdvertisementsPage from "./features/organization/pages/AdvertisementsPage";
 import OrganizationSignupPage from "./features/auth/pages/OrganizationSignupPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import ComingSoon from "./pages/ComingSoon";
 
 // function AuthBootstrap() {
 //   const redirectToDashboard = useMeRedirect();
@@ -260,6 +261,19 @@ element={
   <ProtectedRoute>
       <AdvertisementsPage />
     </ProtectedRoute>
+}
+/>
+<Route
+path="/organization/self-hosted"
+element={
+  <ProtectedRoute>
+    
+    <ComingSoon
+  featureName="Self Hosted Platforms"
+  description="You'll be able to deploy and manage self-hosted verification instances from here."
+/>
+
+        </ProtectedRoute>
 }
 />
 
