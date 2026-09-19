@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { ArrowLeft, Download, Printer, CheckCircle, ShieldCheck } from "lucide-react";
+import { CheckCircle, ShieldCheck } from "lucide-react";
 import html2canvas from "html2canvas";
 import TiironLogo from "../../../assets/Tiiron_Technologies_Logo.png";
 

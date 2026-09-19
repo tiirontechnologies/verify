@@ -72,8 +72,8 @@ export default function ResetPasswordPage() {
 
       <main className="flex-1 flex items-center justify-center py-6 sm:py-10">
         <AuthLayout
-          // title="Create New Password"
-          // subtitle="Choose a strong password to secure your Tiiron account."
+          title="Create New Password"
+          subtitle="Choose a strong password to secure your Tiiron account."
         >
           <div className="w-full">
             <div className="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mb-4">
