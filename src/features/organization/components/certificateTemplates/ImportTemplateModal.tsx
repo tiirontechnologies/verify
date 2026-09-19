@@ -10,7 +10,7 @@ interface Props {
 
 const initialForm = {
   name: "",
-  documentType: "internship",
+  documentType: " ",
   orientation: "landscape",
   status: "active",
 };

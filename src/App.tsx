@@ -31,6 +31,7 @@ import AdvertisementsPage from "./features/organization/pages/AdvertisementsPage
 import OrganizationSignupPage from "./features/auth/pages/OrganizationSignupPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ComingSoon from "./pages/ComingSoon";
+import SubscriptionPage from "./pages/Subscription";
 
 // function AuthBootstrap() {
 //   const redirectToDashboard = useMeRedirect();
@@ -282,6 +283,15 @@ path="/signup"
 element={
   
       <OrganizationSignupPage />
+  
+}
+/>
+
+<Route
+path="/Subscription"
+element={
+  <SubscriptionPage/>
+      
   
 }
 />
