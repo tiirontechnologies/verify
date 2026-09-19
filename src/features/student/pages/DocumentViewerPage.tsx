@@ -263,7 +263,7 @@ export default function DocumentViewerPage({
           ) : (
             <OfferLetterDocument
               documentData={documentData}
-              onBack={() => navigate(-1)}
+              // onBack={() => navigate(-1)}
             />
           )}
         </div>
