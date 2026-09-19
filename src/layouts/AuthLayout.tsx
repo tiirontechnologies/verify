@@ -1,3 +1,5 @@
+
+
 import type { ReactNode } from "react";
 
 import HeroIllustration from "../features/auth/components/HeroIllustration";
@@ -11,10 +13,16 @@ import {
 } from "lucide-react";
 
 type AuthLayoutProps = {
+  title: string;
+  subtitle?: string;
   children: ReactNode;
 };
 
-export default function AuthLayout({ children }: AuthLayoutProps) {
+export default function AuthLayout({
+  title,
+  subtitle,
+  children,
+}: AuthLayoutProps) {
   return (
     <div className="w-full flex items-center justify-center p-3 sm:p-4 lg:p-5">
       <div
@@ -47,12 +55,12 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
             {/* Heading */}
             <div className="text-center">
               <h1 className="text-2xl sm:text-3xl font-bold leading-tight text-[#0F172A]">
-                Welcome Back!
+                {title}
               </h1>
 
               <p className="mt-2 text-sm sm:text-base leading-6 text-slate-500 max-w-sm mx-auto">
-                Secure access to your dashboard to manage and verify
-                credentials.
+                {subtitle ||
+                  "Secure access to your dashboard to manage and verify credentials."}
               </p>
             </div>
 
@@ -67,7 +75,6 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
             <div className="grid grid-cols-3 mt-5">
               <div className="text-center">
                 <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-red-50 flex items-center justify-center mx-auto">
-                  {/* <span className="text-base">🛡️</span> */}
                   <ShieldCheck
                     size={18}
                     className="text-red-600"
@@ -84,7 +91,6 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
 
               <div className="text-center border-x border-slate-200">
                 <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 flex items-center justify-center mx-auto">
-                  {/* <span className="text-base">🔒</span> */}
                   <Lock size={18} className="text-blue-600" strokeWidth={2} />
                 </div>
                 <h3 className="mt-2 text-sm font-semibold text-slate-900">
@@ -95,7 +101,6 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
 
               <div className="text-center">
                 <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-purple-50 flex items-center justify-center mx-auto">
-                  {/* <span className="text-base">🌐</span> */}
                   <Globe2
                     size={18}
                     className="text-purple-600"
@@ -125,7 +130,6 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-2">
                   <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-600 text-base">
-                    {/* 📄 */}
                     <FileText size={18} strokeWidth={2} />
                   </div>
                   <div>
@@ -136,7 +140,6 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
 
                 <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-2">
                   <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 text-base">
-                    {/* 🏛️ */}
                     <Landmark size={18} strokeWidth={2} />
                   </div>
                   <div>
@@ -147,7 +150,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
 
                 <div className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-2">
                   <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 text-base">
-                      <Target size={18} strokeWidth={2} />
+                    <Target size={18} strokeWidth={2} />
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-purple-600">

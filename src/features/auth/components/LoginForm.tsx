@@ -93,7 +93,7 @@ export default function LoginForm() {
               : "bg-white text-slate-700"
           }`}
         >
-          Student
+          User
         </button>
 
         <button

@@ -53,6 +53,11 @@ admin: [
       icon: LayoutDashboard,
     },
     {
+      label: "Certificate Templates",
+      path: "/organization/templates",
+      icon: FileBadge,
+    },
+    {
       label: "Student Data Upload",
       path: "/organization/student-upload",
       icon: UploadCloud,
@@ -61,11 +66,6 @@ admin: [
       label: "Update Student Data",
       path: "/organization/update-student",
       icon: Users,
-    },
-    {
-      label: "Certificate Templates",
-      path: "/organization/templates",
-      icon: FileBadge,
     },
     {
       label: "Profile Management",
