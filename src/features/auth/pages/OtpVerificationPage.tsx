@@ -120,8 +120,8 @@ await verifyPasswordResetOtp(email, code);
 
       <main className="flex-1 flex items-center justify-center py-6 sm:py-10">
         <AuthLayout
-          // title="Verify Identity"
-          // subtitle="Enter the 6-digit verification code sent to your registered email address."
+          title="Verify Identity"
+          subtitle="Enter the 6-digit verification code sent to your registered email address."
         >
           <div className="w-full">
             <Link

@@ -14,8 +14,8 @@ export default function PasswordResetSuccessPage() {
 
       <main className="flex-1 flex items-center justify-center py-6 sm:py-10">
         <AuthLayout
-          // title="All Done!"
-          // subtitle="Your password has been reset. You can now log into your account."
+          title="All Done!"
+          subtitle="Your password has been reset. You can now log into your account."
         >
           <div className="w-full text-center">
             <div className="w-20 h-20 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">

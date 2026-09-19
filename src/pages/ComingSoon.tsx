@@ -1,5 +1,7 @@
-import { useState, FormEvent, ReactNode } from "react";
+import { useState } from "react";
+import type { FormEvent, ReactNode } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
+
 
 interface ComingSoonProps {
   featureName?: string;

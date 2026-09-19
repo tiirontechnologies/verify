@@ -1,6 +1,5 @@
-import { useRef, useState } from "react";
-import { ArrowLeft, Download, Printer, CheckCircle, ShieldCheck } from "lucide-react";
-import html2canvas from "html2canvas";
+import { useRef } from "react";
+import { CheckCircle, ShieldCheck } from "lucide-react";
 import TiironLogo from "../../../assets/Tiiron_Technologies_Logo.png";
 
 interface OfferLetterDocumentProps {
@@ -17,15 +16,12 @@ interface OfferLetterDocumentProps {
     director?: string;
     email?: string;
   };
-  onBack?: () => void;
 }
 
 export default function OfferLetterDocument({
   documentData,
-  onBack,
 }: OfferLetterDocumentProps) {
   const letterRef = useRef<HTMLDivElement>(null);
-  const [downloading, setDownloading] = useState(false);
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return "N/A";
@@ -37,34 +33,6 @@ export default function OfferLetterDocument({
           month: "long",
           year: "numeric",
         });
-  };
-
-  const handleDownloadImage = async () => {
-    if (!letterRef.current) return;
-    try {
-      setDownloading(true);
-      const canvas = await html2canvas(letterRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-      });
-      const dataUrl = canvas.toDataURL("image/png");
-      const link = document.createElement("a");
-      const cleanName = (documentData.studentName || "Student")
-        .trim()
-        .replace(/\s+/g, "_");
-      link.download = `${cleanName}-Offer-Letter.png`;
-      link.href = dataUrl;
-      link.click();
-    } catch (err) {
-      console.error("Failed to download offer letter:", err);
-    } finally {
-      setDownloading(false);
-    }
-  };
-
-  const handlePrint = () => {
-    window.print();
   };
 
   const orgName = documentData.organization || "Tiiron Technologies Pvt. Ltd.";
