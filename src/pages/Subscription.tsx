@@ -140,18 +140,20 @@ const SubscriptionPage: React.FC = () => {
     try {
       const { data } = await paymentApi.createOrder({ plan: plan.planCode });
 
-      if (!data?.success || !data?.order) {
+      // Backend actual response shape:
+      // { success, message, data: { key, razorpayOrderId, amount, currency, plan, paymentId } }
+      if (!data?.success || !data?.data) {
         setErrorMsg(data?.message || "Failed to create order. Please try again.");
         setLoadingPlanId(null);
         return;
       }
 
-      const { order, key } = data;
+      const { key, razorpayOrderId, amount, currency } = data.data;
 
       // Free trial / zero-amount order — no Razorpay popup needed if backend already marks it paid.
-      if (!order.amount || order.amount === 0) {
+      if (!amount || amount === 0) {
         try {
-          const statusRes = await paymentApi.getPaymentStatus(order.id);
+          const statusRes = await paymentApi.getPaymentStatus(razorpayOrderId);
           if (statusRes.data?.status === "paid") {
             setSuccessMsg(`${plan.name} activated successfully!`);
           } else {
@@ -164,6 +166,13 @@ const SubscriptionPage: React.FC = () => {
         return;
       }
 
+      const finalKey = key || import.meta.env.VITE_RAZORPAY_KEY_ID;
+      if (!finalKey) {
+        setErrorMsg("Payment configuration error: Razorpay key missing.");
+        setLoadingPlanId(null);
+        return;
+      }
+
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) {
         setErrorMsg("Unable to load payment gateway. Please check your connection.");
@@ -172,12 +181,12 @@ const SubscriptionPage: React.FC = () => {
       }
 
       const options = {
-        key: key || import.meta.env.VITE_RAZORPAY_KEY_ID,
-        amount: order.amount,
-        currency: order.currency || "INR",
+        key: finalKey,
+        amount,
+        currency: currency || "INR",
         name: "Tiiron Verify",
         description: `${plan.name} Subscription`,
-        order_id: order.id,
+        order_id: razorpayOrderId,
         handler: async (response: any) => {
           try {
             const verifyRes = await paymentApi.verifyPayment({
