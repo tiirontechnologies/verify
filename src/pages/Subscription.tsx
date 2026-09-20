@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { paymentApi } from "../api/payment"; 
-import tiironLogo from "../assets/Tiiron_Technologies_Logo.png";
+// import tiironLogo from "../assets/Tiiron_Technologies_Logo.png";
 
 interface PlanFeature {
   label: string;
