@@ -6,13 +6,15 @@ export interface CreateOrderPayload {
 
 export interface CreateOrderResponse {
   success: boolean;
-  order: {
-    id: string;
+  message?: string;
+  data: {
+    key: string;             // razorpay key id
+    razorpayOrderId: string;
     amount: number;
     currency: string;
+    plan: string;
+    paymentId: string;
   };
-  key?: string; // razorpay key id, if backend sends it
-  message?: string;
 }
 
 export interface VerifyPaymentPayload {
