@@ -11,6 +11,14 @@ import { useNavigate } from "react-router-dom";
 
 const actions = [
   {
+    title: "Certificate Templates",
+    description:
+      "Create and manage internship and training certificate templates.",
+    icon: FileBadge2,
+    route: "/organization/templates",
+    color: "bg-red-50 text-red-600",
+  },
+  {
     title: "Upload Student Data",
     description:
       "Import students using Excel or CSV and validate records before upload.",
@@ -27,14 +35,6 @@ const actions = [
     color: "bg-green-50 text-green-600",
   },
   {
-    title: "Certificate Templates",
-    description:
-      "Create and manage internship and training certificate templates.",
-    icon: FileBadge2,
-    route: "/organization/templates",
-    color: "bg-red-50 text-red-600",
-  },
-  {
     title: "Profile Management",
     description:
       "Manage organization profile, members and account settings.",
@@ -47,7 +47,7 @@ const actions = [
     description:
       "Manage banners, campaigns and promotional content.",
     icon: Megaphone,
-    route: "/organization/advertisements",
+    route: "/organization/ads",
     color: "bg-yellow-50 text-yellow-600",
   },
   {
