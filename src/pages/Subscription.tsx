@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { paymentApi } from "../api/payment"; // path apne project ke hisaab se adjust kar lena
+import { paymentApi } from "../api/payment"; 
+import tiironLogo from "../assets/Tiiron_Technologies_Logo.png";
 
 interface PlanFeature {
   label: string;
@@ -8,7 +9,7 @@ interface PlanFeature {
 
 interface Plan {
   id: string;
-  planCode: string; // backend ko jo bhejna hai: "TRIAL" | "STARTER" | "PRO"
+  planCode: string; 
   name: string;
   tagline: string;
   price: string;
@@ -62,7 +63,7 @@ const plans: Plan[] = [
   },
   {
     id: "pro",
-    planCode: "PRO",
+    planCode: "PROFESSIONAL",
     name: "Professional",
     tagline: "A complete verification solution for growing organizations",
     price: "₹2,499",
@@ -184,7 +185,9 @@ const SubscriptionPage: React.FC = () => {
         key: finalKey,
         amount,
         currency: currency || "INR",
-        name: "Tiiron Verify",
+        name: "Tiiron Verification Portal",
+        // image: tiironLogo,
+        image:"https://verify.tiirontechnologies.com/assets/Tiiron_Technologies_Logo-CIXHLnbO.png",
         description: `${plan.name} Subscription`,
         order_id: razorpayOrderId,
         handler: async (response: any) => {
@@ -254,7 +257,7 @@ const SubscriptionPage: React.FC = () => {
         </div>
 
         {(errorMsg || successMsg) && (
-          <div className="mx-auto mt-8 max-w-xl">
+          <div className="mx-auto mt-8 max-w-xl animate-in fade-in slide-in-from-top-2 duration-300">
             {errorMsg && (
               <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
                 {errorMsg}
@@ -276,14 +279,14 @@ const SubscriptionPage: React.FC = () => {
             return (
               <div
                 key={plan.id}
-                className={`relative flex flex-col rounded-2xl border p-7 ${
+                className={`group relative flex flex-col rounded-2xl border p-7 transition-all duration-300 ease-out hover:-translate-y-1.5 ${
                   plan.highlighted
-                    ? "border-rose-300 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_24px_60px_-20px_rgba(225,29,42,0.35)] ring-1 ring-rose-100"
-                    : "border-neutral-200 bg-white/70 shadow-sm"
+                    ? "border-rose-300 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04),0_24px_60px_-20px_rgba(225,29,42,0.35)] ring-1 ring-rose-100 hover:shadow-[0_1px_2px_rgba(0,0,0,0.04),0_32px_70px_-16px_rgba(225,29,42,0.45)] hover:ring-rose-200"
+                    : "border-neutral-200 bg-white/70 shadow-sm hover:border-rose-200 hover:shadow-lg hover:shadow-rose-100/60"
                 }`}
               >
                 {plan.badge && (
-                  <span className="absolute -top-3 left-7 rounded-full bg-rose-600 px-3 py-1 text-xs font-medium text-white shadow-md shadow-rose-300/60">
+                  <span className="absolute -top-3 left-7 rounded-full bg-rose-600 px-3 py-1 text-xs font-medium text-white shadow-md shadow-rose-300/60 transition-transform duration-300 group-hover:scale-105">
                     {plan.badge}
                   </span>
                 )}
@@ -311,20 +314,30 @@ const SubscriptionPage: React.FC = () => {
                   type="button"
                   disabled={isLoading}
                   onClick={() => handleGetStarted(plan)}
-                  className={`mt-6 w-full rounded-xl px-4 py-2.5 text-sm font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                  className={`mt-6 w-full rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 ease-out active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100 ${
                     plan.highlighted
-                      ? "bg-rose-600 text-white hover:bg-rose-700 shadow-sm shadow-rose-200"
-                      : "bg-neutral-50 text-neutral-800 hover:bg-neutral-100 border border-neutral-200"
+                      ? "bg-rose-600 text-white shadow-sm shadow-rose-200 hover:bg-rose-700 hover:shadow-md hover:shadow-rose-300/60 hover:scale-[1.02]"
+                      : "bg-neutral-50 text-neutral-800 border border-neutral-200 hover:bg-rose-600 hover:text-white hover:border-rose-600 hover:scale-[1.02] hover:shadow-md hover:shadow-rose-200/60"
                   }`}
                 >
-                  {isLoading ? "Processing..." : "Get started"}
+                  {isLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                      </svg>
+                      Processing...
+                    </span>
+                  ) : (
+                    "Get started"
+                  )}
                 </button>
 
                 <ul className="mt-7 space-y-3">
                   {plan.features.map((feature) => (
                     <li
                       key={feature.label}
-                      className="flex items-center gap-3 text-sm"
+                      className="flex items-center gap-3 text-sm transition-transform duration-200 hover:translate-x-0.5"
                     >
                       <CheckIcon active={feature.included} />
                       <span
