@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import DashboardLayout from "../../../layouts/DashboardLayout";
 import UpdateStudentHero from "../components/updateStudent/UpdateStudentHero";
 import StudentSearchFilters from "../components/updateStudent/StudentSearchFilters";
@@ -8,6 +8,12 @@ import EditStudentModal from "../components/updateStudent/EditStudentModal";
 import ViewStudentModal from "../components/updateStudent/ViewStudentModal";
 import { organizationApi } from "../../../api/organization.api";
 import { Trash2, AlertTriangle, Loader2 } from "lucide-react";
+
+// Sirf comparison ke liye: "Offer Letter" / "offer_letter" -> "offer-letter"
+const normalizeType = (t?: string) =>
+  (t || "").toLowerCase().trim().replace(/[\s_]+/g, "-");
+
+const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 export default function UpdateStudentPage() {
   const [rawCertificates, setRawCertificates] = useState<any[]>([]);
@@ -27,6 +33,7 @@ export default function UpdateStudentPage() {
   const [deleting, setDeleting] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
+  // Students / certificates fetch
   useEffect(() => {
     const fetchStudents = async () => {
       try {
@@ -45,19 +52,19 @@ export default function UpdateStudentPage() {
   }, [refreshKey]);
 
   // Group raw certificates by student email / identity
-  const groupedStudents: GroupedStudent[] = (() => {
+  const groupedStudents: GroupedStudent[] = useMemo(() => {
     const map = new Map<string, GroupedStudent>();
 
     for (const cert of rawCertificates) {
       const key = (cert.email || cert.studentName || cert._id).toLowerCase().trim();
-      const cType = (cert.certificateType || "internship").toLowerCase();
+      const cType = normalizeType(cert.certificateType || "internship");
       const certId = cert._id || cert.id;
 
       if (!map.has(key)) {
-        const baseCertId = (cert.certificateId || "").replace(
-          /-(OFFER-LETTER|INTERNSHIP|TRAINING|APPRECIATION-LETTER|CUSTOM)$/i,
-          ""
-        );
+        // certificateId ke end se is cert ka apna type suffix hatao
+        const baseCertId = cType
+          ? (cert.certificateId || "").replace(new RegExp(`-${escapeRegex(cType)}$`, "i"), "")
+          : cert.certificateId || "";
 
         map.set(key, {
           id: key,
@@ -88,7 +95,7 @@ export default function UpdateStudentPage() {
     }
 
     return Array.from(map.values());
-  })();
+  }, [rawCertificates]);
 
   // Filter grouped students based on search and dropdowns
   const filteredStudents = groupedStudents.filter((student) => {
@@ -104,7 +111,7 @@ export default function UpdateStudentPage() {
 
     const matchesType =
       typeFilter === "all" ||
-      student.certificateTypes.includes(typeFilter.toLowerCase());
+      student.certificateTypes.includes(normalizeType(typeFilter));
 
     const matchesStatus =
       statusFilter === "all" ||
@@ -201,7 +208,7 @@ export default function UpdateStudentPage() {
           <EditStudentModal
             student={editingStudent.primaryRecord}
             allStudentTypes={editingStudent.certificateTypes}
-            onClose={() => setEditingStudent(null)}
+              onClose={() => setEditingStudent(null)}
             onSuccess={() => setRefreshKey((prev) => prev + 1)}
           />
         )}
@@ -210,7 +217,7 @@ export default function UpdateStudentPage() {
         {viewingStudent && (
           <ViewStudentModal
             student={viewingStudent}
-            onClose={() => setViewingStudent(null)}
+              onClose={() => setViewingStudent(null)}
             onSuccess={() => setRefreshKey((prev) => prev + 1)}
           />
         )}
