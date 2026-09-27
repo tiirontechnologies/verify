@@ -7,6 +7,7 @@ import {
   ZoomIn,
   ZoomOut,
   Move,
+  AlertTriangle,
 } from "lucide-react";
 import { processFabricCanvasObjects } from "../../../utils/templateUtils";
 
@@ -40,6 +41,15 @@ export default function FabricCertificateRenderer({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [downloading, setDownloading] = useState(false);
+
+  // 🆕 certificate data ya background image missing hai to yahi decide karega
+  const backgroundImage =
+    templateData?.backgroundImage || templateData?.design?.data?.backgroundImage;
+
+  const isCertificateMissing =
+    !templateData ||
+    !backgroundImage ||
+    !(backgroundImage?.src || backgroundImage?.url || backgroundImage?.width);
 
   const orientation = (() => {
     const raw = (
@@ -118,97 +128,62 @@ export default function FabricCertificateRenderer({
       window.removeEventListener("resize", calculateFitZoom);
   }, [zoomMode, calculateFitZoom]);
 
-  // useEffect(() => {
-  //   if (!canvasRef.current || !templateData) return;
-
-  //   const cloned = JSON.parse(JSON.stringify(templateData));
-
-  //   if (cloned.objects) {
-  //     processFabricCanvasObjects(cloned.objects, studentData);
-  //   }
-
-  //   const canvas = new StaticCanvas(canvasRef.current, {
-  //     width: dimensions.width,
-  //     height: dimensions.height,
-  //     backgroundColor: "#fff",
-  //   });
-
-  //   const render = async () => {
-  //     try {
-  //       await canvas.loadFromJSON(cloned);
-
-  //       if (canvas.backgroundImage) {
-  //         const bg: any = canvas.backgroundImage;
-  //         const el =
-  //           bg._element ||
-  //           (bg.getElement && bg.getElement()) ||
-  //           bg;
-
-  //         const naturalW =
-  //           bg.width || el?.naturalWidth || el?.width;
-
-  //         const naturalH =
-  //           bg.height || el?.naturalHeight || el?.height;
-
-  //         if (naturalW && naturalH) {
-  //           bg.set({
-  //             scaleX: dimensions.width / naturalW,
-  //             scaleY: dimensions.height / naturalH,
-  //             originX: "left",
-  //             originY: "top",
-  //             left: 0,
-  //             top: 0,
-  //           });
-  //         }
-
-  //         if (el && !el.complete) {
-  //           el.onload = () => canvas.renderAll();
-  //         }
-  //       }
-
-  //       canvas.renderAll();
-  //     } catch (e) {
-  //       console.error(e);
-  //     }
-  //   };
-
-  //   render();
-
-  //   return () => canvas.dispose();
-  // }, [templateData, studentData, dimensions]);
-
-
   useEffect(() => {
-  if (!canvasRef.current || !templateData) return;
+    if (isCertificateMissing) return;
+    if (!canvasRef.current || !templateData) return;
 
-  const cloned = JSON.parse(JSON.stringify(templateData));
+    const cloned = JSON.parse(JSON.stringify(templateData));
 
-  if (cloned.objects) {
-    processFabricCanvasObjects(cloned.objects, studentData);
-  }
-
-  const canvas = new StaticCanvas(canvasRef.current, {
-    width: dimensions.width,
-    height: dimensions.height,
-    backgroundColor: "#fff",
-  });
-
-  const render = async () => {
-    try {
-      await canvas.loadFromJSON(cloned);
-      canvas.renderAll();
-    } catch (e) {
-      console.error(e);
+    if (cloned.objects) {
+      processFabricCanvasObjects(cloned.objects, studentData);
     }
-  };
 
-  render();
+    const canvas = new StaticCanvas(canvasRef.current, {
+      width: dimensions.width,
+      height: dimensions.height,
+      backgroundColor: "#fff",
+    });
 
-  return () => {
-    void canvas.dispose(); 
-  };
-}, [templateData, studentData, dimensions]);
+    const render = async () => {
+      try {
+        await canvas.loadFromJSON(cloned);
 
+        // 🆕 background ko current canvas dimensions ke hisaab se dobara scale karo
+        if (canvas.backgroundImage) {
+          const bg: any = canvas.backgroundImage;
+          const el = bg._element || (bg.getElement && bg.getElement()) || bg;
+
+          const naturalW = bg.width || el?.naturalWidth || el?.width;
+          const naturalH = bg.height || el?.naturalHeight || el?.height;
+
+          if (naturalW && naturalH) {
+            bg.set({
+              scaleX: dimensions.width / naturalW,
+              scaleY: dimensions.height / naturalH,
+              originX: "left",
+              originY: "top",
+              left: 0,
+              top: 0,
+            });
+          }
+
+          if (el && !el.complete) {
+            el.onload = () => canvas.renderAll();
+          }
+        }
+
+        canvas.renderAll();
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    render();
+
+    return () => {
+      void canvas.dispose();
+    };
+  }, [templateData, studentData, dimensions, isCertificateMissing]);
 
   const handleDownload = () => {
     if (!canvasRef.current) return;
@@ -231,6 +206,25 @@ export default function FabricCertificateRenderer({
       setDownloading(false);
     }
   };
+
+  // 🆕 Certificate data / background missing — error state dikhao
+  if (isCertificateMissing) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 bg-white p-10 rounded-3xl border border-slate-200 shadow-inner min-h-[350px] text-center">
+        <div className="h-14 w-14 rounded-full bg-red-50 flex items-center justify-center text-red-600">
+          <AlertTriangle size={30} />
+        </div>
+        <div>
+          <h2 className="text-lg font-bold text-gray-900">
+            No certificate issued
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Contact your organization
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

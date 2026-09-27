@@ -14,7 +14,7 @@ interface EditStudentModalProps {
   onSuccess: () => void;
 }
 
-// Sirf card ke colors (types nahi) - index ke hisaab se cycle honge
+
 const TYPE_COLORS = [
   "text-emerald-700 bg-emerald-50 border-emerald-200",
   "text-red-700 bg-red-50 border-red-200",
