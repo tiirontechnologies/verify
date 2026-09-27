@@ -1,6 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Save, Loader2, UserCheck, CheckSquare, Square } from "lucide-react";
 import { organizationApi } from "../../../../api/organization.api";
+import { documentTemplateApi } from "../../../../api/documentTemplateApi";
+
+// Sirf comparison ke liye: "Offer Letter" / "offer_letter" -> "offer-letter"
+const normalizeType = (t?: string) =>
+  (t || "").toLowerCase().trim().replace(/[\s_]+/g, "-");
 
 interface EditStudentModalProps {
   student: any;
@@ -9,13 +14,17 @@ interface EditStudentModalProps {
   onSuccess: () => void;
 }
 
-const AVAILABLE_DOC_TYPES = [
-  { id: "offer-letter", label: "Offer Letter", color: "text-emerald-700 bg-emerald-50 border-emerald-200" },
-  { id: "internship", label: "Internship Certificate", color: "text-red-700 bg-red-50 border-red-200" },
-  { id: "training", label: "Training Certificate", color: "text-blue-700 bg-blue-50 border-blue-200" },
-  { id: "appreciation-letter", label: "Appreciation Letter", color: "text-amber-700 bg-amber-50 border-amber-200" },
-  { id: "custom", label: "Custom Document", color: "text-purple-700 bg-purple-50 border-purple-200" },
+
+const TYPE_COLORS = [
+  "text-emerald-700 bg-emerald-50 border-emerald-200",
+  "text-red-700 bg-red-50 border-red-200",
+  "text-blue-700 bg-blue-50 border-blue-200",
+  "text-amber-700 bg-amber-50 border-amber-200",
+  "text-purple-700 bg-purple-50 border-purple-200",
 ];
+
+const toKeys = (types: string[]) =>
+  Array.from(new Set(types.map((t) => normalizeType(t)).filter(Boolean)));
 
 export default function EditStudentModal({
   student,
@@ -23,12 +32,82 @@ export default function EditStudentModal({
   onClose,
   onSuccess,
 }: EditStudentModalProps) {
+  // Document template API se aaye hue documentType naam (array of strings)
+  const [docTypes, setDocTypes] = useState<string[]>([]);
+  const [typesLoading, setTypesLoading] = useState(true);
+  const [typesError, setTypesError] = useState("");
+
+  // Modal khulte hi document template API trigger hoti hai
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadDocTypes = async () => {
+      try {
+        setTypesLoading(true);
+        setTypesError("");
+
+        const api: any = documentTemplateApi;
+        // Template list wala method dhundho (naam alag ho sakta hai)
+        const method = [
+          "getAll",
+          "getTemplates",
+          "getAllTemplates",
+          "getDocumentTemplates",
+          "getAllDocumentTemplates",
+          "list",
+          "fetchAll",
+        ].find((name) => typeof api?.[name] === "function");
+
+        if (!method) {
+          throw new Error(
+            `documentTemplateApi me template list ka method nahi mila. Available: ${Object.keys(api || {}).join(", ")}`
+          );
+        }
+
+        const res = await api[method]();
+        console.log("Document templates response:", res);
+
+        const payload = res?.data ?? res;
+        const templates: any[] = Array.isArray(payload?.templates)
+          ? payload.templates
+          : Array.isArray(payload)
+          ? payload
+          : [];
+
+        // Response se sirf documentType nikalo -> unique array
+        const names: string[] = [];
+        for (const t of templates) {
+          const name = String(t?.documentType || "").trim();
+          if (!name) continue;
+          if (t?.status && t.status !== "active") continue;
+          if (!names.some((n) => normalizeType(n) === normalizeType(name))) {
+            names.push(name);
+          }
+        }
+
+        if (!cancelled) setDocTypes(names);
+      } catch (err: any) {
+        console.error("Failed to load document types:", err);
+        if (!cancelled) {
+          setTypesError(err?.response?.data?.message || err?.message || "Failed to load document types.");
+        }
+      } finally {
+        if (!cancelled) setTypesLoading(false);
+      }
+    };
+
+    loadDocTypes();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Initialize with all document types currently assigned to this student email
-  const initialTypes = (() => {
+  const initialTypes: string[] = (() => {
     if (allStudentTypes && allStudentTypes.length > 0) {
-      return Array.from(new Set(allStudentTypes.map((t) => t.toLowerCase())));
+      return toKeys(allStudentTypes);
     }
-    return [(student.certificateType || "internship").toLowerCase()];
+    return student.certificateType ? toKeys([student.certificateType]) : [];
   })();
 
   const [selectedTypes, setSelectedTypes] = useState<string[]>(initialTypes);
@@ -37,9 +116,19 @@ export default function EditStudentModal({
   if (allStudentTypes !== prevTypes) {
     setPrevTypes(allStudentTypes);
     if (allStudentTypes && allStudentTypes.length > 0) {
-      setSelectedTypes(Array.from(new Set(allStudentTypes.map((t) => t.toLowerCase()))));
+      setSelectedTypes(toKeys(allStudentTypes));
     }
   }
+
+  // Options SIRF document template API se aate hain (koi hardcoded / purana type nahi)
+  const options = docTypes.map((name) => ({
+    key: normalizeType(name),
+    value: name, // template ka exact documentType naam
+    label: name,
+  }));
+
+  // Sirf wahi selected maane jayenge jinka template abhi exist karta hai
+  const activeTypes = selectedTypes.filter((k) => options.some((o) => o.key === k));
 
   const [formData, setFormData] = useState({
     studentName: student.studentName || "",
@@ -61,15 +150,11 @@ export default function EditStudentModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const handleToggleType = (typeId: string) => {
-    if (selectedTypes.includes(typeId)) {
-      if (selectedTypes.length === 1) {
-        // Must keep at least 1 document type
-        return;
-      }
-      setSelectedTypes(selectedTypes.filter((t) => t !== typeId));
+  const handleToggleType = (typeKey: string) => {
+    if (selectedTypes.includes(typeKey)) {
+      setSelectedTypes(selectedTypes.filter((t) => t !== typeKey));
     } else {
-      setSelectedTypes([...selectedTypes, typeId]);
+      setSelectedTypes([...selectedTypes, typeKey]);
     }
   };
 
@@ -79,18 +164,23 @@ export default function EditStudentModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedTypes.length === 0) {
-      setError("Please select at least one document type for the student.");
-      return;
-    }
+    // Zero document types bhi allowed hain. Backend ko template ka exact naam bhejo
+    const assignedTypes = activeTypes.map(
+      (key) => options.find((o) => o.key === key)!.value
+    );
 
     try {
       setSaving(true);
       setError("");
       await organizationApi.updateStudent(student._id || student.id, {
         ...formData,
-        certificateTypes: selectedTypes,
-        certificateType: selectedTypes[0],
+        // Agar document types load nahi hue to student ke existing types ko mat chhedo
+        ...(typesError
+          ? {}
+          : {
+              certificateTypes: assignedTypes,
+              ...(assignedTypes.length > 0 ? { certificateType: assignedTypes[0] } : {}),
+            }),
       });
       onSuccess();
       onClose();
@@ -164,39 +254,51 @@ export default function EditStudentModal({
             </div>
           </div>
 
-          {/* Multi-Select Certificate/Document Types */}
+          {/* Multi-Select Certificate/Document Types (dynamic) */}
           <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
             <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider">
-              Assigned Document Types ({selectedTypes.length} Selected)
+              Assigned Document Types ({activeTypes.length} Selected)
             </label>
             <p className="text-[11px] text-slate-500 mb-3">
-              Check all document types to issue for this student. Multiple document types can be assigned simultaneously.
+              Check all document types to issue for this student. Multiple document types can be assigned simultaneously, or leave all unchecked to assign none.
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {AVAILABLE_DOC_TYPES.map((doc) => {
-                const checked = selectedTypes.includes(doc.id);
-                return (
-                  <button
-                    key={doc.id}
-                    type="button"
-                    onClick={() => handleToggleType(doc.id)}
-                    className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold text-left transition ${
-                      checked
-                        ? `${doc.color} shadow-sm ring-1 ring-slate-300`
-                        : "bg-white border-slate-200 text-slate-600 hover:bg-slate-100"
-                    }`}
-                  >
-                    {checked ? (
-                      <CheckSquare size={16} className="text-red-600 shrink-0" />
-                    ) : (
-                      <Square size={16} className="text-slate-400 shrink-0" />
-                    )}
-                    <span>{doc.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+            {typesError ? (
+              <p className="text-xs text-red-600 py-2 break-words">{typesError}</p>
+            ) : typesLoading && options.length === 0 ? (
+              <div className="flex items-center gap-2 text-xs text-slate-500 py-2">
+                <Loader2 size={14} className="animate-spin" /> Loading document types...
+              </div>
+            ) : options.length === 0 ? (
+              <p className="text-xs text-slate-500 py-2">
+                No document templates found. Create a template first to assign document types.
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {options.map((doc, index) => {
+                  const checked = activeTypes.includes(doc.key);
+                  return (
+                    <button
+                      key={doc.key}
+                      type="button"
+                      onClick={() => handleToggleType(doc.key)}
+                      className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold text-left transition ${
+                        checked
+                          ? `${TYPE_COLORS[index % TYPE_COLORS.length]} shadow-sm ring-1 ring-slate-300`
+                          : "bg-white border-slate-200 text-slate-600 hover:bg-slate-100"
+                      }`}
+                    >
+                      {checked ? (
+                        <CheckSquare size={16} className="text-red-600 shrink-0" />
+                      ) : (
+                        <Square size={16} className="text-slate-400 shrink-0" />
+                      )}
+                      <span>{doc.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Certificate ID & Course */}
@@ -328,11 +430,11 @@ export default function EditStudentModal({
             </button>
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || typesLoading}
               className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-red-600 text-white text-sm font-semibold shadow-md shadow-red-200 hover:bg-red-700 transition disabled:opacity-60"
             >
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-              {saving ? "Saving..." : `Save & Assign (${selectedTypes.length}) Document(s)`}
+              {saving ? "Saving..." : `Save & Assign (${activeTypes.length}) Document(s)`}
             </button>
           </div>
         </form>

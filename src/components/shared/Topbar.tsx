@@ -18,6 +18,10 @@ import {
 import { useSidebar } from "../../context/SidebarContext";
 import { useNavigate } from "react-router-dom";
 
+import { baseURL } from "../../api/axios";
+
+import axios from "axios";
+
 function getGreeting() {
   const hour = new Date().getHours();
   if (hour < 12) return { text: "Good Morning", Icon: Sunrise, color: "text-orange-500", bg: "bg-orange-50" };
@@ -55,10 +59,24 @@ export default function Topbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    window.location.href = "/login";
-  };
+  const handleLogout = async () => {
+  try {
+    await axios.post(
+      `${baseURL}/api/auth/logout`,
+      {},
+      {
+        withCredentials: true,
+      }
+    );
+  } catch (err) {
+    console.error(err);
+  } finally {
+    sessionStorage.clear();
+    localStorage.clear();
+
+    navigate("/login", { replace: true });
+  }
+};
 
   return (
     <header className="bg-white border-b border-slate-200 h-20 px-4 md:px-8 flex items-center justify-between">
