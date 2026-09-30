@@ -14,11 +14,13 @@ import {
   LifeBuoy,
   LogOut,
   Crown,
+  Loader2,
 } from "lucide-react";
 import { useSidebar } from "../../context/SidebarContext";
 import { useNavigate } from "react-router-dom";
 
 import { baseURL } from "../../api/axios";
+import { updateProfilePicture } from "../../api/studentProfile.api";
 
 import axios from "axios";
 
@@ -29,15 +31,35 @@ function getGreeting() {
   return { text: "Good Evening", Icon: Sunset, color: "text-indigo-500", bg: "bg-indigo-50" };
 }
 
+const readUser = () => {
+  try {
+    return JSON.parse(localStorage.getItem("user") || "{}");
+  } catch {
+    return {};
+  }
+};
+
+// Relative path ho to baseURL laga do, full URL ho to waise hi use karo
+const resolveImageUrl = (src?: string) => {
+  if (!src) return "";
+  if (/^(https?:|data:|blob:)/i.test(src)) return src;
+  return `${baseURL}${src.startsWith("/") ? "" : "/"}${src}`;
+};
+
+const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB
+
 export default function Topbar() {
   const { setOpen } = useSidebar();
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
-  
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [user, setUser] = useState<any>(readUser());
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
   const navigate = useNavigate();
-  
+
   const firstLetter =
     user?.name?.charAt(0)?.toUpperCase() ||
     user?.email?.charAt(0)?.toUpperCase() ||
@@ -49,6 +71,8 @@ export default function Topbar() {
   const isAdmin = user?.role === "admin"; // apne actual role field se match kar lena
   const activePlan = user?.plan || "Starter";
 
+  const profileImage = resolveImageUrl(user?.profileImage || user?.profilePicture);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
@@ -59,24 +83,81 @@ export default function Topbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = async () => {
-  try {
-    await axios.post(
-      `${baseURL}/api/auth/logout`,
-      {},
-      {
-        withCredentials: true,
-      }
-    );
-  } catch (err) {
-    console.error(err);
-  } finally {
-    sessionStorage.clear();
-    localStorage.clear();
+  // Navigate karo aur dropdown band kar do
+  const goTo = (path: string) => {
+    setProfileOpen(false);
+    navigate(path);
+  };
 
-    navigate("/login", { replace: true });
-  }
-};
+  const handleLogout = async () => {
+    try {
+      await axios.post(
+        `${baseURL}/api/auth/logout`,
+        {},
+        {
+          withCredentials: true,
+        }
+      );
+    } catch (err) {
+      console.error(err);
+    } finally {
+      sessionStorage.clear();
+      localStorage.clear();
+
+      navigate("/login", { replace: true });
+    }
+  };
+
+  // Camera button -> file picker
+  const handlePickImage = () => {
+    if (uploading) return;
+    fileInputRef.current?.click();
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // same file dobara select ho sake
+    if (!file) return;
+
+    setUploadError(null);
+
+    if (!file.type.startsWith("image/")) {
+      setUploadError("Please select an image file.");
+      return;
+    }
+    if (file.size > MAX_IMAGE_SIZE) {
+      setUploadError("Image size must be under 2MB.");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const res: any = await updateProfilePicture(file);
+
+      // Backend response ke alag alag shape handle kiye hain, apne hisaab se adjust kar lena
+      const newImage =
+        res?.data?.profileImage ||
+        res?.data?.profilePicture ||
+        res?.data?.profile?.profileImage ||
+        res?.profileImage ||
+        res?.profilePicture ||
+        "";
+
+      const updatedUser = {
+        ...readUser(),
+        profileImage: newImage || URL.createObjectURL(file),
+      };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      setUser(updatedUser);
+    } catch (err: any) {
+      console.error(err);
+      setUploadError(
+        err?.response?.data?.message || "Failed to update profile picture."
+      );
+    } finally {
+      setUploading(false);
+    }
+  };
 
   return (
     <header className="bg-white border-b border-slate-200 h-20 px-4 md:px-8 flex items-center justify-between">
@@ -129,10 +210,20 @@ export default function Topbar() {
         <div className="relative" ref={profileRef}>
           <button
             onClick={() => setProfileOpen((v) => !v)}
-            className="w-11 h-11 rounded-full bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center font-semibold text-base uppercase transition hover:brightness-110 ring-2 ring-offset-2 ring-red-100"
+            className="w-11 h-11 rounded-full bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center font-semibold text-base uppercase transition hover:brightness-110 ring-2 ring-offset-2 ring-red-100 overflow-hidden"
             title={user?.name || user?.email || "Profile"}
           >
-            {firstLetter !== "?" ? firstLetter : <User size={18} />}
+            {profileImage ? (
+              <img
+                src={profileImage}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            ) : firstLetter !== "?" ? (
+              firstLetter
+            ) : (
+              <User size={18} />
+            )}
           </button>
 
           {profileOpen && (
@@ -142,13 +233,41 @@ export default function Topbar() {
                 <div className="absolute -bottom-7 left-5">
                   <div className="relative">
                     <div className="w-16 h-16 rounded-2xl bg-white p-1 shadow-lg">
-                      <div className="w-full h-full rounded-xl bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center font-semibold text-xl uppercase">
-                        {firstLetter !== "?" ? firstLetter : <User size={22} />}
+                      <div className="relative w-full h-full rounded-xl bg-gradient-to-br from-red-500 to-rose-600 text-white flex items-center justify-center font-semibold text-xl uppercase overflow-hidden">
+                        {profileImage ? (
+                          <img
+                            src={profileImage}
+                            alt="Profile"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : firstLetter !== "?" ? (
+                          firstLetter
+                        ) : (
+                          <User size={22} />
+                        )}
+
+                        {uploading && (
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                            <Loader2 size={20} className="animate-spin text-white" />
+                          </div>
+                        )}
                       </div>
                     </div>
+
+                    {/* Hidden file input */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleImageChange}
+                    />
+
                     <button
+                      onClick={handlePickImage}
+                      disabled={uploading}
                       title="Change profile photo"
-                      className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-slate-900 text-white shadow-md flex items-center justify-center hover:bg-slate-700 transition"
+                      className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-slate-900 text-white shadow-md flex items-center justify-center hover:bg-slate-700 transition disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                       <Camera size={11} />
                     </button>
@@ -162,6 +281,11 @@ export default function Topbar() {
                   {user?.name || "there"}
                 </p>
                 <p className="text-xs text-slate-400 truncate">{user?.email}</p>
+                {uploadError && (
+                  <p className="mt-1.5 text-[11px] font-medium text-red-600">
+                    {uploadError}
+                  </p>
+                )}
               </div>
 
               {/* Active plan — admin only */}
@@ -176,9 +300,10 @@ export default function Topbar() {
                       <p className="text-xs font-semibold text-slate-800 leading-none">{activePlan}</p>
                     </div>
                   </div>
-                  <button 
-                  onClick={()=>navigate("/subscription")}
-                  className="text-[11px] font-semibold text-rose-600 hover:text-rose-700 transition">
+                  <button
+                    onClick={() => goTo("/subscription")}
+                    className="text-[11px] font-semibold text-rose-600 hover:text-rose-700 transition"
+                  >
                     Manage
                   </button>
                 </div>
@@ -188,7 +313,12 @@ export default function Topbar() {
 
               {/* Menu items */}
               <div className="p-2.5 space-y-0.5">
-                <button className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-2xl text-sm text-slate-700 hover:bg-slate-50 transition group">
+                <button
+                  onClick={() =>
+                    goTo(isAdmin ? "/admin/account-settings" : "/account-settings")
+                  }
+                  className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-2xl text-sm text-slate-700 hover:bg-slate-50 transition group"
+                >
                   <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-slate-200 flex items-center justify-center transition shrink-0">
                     <Settings size={15} className="text-slate-500" />
                   </div>
@@ -196,7 +326,10 @@ export default function Topbar() {
                 </button>
 
                 {isAdmin ? (
-                  <button className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-2xl text-sm text-slate-700 hover:bg-slate-50 transition group">
+                  <button
+                    onClick={() => goTo("/admin/organization-settings")}
+                    className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-2xl text-sm text-slate-700 hover:bg-slate-50 transition group"
+                  >
                     <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-slate-200 flex items-center justify-center transition shrink-0">
                       <ShieldCheck size={15} className="text-slate-500" />
                     </div>
@@ -204,13 +337,19 @@ export default function Topbar() {
                   </button>
                 ) : (
                   <>
-                    <button className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-2xl text-sm text-slate-700 hover:bg-slate-50 transition group">
+                    <button
+                      onClick={() => goTo("/verification")}
+                      className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-2xl text-sm text-slate-700 hover:bg-slate-50 transition group"
+                    >
                       <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-slate-200 flex items-center justify-center transition shrink-0">
                         <History size={15} className="text-slate-500" />
                       </div>
                       Verification History
                     </button>
-                    <button className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-2xl text-sm text-slate-700 hover:bg-slate-50 transition group">
+                    <button
+                      onClick={() => goTo("/help-support")}
+                      className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-2xl text-sm text-slate-700 hover:bg-slate-50 transition group"
+                    >
                       <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-slate-200 flex items-center justify-center transition shrink-0">
                         <LifeBuoy size={15} className="text-slate-500" />
                       </div>

@@ -3,13 +3,11 @@ import { useNavigate } from "react-router-dom";
 
 type MeResponse = {
   success?: boolean;
-
   roleId?: string;
   role?: string;
 
   user?: {
     success?: boolean;
-
     roleId?: string;
     role?: string;
 
@@ -23,7 +21,7 @@ type MeResponse = {
   };
 };
 
-export default function useMeRedirect() {
+export default function useMeRedirect(redirectOnFail = true) {
   const navigate = useNavigate();
 
   return useCallback(async () => {
@@ -46,13 +44,11 @@ export default function useMeRedirect() {
 
       const nestedUser = data?.user?.user;
 
-      // Normal role
       const role =
         nestedUser?.role ||
         data?.user?.role ||
         data?.role;
 
-      // Role ID
       const roleId =
         nestedUser?.roleId ||
         data?.user?.roleId ||
@@ -61,25 +57,25 @@ export default function useMeRedirect() {
       console.log("ROLE:", role);
       console.log("ROLE ID:", roleId);
 
-      // =====================================================
-      // 403 + roleId admin = subscription page
-      // =====================================================
+      // 403 + admin
       if (response.status === 403 && roleId === "admin") {
-        console.log(
-          "403 + admin detected -> redirecting to subscription"
-        );
-
-        navigate("/subscription", {
-          replace: true,
-        });
+        if (redirectOnFail) {
+          navigate("/subscription", {
+            replace: true,
+          });
+        }
 
         return false;
       }
 
-      // =====================================================
       // Unauthorized / invalid user
-      // =====================================================
       if (!response.ok || !role) {
+        // Landing page ke case mein yahin ruk jao.
+        // Login page par redirect mat karo.
+        if (!redirectOnFail) {
+          return false;
+        }
+
         if (
           response.status === 401 ||
           response.status === 403 ||
@@ -100,9 +96,7 @@ export default function useMeRedirect() {
         );
       }
 
-      // =====================================================
       // Save user
-      // =====================================================
       const user =
         nestedUser ||
         data?.user || {
@@ -115,31 +109,33 @@ export default function useMeRedirect() {
         JSON.stringify(user)
       );
 
-      // =====================================================
       // Role based redirect
-      // =====================================================
-      if (role === "student") {
-        navigate("/student/dashboard", {
-          replace: true,
-        });
-      } else if (role === "admin") {
-        navigate("/organization/dashboard", {
-          replace: true,
-        });
-      } else {
-        navigate("/login", {
-          replace: true,
-        });
+      if (redirectOnFail) {
+        if (role === "student") {
+          navigate("/student/dashboard", {
+            replace: true,
+          });
+        } else if (role === "admin") {
+          navigate("/organization/dashboard", {
+            replace: true,
+          });
+        } else {
+          navigate("/login", {
+            replace: true,
+          });
+        }
       }
 
       return true;
     } catch (error) {
-      console.error(
-        "/auth/me fetch failed:",
-        error
-      );
+      console.error("/auth/me fetch failed:", error);
+
+      // Landing page par API fail hone par kuch nahi karna
+      if (!redirectOnFail) {
+        return false;
+      }
 
       return false;
     }
-  }, [navigate]);
+  }, [navigate, redirectOnFail]);
 }

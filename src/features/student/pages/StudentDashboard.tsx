@@ -59,8 +59,8 @@ export default function StudentDashboard() {
                 <Sparkles size={14} className="text-amber-400 animate-pulse" />
                 <span>Student Verification Portal</span>
               </div>
-              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
-                Welcome Back 👋
+              <h1 className="text-3xl sm:text-4xl font-extrabold  tracking-tight text-white">
+                Welcome Back 
               </h1>
               <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
                 Manage, view, and share your tamper-proof certificates and official offer letters in one secure workspace.
