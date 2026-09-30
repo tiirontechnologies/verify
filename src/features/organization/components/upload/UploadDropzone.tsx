@@ -1,10 +1,50 @@
 import { useState } from "react";
-import { CloudUpload, FileSpreadsheet, CheckCircle2, AlertCircle, Loader2, Download } from "lucide-react";
+import {
+  CloudUpload,
+  FileSpreadsheet,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  Download,
+  UserPlus,
+  X,
+  Plus,
+} from "lucide-react";
 import { organizationApi } from "../../../../api/organization.api";
 
 interface UploadDropzoneProps {
   onUploadSuccess?: () => void;
 }
+
+// Sirf quick-add suggestions hain, koi bhi custom type bhi add ho sakta hai
+const SUGGESTED_CERTIFICATE_TYPES = [
+  "offer-letter",
+  "training",
+  "internship",
+  "appreciation-letter",
+];
+
+const emptyForm = {
+  name: "",
+  email: "",
+  certificateTypes: [] as string[],
+  course: "",
+  role: "",
+  startDate: "",
+  endDate: "",
+  mentor: "",
+  director: "",
+};
+
+const csvEscape = (val: string) => `"${String(val ?? "").replace(/"/g, '""')}"`;
+
+// Type ko clean karta hai: trim + lowercase + spaces -> hyphen ("Offer Letter" => "offer-letter")
+// Agar exact string chahiye to yahan sirf `.trim()` rakh do.
+const normalizeType = (val: string) => val.trim().toLowerCase().replace(/\s+/g, "-");
+
+// "a, b, c" => ["a","b","c"] (clean + unique)
+const parseCertTypes = (raw: string): string[] =>
+  Array.from(new Set(raw.split(",").map(normalizeType).filter(Boolean)));
 
 export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps) {
   const [uploading, setUploading] = useState(false);
@@ -12,18 +52,14 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [createdCredentials, setCreatedCredentials] = useState<any[]>([]);
 
-  const handleFileUpload = async (file: File) => {
-    if (!file) return;
+  // Single student modal state
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState(emptyForm);
+  const [certInput, setCertInput] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
 
-    const ext = file.name.split(".").pop()?.toLowerCase();
-    if (!["xlsx", "xls", "csv"].includes(ext || "")) {
-      setMessage({
-        type: "error",
-        text: "Invalid file format. Please upload an Excel (.xlsx, .xls) or CSV (.csv) file.",
-      });
-      return;
-    }
-
+  // Core upload (shared by file upload + single student form). Returns true on success.
+  const uploadFile = async (file: File): Promise<boolean> => {
     setUploading(true);
     setMessage(null);
     setCreatedCredentials([]);
@@ -43,15 +79,30 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
       if (onUploadSuccess) {
         onUploadSuccess();
       }
+      return true;
     } catch (err: any) {
       console.error("Upload error:", err);
-      setMessage({
-        type: "error",
-        text: err.response?.data?.message || "Failed to upload student Excel file.",
-      });
+      const text = err.response?.data?.message || "Failed to upload student Excel file.";
+      setMessage({ type: "error", text });
+      return false;
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleFileUpload = async (file: File) => {
+    if (!file) return;
+
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (!["xlsx", "xls", "csv"].includes(ext || "")) {
+      setMessage({
+        type: "error",
+        text: "Invalid file format. Please upload an Excel (.xlsx, .xls) or CSV (.csv) file.",
+      });
+      return;
+    }
+
+    await uploadFile(file);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -70,6 +121,123 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
       handleFileUpload(e.dataTransfer.files[0]);
     }
   };
+
+  // ---------- Single student modal handlers ----------
+  const openModal = () => {
+    setForm(emptyForm);
+    setCertInput("");
+    setFormError(null);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    if (uploading) return;
+    setShowModal(false);
+  };
+
+  const updateField = (key: keyof typeof emptyForm, value: string) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  // Typed input se type(s) add karo
+  const addCertTypes = (raw: string) => {
+    const parsed = parseCertTypes(raw);
+    if (parsed.length === 0) return;
+    setForm((prev) => ({
+      ...prev,
+      certificateTypes: Array.from(new Set([...prev.certificateTypes, ...parsed])),
+    }));
+    setCertInput("");
+  };
+
+  const removeCertType = (value: string) => {
+    setForm((prev) => ({
+      ...prev,
+      certificateTypes: prev.certificateTypes.filter((t) => t !== value),
+    }));
+  };
+
+  const toggleSuggestedType = (value: string) => {
+    setForm((prev) => ({
+      ...prev,
+      certificateTypes: prev.certificateTypes.includes(value)
+        ? prev.certificateTypes.filter((t) => t !== value)
+        : [...prev.certificateTypes, value],
+    }));
+  };
+
+  const handleCertKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault(); // Enter se form submit na ho
+      addCertTypes(certInput);
+    } else if (e.key === "Backspace" && !certInput && form.certificateTypes.length > 0) {
+      // Input khaali ho to last chip hata do
+      removeCertType(form.certificateTypes[form.certificateTypes.length - 1]);
+    }
+  };
+
+  const handleSingleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError(null);
+
+    // Agar user ne type kiya but Enter nahi dabaya, to bhi include kar lo
+    const finalTypes = Array.from(
+      new Set([...form.certificateTypes, ...parseCertTypes(certInput)])
+    );
+
+    if (!form.name.trim()) return setFormError("Student name is required.");
+    if (!form.email.trim()) return setFormError("Email is required.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      return setFormError("Please enter a valid email address.");
+    }
+    if (finalTypes.length === 0) {
+      return setFormError("Add at least one certificate type.");
+    }
+    if (form.startDate && form.endDate && form.endDate < form.startDate) {
+      return setFormError("End date cannot be before start date.");
+    }
+
+    const headers = [
+      "Student Name",
+      "Email",
+      "Certificate Type",
+      "Course",
+      "Role",
+      "Start Date",
+      "End Date",
+      "Mentor",
+      "Director",
+    ];
+    const row = [
+      form.name.trim(),
+      form.email.trim(),
+      finalTypes.join(", "),
+      form.course.trim(),
+      form.role.trim(),
+      form.startDate,
+      form.endDate,
+      form.mentor.trim(),
+      form.director.trim(),
+    ]
+      .map(csvEscape)
+      .join(",");
+
+    const csv = [headers.join(","), row].join("\n");
+    const file = new File([csv], "single_student.csv", { type: "text/csv" });
+
+    const ok = await uploadFile(file);
+    if (ok) {
+      setShowModal(false);
+      setForm(emptyForm);
+      setCertInput("");
+    } else {
+      setFormError("Failed to add student. Please check the details and try again.");
+    }
+  };
+
+  const inputClass =
+    "w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-800 outline-none transition focus:border-red-400 focus:ring-2 focus:ring-red-100";
+  const labelClass = "mb-1.5 block text-xs font-semibold text-gray-700";
 
   return (
     <section className="rounded-3xl border border-gray-200 bg-white p-8 shadow-sm">
@@ -182,11 +350,21 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
                 if (e.target.files && e.target.files[0]) {
                   handleFileUpload(e.target.files[0]);
                 }
+                e.target.value = "";
               }}
               disabled={uploading}
               className="hidden"
             />
           </label>
+
+          <button
+            type="button"
+            onClick={openModal}
+            disabled={uploading}
+            className="inline-flex items-center gap-2 rounded-2xl border border-red-200 bg-white px-6 py-3.5 text-sm font-semibold text-red-600 shadow-sm transition hover:bg-red-50 disabled:opacity-60 disabled:pointer-events-none"
+          >
+            <UserPlus size={18} /> Add Single Student
+          </button>
 
           <button
             type="button"
@@ -242,6 +420,250 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
           </span>
         </div>
       </div>
+
+      {/* ---------- Add Single Student Modal ---------- */}
+      {showModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+          onClick={closeModal}
+        >
+          <div
+            className="relative max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl sm:p-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={closeModal}
+              disabled={uploading}
+              className="absolute right-4 top-4 rounded-full p-2 text-gray-500 transition hover:bg-gray-100 disabled:opacity-50"
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="mb-6 flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-red-50">
+                <UserPlus className="text-red-600" size={22} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">Add Single Student</h3>
+                <p className="text-xs text-gray-500">Fill the details to generate certificate records.</p>
+              </div>
+            </div>
+
+            {formError && (
+              <div className="mb-5 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
+                <AlertCircle size={16} className="shrink-0" />
+                <span>{formError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSingleSubmit} className="space-y-5">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <label className={labelClass}>
+                    Student Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) => updateField("name", e.target.value)}
+                    placeholder="Aarav Sharma"
+                    className={inputClass}
+                    disabled={uploading}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>
+                    Email <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => updateField("email", e.target.value)}
+                    placeholder="aarav@example.com"
+                    className={inputClass}
+                    disabled={uploading}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Course</label>
+                  <input
+                    type="text"
+                    value={form.course}
+                    onChange={(e) => updateField("course", e.target.value)}
+                    placeholder="Full Stack Development"
+                    className={inputClass}
+                    disabled={uploading}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Role</label>
+                  <input
+                    type="text"
+                    value={form.role}
+                    onChange={(e) => updateField("role", e.target.value)}
+                    placeholder="Software Engineer Intern"
+                    className={inputClass}
+                    disabled={uploading}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Start Date</label>
+                  <input
+                    type="date"
+                    value={form.startDate}
+                    onChange={(e) => updateField("startDate", e.target.value)}
+                    className={inputClass}
+                    disabled={uploading}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>End Date</label>
+                  <input
+                    type="date"
+                    value={form.endDate}
+                    min={form.startDate || undefined}
+                    onChange={(e) => updateField("endDate", e.target.value)}
+                    className={inputClass}
+                    disabled={uploading}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Mentor</label>
+                  <input
+                    type="text"
+                    value={form.mentor}
+                    onChange={(e) => updateField("mentor", e.target.value)}
+                    placeholder="Rahul Sharma"
+                    className={inputClass}
+                    disabled={uploading}
+                  />
+                </div>
+
+                <div>
+                  <label className={labelClass}>Director</label>
+                  <input
+                    type="text"
+                    value={form.director}
+                    onChange={(e) => updateField("director", e.target.value)}
+                    placeholder="Nitesh Singh"
+                    className={inputClass}
+                    disabled={uploading}
+                  />
+                </div>
+              </div>
+
+              {/* ---------- Dynamic Certificate Type ---------- */}
+              <div>
+                <label className={labelClass}>
+                  Certificate Type <span className="text-red-500">*</span>
+                </label>
+
+                {/* Chips + input */}
+                <div className="flex flex-wrap items-center gap-2 rounded-xl border border-gray-200 bg-white p-2 transition focus-within:border-red-400 focus-within:ring-2 focus-within:ring-red-100">
+                  {form.certificateTypes.map((type) => (
+                    <span
+                      key={type}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700"
+                    >
+                      {type}
+                      <button
+                        type="button"
+                        onClick={() => removeCertType(type)}
+                        disabled={uploading}
+                        className="rounded-full p-0.5 hover:bg-red-100"
+                        aria-label={`Remove ${type}`}
+                      >
+                        <X size={12} />
+                      </button>
+                    </span>
+                  ))}
+
+                  <input
+                    type="text"
+                    value={certInput}
+                    onChange={(e) => setCertInput(e.target.value)}
+                    onKeyDown={handleCertKeyDown}
+                    onBlur={() => addCertTypes(certInput)}
+                    placeholder={
+                      form.certificateTypes.length === 0
+                        ? "Type certificate type & press Enter (e.g. offer-letter)"
+                        : "Add more..."
+                    }
+                    disabled={uploading}
+                    className="min-w-[160px] flex-1 bg-transparent px-2 py-1.5 text-sm text-gray-800 outline-none"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => addCertTypes(certInput)}
+                    disabled={uploading || !certInput.trim()}
+                    className="inline-flex items-center gap-1 rounded-lg bg-red-600 px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-red-700 disabled:opacity-40"
+                  >
+                    <Plus size={14} /> Add
+                  </button>
+                </div>
+
+                {/* Quick suggestions */}
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span className="text-[11px] font-medium text-gray-500">Quick add:</span>
+                  {SUGGESTED_CERTIFICATE_TYPES.map((type) => {
+                    const active = form.certificateTypes.includes(type);
+                    return (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => toggleSuggestedType(type)}
+                        disabled={uploading}
+                        className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                          active
+                            ? "border-red-400 bg-red-50 text-red-700"
+                            : "border-gray-200 bg-white text-gray-600 hover:border-red-200 hover:text-red-600"
+                        }`}
+                      >
+                        {type}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  disabled={uploading}
+                  className="rounded-2xl bg-slate-100 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={uploading}
+                  className="inline-flex items-center gap-2 rounded-2xl bg-red-600 px-7 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-red-700 disabled:opacity-60"
+                >
+                  {uploading ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" /> Adding...
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus size={16} /> Add Student
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
