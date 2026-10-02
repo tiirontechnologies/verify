@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { paymentApi } from "../api/payment";
 import Navbar from "../features/landing/components/Navbar";
-import Topbar from "../components/shared/Topbar"; 
+import Topbar from "../components/shared/Topbar";
 import useMeRedirect from "../features/auth/hooks/useMeRedirect";
+import { useNavigate } from "react-router-dom";
 // import tiironLogo from "../assets/Tiiron_Technologies_Logo.png";
 
 interface PlanFeature {
@@ -12,7 +13,7 @@ interface PlanFeature {
 
 interface Plan {
   id: string;
-  planCode: string; 
+  planCode: string;
   name: string;
   tagline: string;
   price: string;
@@ -136,6 +137,8 @@ const SubscriptionPage: React.FC = () => {
   // null = abhi check ho raha hai (flicker se bachne ke liye)
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     loadRazorpayScript();
   }, []);
@@ -169,7 +172,9 @@ const SubscriptionPage: React.FC = () => {
       // Backend actual response shape:
       // { success, message, data: { key, razorpayOrderId, amount, currency, plan, paymentId } }
       if (!data?.success || !data?.data) {
-        setErrorMsg(data?.message || "Failed to create order. Please try again.");
+        setErrorMsg(
+          data?.message || "Failed to create order. Please try again.",
+        );
         setLoadingPlanId(null);
         return;
       }
@@ -201,7 +206,9 @@ const SubscriptionPage: React.FC = () => {
 
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) {
-        setErrorMsg("Unable to load payment gateway. Please check your connection.");
+        setErrorMsg(
+          "Unable to load payment gateway. Please check your connection.",
+        );
         setLoadingPlanId(null);
         return;
       }
@@ -212,26 +219,28 @@ const SubscriptionPage: React.FC = () => {
         currency: currency || "INR",
         name: "Tiiron Verification Portal",
         // image: tiironLogo,
-        image:"https://verify.tiirontechnologies.com/assets/Tiiron_Technologies_Logo-CIXHLnbO.png",
+        image:
+          "https://verify.tiirontechnologies.com/assets/Tiiron_Technologies_Logo-CIXHLnbO.png",
         description: `${plan.name} Subscription`,
         order_id: razorpayOrderId,
         handler: async (response: any) => {
           try {
             const verifyRes = await paymentApi.verifyPayment({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              plan: plan.planCode,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
             });
-
             if (verifyRes.data?.success) {
               setSuccessMsg(`Payment successful! ${plan.name} activated.`);
+               navigate("/organization/dashboard");
             } else {
-              setErrorMsg(verifyRes.data?.message || "Payment verification failed.");
+              setErrorMsg(
+                verifyRes.data?.message || "Payment verification failed.",
+              );
             }
           } catch (err: any) {
             setErrorMsg(
-              err?.response?.data?.message || "Payment verification failed."
+              err?.response?.data?.message || "Payment verification failed.",
             );
           } finally {
             setLoadingPlanId(null);
@@ -247,13 +256,16 @@ const SubscriptionPage: React.FC = () => {
 
       const razorpay = new window.Razorpay(options);
       razorpay.on("payment.failed", (response: any) => {
-        setErrorMsg(response?.error?.description || "Payment failed. Please try again.");
+        setErrorMsg(
+          response?.error?.description || "Payment failed. Please try again.",
+        );
         setLoadingPlanId(null);
       });
       razorpay.open();
     } catch (err: any) {
       setErrorMsg(
-        err?.response?.data?.message || "Something went wrong. Please try again."
+        err?.response?.data?.message ||
+          "Something went wrong. Please try again.",
       );
       setLoadingPlanId(null);
     }
@@ -280,7 +292,9 @@ const SubscriptionPage: React.FC = () => {
             Choose Your Plan
           </h1>
           <p className="mt-4 text-base leading-relaxed text-neutral-500">
-            Securely verify certificates, credentials, and student records with Tiiron Verify. Select a plan that fits your organization's verification requirements and get started in minutes.
+            Securely verify certificates, credentials, and student records with
+            Tiiron Verify. Select a plan that fits your organization's
+            verification requirements and get started in minutes.
           </p>
         </div>
 
@@ -350,9 +364,24 @@ const SubscriptionPage: React.FC = () => {
                 >
                   {isLoading ? (
                     <span className="flex items-center justify-center gap-2">
-                      <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                      <svg
+                        className="h-4 w-4 animate-spin"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                        />
                       </svg>
                       Processing...
                     </span>
@@ -370,7 +399,9 @@ const SubscriptionPage: React.FC = () => {
                       <CheckIcon active={feature.included} />
                       <span
                         className={
-                          feature.included ? "text-neutral-700" : "text-neutral-400"
+                          feature.included
+                            ? "text-neutral-700"
+                            : "text-neutral-400"
                         }
                       >
                         {feature.label}
@@ -385,8 +416,8 @@ const SubscriptionPage: React.FC = () => {
 
         {/* Footer note */}
         <p className="mt-10 text-center text-xs text-neutral-400">
-          Transparent pricing. Secure payments. Reliable verification.
-          Plans and pricing may vary based on your organization's requirements.
+          Transparent pricing. Secure payments. Reliable verification. Plans and
+          pricing may vary based on your organization's requirements.
         </p>
       </div>
     </div>
