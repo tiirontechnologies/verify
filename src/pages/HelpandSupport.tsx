@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import Navbar from "../features/landing/components/Navbar";
 
-/* 👇 Formspree link yaha lagao */
+
 const FORMSPREE_URL = "https://formspree.io/f/mdekqyvy";
 
 interface FormState {
