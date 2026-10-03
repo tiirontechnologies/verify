@@ -1,6 +1,8 @@
-import { useState } from "react";
-import { ChevronDown, Menu, X, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ChevronDown, Menu, X, User, LogOut } from "lucide-react";
 import logo from "../../../assets/Tiiron_Technologies_Logo.png";
+import api from "../../../api/axios";
 
 const mainLinks = [
   { label: "Home", href: "/" },
@@ -17,9 +19,50 @@ const exploreLinks = [
 ];
 
 export default function Navbar() {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [exploreOpen, setExploreOpen] = useState(false);
   const [mobileExploreOpen, setMobileExploreOpen] = useState(false);
+  const [user, setUser] = useState<any>(() => {
+    try {
+      return JSON.parse(
+        sessionStorage.getItem("user") || localStorage.getItem("user") || "null",
+      );
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    const syncUser = () => {
+      try {
+        setUser(
+          JSON.parse(
+            sessionStorage.getItem("user") || localStorage.getItem("user") || "null",
+          ),
+        );
+      } catch {
+        setUser(null);
+      }
+    };
+    window.addEventListener("storage", syncUser);
+    return () => window.removeEventListener("storage", syncUser);
+  }, []);
+
+  const profilePath = user?.role === "admin" ? "/organization/profile" : "/student/profile";
+  const handleLogout = async () => {
+    try {
+      await api.post("/api/auth/logout", {});
+    } catch (error) {
+      console.error("Logout failed:", error);
+    } finally {
+      sessionStorage.clear();
+      localStorage.clear();
+      setUser(null);
+      setOpen(false);
+      navigate("/", { replace: true });
+    }
+  };
 
   return (
     <>
@@ -61,22 +104,27 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-3 pr-4 md:pr-6">
-            {/* Mobile login icon */}
-            <a href="/login" className="md:hidden p-2 rounded-full text-slate-900 hover:bg-slate-100" aria-label="Login">
-              <User size={18} />
-            </a>
-            <a
-              href="/login"
-              className="hidden md:inline-block rounded-full border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-900 transition hover:border-[#ef233c] hover:text-[#ef233c]"
-            >
-              Login
-            </a>
-            <a
-              href="/signup"
-              className="hidden md:inline-block rounded-full bg-[#ef233c] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600"
-            >
-             Organizaton Registration
-            </a>
+            {user ? (
+              <>
+                <a href={profilePath} className="hidden md:inline-flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:border-[#ef233c] hover:text-[#ef233c]">
+                  <User size={17} /> {user.name || "Profile"}
+                </a>
+                <button type="button" onClick={handleLogout} title="Log out" aria-label="Log out" className="hidden md:inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-300 text-red-600 transition hover:border-red-600 hover:bg-red-50">
+                  <LogOut size={18} />
+                </button>
+                <a href={profilePath} className="md:hidden p-2 rounded-full text-slate-900 hover:bg-slate-100" aria-label="Profile">
+                  <User size={18} />
+                </a>
+              </>
+            ) : (
+              <>
+                <a href="/login" className="md:hidden p-2 rounded-full text-slate-900 hover:bg-slate-100" aria-label="Login">
+                  <User size={18} />
+                </a>
+                <a href="/login" className="hidden md:inline-block rounded-full border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-900 transition hover:border-[#ef233c] hover:text-[#ef233c]">Login</a>
+                <a href="/signup" className="hidden md:inline-block rounded-full bg-[#ef233c] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600">Organization Registration</a>
+              </>
+            )}
             <button
               type="button"
               onClick={() => setOpen((value) => !value)}
@@ -116,14 +164,19 @@ export default function Navbar() {
                 ))}
               </div>
             )}
-            <div className="flex flex-col gap-3 pt-2">
-              <a href="/login" className="rounded-full border border-slate-300 px-5 py-3 text-center text-sm font-semibold text-slate-900 transition hover:border-[#ef233c] hover:text-[#ef233c]">
-                Login
-              </a>
-              <a href="/signup" className="rounded-full bg-[#ef233c] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-red-600">
-                Register Organization
-              </a>
-            </div>
+            {user ? (
+              <div className="flex flex-col gap-3 pt-2">
+                <a href={profilePath} onClick={() => setOpen(false)} className="rounded-full border border-slate-300 px-5 py-3 text-center text-sm font-semibold text-slate-900">My Profile</a>
+                <button type="button" onClick={handleLogout} className="inline-flex items-center justify-center gap-2 rounded-full border border-red-300 px-5 py-3 text-sm font-semibold text-red-600 hover:bg-red-50">
+                  <LogOut size={17} /> Log out
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3 pt-2">
+                <a href="/login" className="rounded-full border border-slate-300 px-5 py-3 text-center text-sm font-semibold text-slate-900 transition hover:border-[#ef233c] hover:text-[#ef233c]">Login</a>
+                <a href="/signup" className="rounded-full bg-[#ef233c] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-red-600">Register Organization</a>
+              </div>
+            )}
           </nav>
         </div>
       </header>

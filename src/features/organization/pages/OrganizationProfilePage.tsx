@@ -5,6 +5,7 @@ import OrganizationProfileCard from "../components/profile/OrganizationProfileCa
 import AuthorizedSignatories from "../components/profile/AuthorizedSignatories";
 import BrandingSettings from "../components/profile/BrandingSettings";
 import AccountSettings from "../components/profile/AccountSettings";
+import ChangePasswordControl from "../../../components/shared/ChangePasswordControl";
 import { organizationApi } from "../../../api/organization.api";
 import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 
@@ -158,6 +159,14 @@ export default function OrganizationProfilePage() {
           saving={saving}
           onSave={handleSave}
         />
+
+        <section className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+          <div>
+            <h2 className="text-base font-bold text-slate-900">Account security</h2>
+            <p className="mt-1 text-sm text-slate-500">Update your organization account password.</p>
+          </div>
+          <ChangePasswordControl />
+        </section>
 
         <OrganizationProfileCard
           data={formData}

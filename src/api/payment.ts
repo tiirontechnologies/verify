@@ -18,10 +18,9 @@ export interface CreateOrderResponse {
 }
 
 export interface VerifyPaymentPayload {
-  razorpay_order_id: string;
-  razorpay_payment_id: string;
-  razorpay_signature: string;
-  plan?: string;
+  razorpayOrderId: string;
+  razorpayPaymentId: string;
+  razorpaySignature: string;
 }
 
 export interface VerifyPaymentResponse {

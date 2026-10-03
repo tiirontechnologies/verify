@@ -32,6 +32,7 @@ import OrganizationSignupPage from "./features/auth/pages/OrganizationSignupPage
 import NotFoundPage from "./pages/NotFoundPage";
 import ComingSoon from "./pages/ComingSoon";
 import SubscriptionPage from "./pages/Subscription";
+import HelpSupportPage from "./pages/HelpandSupport";
 
 // function AuthBootstrap() {
 //   const redirectToDashboard = useMeRedirect();
@@ -299,6 +300,10 @@ element={
 <Route
   path="*"
   element={<NotFoundPage />}
+/>
+<Route
+  path="/help-support"
+  element={<HelpSupportPage />}
 />
 
       </Routes>

@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Download } from "lucide-react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 import Navbar from "../../landing/components/Navbar";
-import Topbar from "../../../components/shared/Topbar"; 
 import Footer from "../../../components/shared/Footer";
-import useMeRedirect from "../../auth/hooks/useMeRedirect";
 
 import VerificationHero from "../components/VerificationHero";
 const VerificationHeroAny = VerificationHero as any;
@@ -28,30 +29,11 @@ export default function VerificationPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const checkLogin = useMeRedirect(false);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-
   const [certificate, setCertificate] = useState<CertificateData | null>(null);
   const [certList, setCertList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Login check: Topbar ya Navbar decide karne ke liye
-  useEffect(() => {
-    let active = true;
-
-    (async () => {
-      try {
-        const result = await checkLogin();
-        if (active) setIsLoggedIn(Boolean(result));
-      } catch {
-        if (active) setIsLoggedIn(false);
-      }
-    })();
-
-    return () => {
-      active = false;
-    };
-  }, [checkLogin]);
+  const [downloading, setDownloading] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchCertificate = async () => {
@@ -126,9 +108,44 @@ export default function VerificationPage() {
     fetchCertificate();
   }, [id, navigate]);
 
+  const downloadVerificationReport = async () => {
+    if (!reportRef.current || !certificate) return;
+    setDownloading(true);
+
+    try {
+      const image = await html2canvas(reportRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#F8FAFC",
+      });
+      const orientation = image.width >= image.height ? "landscape" : "portrait";
+      const pdf = new jsPDF({ orientation, unit: "mm", format: "a4" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 8;
+      const scale = Math.min(
+        (pageWidth - margin * 2) / image.width,
+        (pageHeight - margin * 2) / image.height,
+      );
+      const width = image.width * scale;
+      const height = image.height * scale;
+      const x = (pageWidth - width) / 2;
+      const y = (pageHeight - height) / 2;
+
+      pdf.addImage(image.toDataURL("image/png"), "PNG", x, y, width, height);
+      pdf.save(`${certificate.certificateId || id || "verification"}-report.pdf`);
+    } catch (error) {
+      console.error("Verification report download failed:", error);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#fff7f7_0%,_#f8fafc_55%,_#f1f5f9_100%)] flex items-center justify-center px-6 py-20">
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#fff7f7_0%,_#f8fafc_55%,_#f1f5f9_100%)]">
+        <Navbar />
+        <main className="flex min-h-[calc(100vh-64px)] items-center justify-center px-6 py-20">
         <div className="relative w-full max-w-2xl overflow-hidden rounded-[32px] border border-slate-200 bg-white/90 p-10 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-sm text-center">
           <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-red-500/10 via-red-400/5 to-transparent"></div>
 
@@ -155,6 +172,7 @@ export default function VerificationPage() {
             Secure verification in progress · checking certificate authenticity
           </div>
         </div>
+        </main>
       </div>
     );
   }
@@ -165,31 +183,38 @@ export default function VerificationPage() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-      {isLoggedIn === null ? null : isLoggedIn ? <Topbar /> : <Navbar />}
-
-      {/* Hero */}
-      <div className="max-w-[1650px] mx-auto px-6 lg:px-10 pt-8">
-        <VerificationHeroAny verificationId={id ?? ""} />
-      </div>
-
-      {/* Main */}
-      <main className="max-w-[1650px] mx-auto px-6 lg:px-10 py-8">
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-          {/* Left */}
-          <div className="xl:col-span-8 space-y-8">
-            <CandidateCard certificate={certificate} />
-
-            <AvailableCertificates certificates={certList} />
-          </div>
-
-          {/* Right */}
-          <div className="xl:col-span-4 space-y-6">
-            <StatusCard certificate={certificate} />
-
-            <VerificationSummary certificate={certificate} />
-          </div>
+      <Navbar />
+      <div className="mx-auto max-w-[1650px] px-4 pt-4 sm:px-6 lg:px-10">
+        <div className="mt-4 flex justify-end">
+          <button
+            type="button"
+            onClick={downloadVerificationReport}
+            disabled={downloading}
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition hover:border-red-400 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60"
+          >
+            <Download size={16} /> {downloading ? "Preparing PDF..." : "Download report"}
+          </button>
         </div>
-      </main>
+
+        <div ref={reportRef} className="space-y-5 pb-6 pt-4 lg:space-y-8 lg:pb-8">
+          <VerificationHeroAny verificationId={id ?? ""} />
+
+          <main>
+            <div className="grid grid-cols-1 gap-5 lg:gap-8 xl:grid-cols-12">
+              <div className="space-y-5 xl:col-span-8 lg:space-y-8">
+                <CandidateCard certificate={certificate} />
+                <AvailableCertificates certificates={certList} />
+              </div>
+
+              <div className="space-y-5 xl:col-span-4 lg:space-y-6">
+                <StatusCard certificate={certificate} />
+                <VerificationSummary certificate={certificate} />
+              </div>
+            </div>
+          </main>
+        </div>
+
+      </div>
 
       <Footer />
     </div>

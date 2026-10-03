@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useMemo } from "react";
 import { Canvas as FabricCanvas, ActiveSelection } from "fabric";
 import { useFabric } from "./FabricContext";
 import { ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
@@ -7,6 +7,41 @@ function cleanFontFamily(font: string): string {
   if (!font) return "Arial";
   const first = font.split(",")[0].replace(/['"]/g, "").trim();
   return first || "Arial";
+}
+
+// Dispose hone ke baad fabric `lower` hata deta hai
+const isAlive = (c: any) => Boolean(c && c.lower && c.lower.el);
+
+// Canvas size SIRF orientation se tay hota hai (bg image se kabhi nahi)
+function getDims(orientation: "landscape" | "portrait") {
+  return orientation === "portrait"
+    ? { w: 747, h: 1056 }
+    : { w: 1056, h: 747 };
+}
+
+function getBgNaturalSize(bg: any) {
+  if (!bg) return { natW: undefined, natH: undefined };
+  const el = bg._element || (bg.getElement && bg.getElement()) || bg;
+  return {
+    natW: bg.width || el?.naturalWidth || el?.width,
+    natH: bg.height || el?.naturalHeight || el?.height,
+  };
+}
+
+// Bg ko canvas ke poore size par fit karo
+function fitBackground(canvas: any, w: number, h: number) {
+  const bg = canvas.backgroundImage as any;
+  if (!bg) return;
+  const { natW, natH } = getBgNaturalSize(bg);
+  if (!natW || !natH) return;
+  bg.set({
+    scaleX: w / natW,
+    scaleY: h / natH,
+    originX: "left",
+    originY: "top",
+    left: 0,
+    top: 0,
+  });
 }
 
 // Module-level clipboard: page/component change hone par bhi paste chalega
@@ -28,22 +63,37 @@ export default function Canvas({ template }: CanvasProps) {
     setOrientation,
     zoomLevel,
     setZoomLevel,
-    canvasDimensions,
     setCanvasDimensions,
     undo,
     redo,
   } = useFabric();
 
-  // Track previous dimensions for scale recalculation
-  const prevDimensionsRef = useRef({ width: canvasDimensions.width, height: canvasDimensions.height });
+  const orient: "landscape" | "portrait" =
+    orientation === "portrait" ? "portrait" : "landscape";
+
+  // Canvas ka size sirf orientation se (context ke canvasDimensions pe depend nahi)
+  const dims = useMemo(() => getDims(orient), [orient]);
+
+  // Context ke functions ko ref mein rakho taaki effects unke change par re-run na hon
+  const setCanvasDimensionsRef = useRef(setCanvasDimensions);
+  setCanvasDimensionsRef.current = setCanvasDimensions;
+  const setOrientationRef = useRef(setOrientation);
+  setOrientationRef.current = setOrientation;
+
+  // Template sirf ek baar (canvas + templateKey pair ke liye) load hoga
+  const loadedRef = useRef<{ canvas: any; key: string } | null>(null);
+  const templateRef = useRef(template);
+  templateRef.current = template;
+  const templateKey: string =
+    template?._id || template?.id || template?.name || "new";
 
   // Initialize Fabric canvas instance once
   useEffect(() => {
     if (!canvasRef.current) return;
 
     const fabricCanvas = new FabricCanvas(canvasRef.current, {
-      width: canvasDimensions.width,
-      height: canvasDimensions.height,
+      width: dims.w,
+      height: dims.h,
       backgroundColor: "#ffffff",
       preserveObjectStacking: true,
     });
@@ -64,7 +114,10 @@ export default function Canvas({ template }: CanvasProps) {
 
     fabricCanvas.on("object:added", (e: any) => {
       const obj = e.target;
-      if (obj && (obj.type === "textbox" || obj.type === "i-text" || obj.type === "text")) {
+      if (
+        obj &&
+        (obj.type === "textbox" || obj.type === "i-text" || obj.type === "text")
+      ) {
         const clean = cleanFontFamily(obj.fontFamily);
         obj.set({
           fontFamily: clean,
@@ -82,6 +135,7 @@ export default function Canvas({ template }: CanvasProps) {
     });
 
     fabricCanvas.on("text:changed", (e: any) => {
+      if (!isAlive(fabricCanvas)) return;
       if (e.target && e.target.initDimensions) {
         e.target.initDimensions();
         if (e.target._clearCache) e.target._clearCache();
@@ -92,26 +146,29 @@ export default function Canvas({ template }: CanvasProps) {
     fabricCanvas.renderAll();
 
     return () => {
-      fabricCanvas.dispose();
+      void fabricCanvas.dispose();
       setCanvas(null);
       setActiveObject(null);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto calculate optimal zoom to maximize canvas space in current screen container
+  // Auto zoom: canvas screen mein fit ho
   const calculateAutoZoom = useCallback(() => {
     if (!containerRef.current) return;
     const parentW = containerRef.current.clientWidth - 48;
     const parentH = containerRef.current.clientHeight - 48;
 
     if (parentW > 0 && parentH > 0) {
-      const zoomW = parentW / canvasDimensions.width;
-      const zoomH = parentH / canvasDimensions.height;
+      const zoomW = parentW / dims.w;
+      const zoomH = parentH / dims.h;
       const autoZoom = Math.min(zoomW, zoomH, 1.1);
       setZoomLevel(Number(Math.max(0.35, autoZoom).toFixed(2)));
     }
-  }, [canvasDimensions.width, canvasDimensions.height, setZoomLevel]);
+  }, [dims.w, dims.h, setZoomLevel]);
+
+  const autoZoomRef = useRef(calculateAutoZoom);
+  autoZoomRef.current = calculateAutoZoom;
 
   useEffect(() => {
     calculateAutoZoom();
@@ -119,71 +176,38 @@ export default function Canvas({ template }: CanvasProps) {
     return () => window.removeEventListener("resize", calculateAutoZoom);
   }, [calculateAutoZoom]);
 
-  // Update canvas size, scale background image, and adjust object positions on orientation change
+  // Orientation change: canvas resize + bg fit + objects reposition
   useEffect(() => {
-    if (!canvas) return;
+    if (!canvas || !isAlive(canvas)) return;
 
-    let targetW = orientation === "landscape" ? 1056 : 747;
-    let targetH = orientation === "landscape" ? 747 : 1056;
+    const { w, h } = dims;
+    const oldW = canvas.getWidth();
+    const oldH = canvas.getHeight();
 
-    // 1. Re-scale Background Image smoothly preserving natural aspect ratio
-    if (canvas.backgroundImage) {
-      const bg = canvas.backgroundImage as any;
-      const el = bg._element || (bg.getElement && bg.getElement()) || bg;
-      const naturalW = bg.width || el?.naturalWidth || el?.width;
-      const naturalH = bg.height || el?.naturalHeight || el?.height;
+    if (oldW !== w || oldH !== h) {
+      canvas.setDimensions({ width: w, height: h });
 
-      if (naturalW && naturalH) {
-        const imgRatio = naturalW / naturalH;
-        if (orientation === "landscape") {
-          targetW = 1056;
-          targetH = Math.round(1056 / imgRatio);
-        } else {
-          targetH = 1056;
-          targetW = Math.round(1056 * imgRatio);
-        }
-
-        bg.set({
-          scaleX: targetW / naturalW,
-          scaleY: targetH / naturalH,
-          originX: "left",
-          originY: "top",
-          left: 0,
-          top: 0,
-        });
-      }
-    }
-
-    setCanvasDimensions({ width: targetW, height: targetH });
-
-    const oldW = prevDimensionsRef.current.width;
-    const oldH = prevDimensionsRef.current.height;
-
-    canvas.setDimensions({ width: targetW, height: targetH });
-
-    // 2. Proportionally scale positions of objects if orientation dimensions changed
-    if (oldW !== targetW || oldH !== targetH) {
-      const scaleX = targetW / oldW;
-      const scaleY = targetH / oldH;
-
+      const sx = w / oldW;
+      const sy = h / oldH;
       canvas.getObjects().forEach((obj) => {
         obj.set({
-          left: (obj.left || 0) * scaleX,
-          top: (obj.top || 0) * scaleY,
+          left: (obj.left || 0) * sx,
+          top: (obj.top || 0) * sy,
         });
         obj.setCoords();
       });
     }
 
-    prevDimensionsRef.current = { width: targetW, height: targetH };
+    fitBackground(canvas, w, h);
+    setCanvasDimensionsRef.current({ width: w, height: h });
     canvas.renderAll();
-    calculateAutoZoom();
-  }, [canvas, orientation, setCanvasDimensions, calculateAutoZoom]);
+    autoZoomRef.current();
+  }, [canvas, dims]);
 
-  // Handle keyboard shortcuts (Undo / Redo, Copy / Paste, Backspace / Delete, Arrow keys)
+  // Keyboard shortcuts (Undo / Redo, Copy / Paste, Delete, Arrow keys)
   useEffect(() => {
     const copyActiveObject = async () => {
-      if (!canvas) return;
+      if (!canvas || !isAlive(canvas)) return;
       const active = canvas.getActiveObject();
       if (!active) return;
       try {
@@ -194,9 +218,11 @@ export default function Canvas({ template }: CanvasProps) {
     };
 
     const pasteFromClipboard = async () => {
-      if (!canvas || !clipboardObject) return;
+      if (!canvas || !isAlive(canvas) || !clipboardObject) return;
       try {
         const cloned: any = await clipboardObject.clone();
+        if (!isAlive(canvas)) return;
+
         canvas.discardActiveObject();
 
         cloned.set({
@@ -206,7 +232,6 @@ export default function Canvas({ template }: CanvasProps) {
         });
 
         if (cloned instanceof ActiveSelection) {
-          // Multiple objects selected the
           cloned.canvas = canvas;
           cloned.forEachObject((obj: any) => {
             canvas.add(obj);
@@ -216,7 +241,6 @@ export default function Canvas({ template }: CanvasProps) {
           canvas.add(cloned);
         }
 
-        // Next paste ko aur offset karo taaki objects stack na ho jaye
         clipboardObject.set({
           left: (clipboardObject.left || 0) + 20,
           top: (clipboardObject.top || 0) + 20,
@@ -231,8 +255,7 @@ export default function Canvas({ template }: CanvasProps) {
 
     const handleKeyDown = (e: KeyboardEvent) => {
       const activeEl = document.activeElement;
-      
-      // 1. Check if user is typing in ANY HTML input or textarea
+
       const isFormInput =
         activeEl &&
         (activeEl.tagName === "INPUT" ||
@@ -242,29 +265,21 @@ export default function Canvas({ template }: CanvasProps) {
           activeEl.classList.contains("fabric-hidden-textarea"));
 
       if (isFormInput) return;
-      if (!canvas) return;
+      if (!canvas || !isAlive(canvas)) return;
 
       const activeObj = canvas.getActiveObject();
 
-      // 2. CRITICAL: IF ANY FABRIC TEXT OBJECT IS CURRENTLY BEING EDITED (text cursor active), DO NOT INTERFERE!
       const isTextObj =
         activeObj &&
-        (activeObj.type === "textbox" || activeObj.type === "i-text" || activeObj.type === "text");
+        (activeObj.type === "textbox" ||
+          activeObj.type === "i-text" ||
+          activeObj.type === "text");
 
-      const isEditingText =
-        Boolean((canvas as any).isEditing) ||
-        Boolean((activeObj as any)?.isEditing) ||
-        Boolean((activeObj as any)?.inMode) ||
-        isTextObj;
-
-      if (isEditingText) {
-        if (activeObj && (activeObj as any).isEditing) return;
-      }
+      if (activeObj && (activeObj as any).isEditing) return;
 
       const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
       const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
 
-      // Handle Undo / Redo / Copy / Paste
       if (cmdOrCtrl) {
         const key = e.key.toLowerCase();
         if (key === "z") {
@@ -280,7 +295,7 @@ export default function Canvas({ template }: CanvasProps) {
           redo();
           return;
         } else if (key === "c") {
-          if (!activeObj) return;
+          if (!isTextObj) return;
           e.preventDefault();
           copyActiveObject();
           return;
@@ -293,8 +308,9 @@ export default function Canvas({ template }: CanvasProps) {
       }
 
       if (!activeObj) return;
-
       if (isTextObj) return;
+
+      const step = e.shiftKey ? 10 : 1;
 
       if (e.key === "Backspace" || e.key === "Delete") {
         e.preventDefault();
@@ -304,25 +320,21 @@ export default function Canvas({ template }: CanvasProps) {
         canvas.renderAll();
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
-        const step = e.shiftKey ? 10 : 1;
         activeObj.set("left", (activeObj.left || 0) - step);
         activeObj.setCoords();
         canvas.renderAll();
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
-        const step = e.shiftKey ? 10 : 1;
         activeObj.set("left", (activeObj.left || 0) + step);
         activeObj.setCoords();
         canvas.renderAll();
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        const step = e.shiftKey ? 10 : 1;
         activeObj.set("top", (activeObj.top || 0) - step);
         activeObj.setCoords();
         canvas.renderAll();
       } else if (e.key === "ArrowDown") {
         e.preventDefault();
-        const step = e.shiftKey ? 10 : 1;
         activeObj.set("top", (activeObj.top || 0) + step);
         activeObj.setCoords();
         canvas.renderAll();
@@ -333,87 +345,96 @@ export default function Canvas({ template }: CanvasProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [canvas, setActiveObject, undo, redo]);
 
-  // Load existing template design JSON into Fabric canvas
+  // Template ko SIRF EK BAAR load karo (canvas + templateKey ke hisaab se)
   useEffect(() => {
-    if (!canvas || !template?.design?.data) return;
-
-    const targetOrientation =
-      template.design.orientation || template.design.data?.orientation || "landscape";
+    const tpl = templateRef.current;
+    if (!canvas || !tpl?.design?.data) return;
+    if (!isAlive(canvas)) return;
 
     if (
-      targetOrientation === "portrait" ||
-      targetOrientation === "landscape"
+      loadedRef.current?.canvas === canvas &&
+      loadedRef.current?.key === templateKey
     ) {
-      setOrientation(targetOrientation);
+      return;
     }
+    loadedRef.current = { canvas, key: templateKey };
+
+    const targetOrientation: "landscape" | "portrait" =
+      (tpl.design.orientation || tpl.design.data?.orientation) === "portrait"
+        ? "portrait"
+        : "landscape";
+
+    setOrientationRef.current(targetOrientation);
 
     const loadCanvasData = async () => {
       try {
-        await canvas.loadFromJSON(template.design.data);
+        await canvas.loadFromJSON(tpl.design.data);
+        if (!isAlive(canvas)) return; // dispose ho chuka
 
-        if (canvas.backgroundImage) {
-          const bg = canvas.backgroundImage as any;
-          const el = bg._element || (bg.getElement && bg.getElement()) || bg;
-          const naturalW = bg.width || el?.naturalWidth || el?.width;
-          const naturalH = bg.height || el?.naturalHeight || el?.height;
+        const { w, h } = getDims(targetOrientation);
 
-          if (naturalW && naturalH) {
-            const imgRatio = naturalW / naturalH;
-            const fitW = targetOrientation === "portrait" ? Math.round(1056 * imgRatio) : 1056;
-            const fitH = targetOrientation === "portrait" ? 1056 : Math.round(1056 / imgRatio);
+        // Template jis size par save hua tha (bg ka displayed size)
+        const bg = canvas.backgroundImage as any;
+        const { natW, natH } = getBgNaturalSize(bg);
+        const savedW = natW ? natW * (bg?.scaleX || 1) : w;
+        const savedH = natH ? natH * (bg?.scaleY || 1) : h;
 
-            canvas.setDimensions({ width: fitW, height: fitH });
+        canvas.setDimensions({ width: w, height: h });
 
-            bg.set({
-              scaleX: fitW / naturalW,
-              scaleY: fitH / naturalH,
-              originX: "left",
-              originY: "top",
-              left: 0,
-              top: 0,
+        // Purane template ka size alag tha to objects ko naye size par scale karo
+        const sx = w / savedW;
+        const sy = h / savedH;
+        if (Math.abs(sx - 1) > 0.01 || Math.abs(sy - 1) > 0.01) {
+          canvas.getObjects().forEach((obj) => {
+            obj.set({
+              left: (obj.left || 0) * sx,
+              top: (obj.top || 0) * sy,
             });
-          }
+            obj.setCoords();
+          });
         }
 
+        fitBackground(canvas, w, h);
+        setCanvasDimensionsRef.current({ width: w, height: h });
         canvas.renderAll();
-        calculateAutoZoom();
+        autoZoomRef.current();
       } catch (err) {
         console.error("Failed to load canvas JSON in editor:", err);
       }
     };
 
     loadCanvasData();
-  }, [canvas, template, setOrientation, calculateAutoZoom]);
+  }, [canvas, templateKey]);
 
   return (
     <div
       ref={containerRef}
       className="flex h-full flex-1 items-center justify-center overflow-auto bg-[#e9e9ee] p-3 sm:p-8 relative min-h-0"
       style={{
-        backgroundImage: "radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px)",
+        backgroundImage:
+          "radial-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px)",
         backgroundSize: "20px 20px",
       }}
     >
-      {/* Outer Bounding Box sized matching Visual Scaled Canvas */}
       <div
         className="rounded-lg border border-gray-200 bg-white shadow-[0_10px_40px_rgba(0,0,0,0.14)] transition-transform duration-200 ease-out origin-center shrink-0"
         style={{
-          width: canvasDimensions.width,
-          height: canvasDimensions.height,
+          width: dims.w,
+          height: dims.h,
           transform: `scale(${zoomLevel})`,
         }}
       >
-        <canvas
-          ref={canvasRef}
-          width={canvasDimensions.width}
-          height={canvasDimensions.height}
-        />
+        <canvas ref={canvasRef} width={dims.w} height={dims.h} />
       </div>
 
-      {/* Floating Zoom Bar — Canva-style, bottom-center of the canvas viewport only */}
+      {/* Floating Zoom Bar */}
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-40 flex items-center gap-0.5 rounded-full bg-white/95 border border-gray-200 p-1 shadow-lg text-gray-800 backdrop-blur-md">
         <button
-          onClick={() => setZoomLevel((prev) => Math.max(0.35, Number((prev - 0.1).toFixed(1))))}
+          onClick={() =>
+            setZoomLevel((prev) =>
+              Math.max(0.35, Number((prev - 0.1).toFixed(1)))
+            )
+          }
           className="p-1.5 rounded-full text-gray-600 hover:bg-gray-100"
           title="Zoom Out"
         >
@@ -423,7 +444,11 @@ export default function Canvas({ template }: CanvasProps) {
           {Math.round(zoomLevel * 100)}%
         </span>
         <button
-          onClick={() => setZoomLevel((prev) => Math.min(1.5, Number((prev + 0.1).toFixed(1))))}
+          onClick={() =>
+            setZoomLevel((prev) =>
+              Math.min(1.5, Number((prev + 0.1).toFixed(1)))
+            )
+          }
           className="p-1.5 rounded-full text-gray-600 hover:bg-gray-100"
           title="Zoom In"
         >
