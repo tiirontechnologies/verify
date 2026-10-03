@@ -1,4 +1,5 @@
 import DashboardLayout from "../../../layouts/DashboardLayout";
+import ChangePasswordControl from "../../../components/shared/ChangePasswordControl";
 import {
   Bell,
   Lock,
@@ -51,9 +52,7 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <button className="px-5 py-2 rounded-xl border">
-                Change
-              </button>
+              <ChangePasswordControl />
             </div>
 
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

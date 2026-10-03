@@ -43,3 +43,19 @@ export const resendPasswordResetOtp = async (email: string) => {
   const response = await api.post("/api/auth/resend-otp", { email });
   return response.data;
 };
+
+export const getCurrentUser = async () => {
+  const response = await api.get("/api/auth/me");
+  return response.data;
+};
+
+export const changePassword = async (
+  currentPassword: string,
+  newPassword: string,
+) => {
+  const response = await api.patch("/api/auth/change-password", {
+    currentPassword,
+    newPassword,
+  });
+  return response.data;
+};

@@ -222,13 +222,7 @@ export default function StudentDashboard() {
                 }
 
                 const handleNavigate = () => {
-                  if (isInternship) {
-                    navigate("/student/certificates/internship");
-                  } else if (isTraining) {
-                    navigate("/student/certificates/training");
-                  } else {
-                    navigate(`/student/certificates/doc/${cert._id || cert.certificateId}`);
-                  }
+                  navigate(`/student/certificates/doc/${cert._id || cert.certificateId}`);
                 };
 
                 return (

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CloudUpload,
   FileSpreadsheet,
@@ -11,6 +11,7 @@ import {
   Plus,
 } from "lucide-react";
 import { organizationApi } from "../../../../api/organization.api";
+import { documentTemplateApi } from "../../../../api/documentTemplateApi";
 
 interface UploadDropzoneProps {
   onUploadSuccess?: () => void;
@@ -34,13 +35,14 @@ const emptyForm = {
   endDate: "",
   mentor: "",
   director: "",
+  templateId: "",
 };
 
 const csvEscape = (val: string) => `"${String(val ?? "").replace(/"/g, '""')}"`;
 
 // Type ko clean karta hai: trim + lowercase + spaces -> hyphen ("Offer Letter" => "offer-letter")
 // Agar exact string chahiye to yahan sirf `.trim()` rakh do.
-const normalizeType = (val: string) => val.trim().toLowerCase().replace(/\s+/g, "-");
+const normalizeType = (val: string) => val.trim().toLowerCase().replace(/[\s_]+/g, "-");
 
 // "a, b, c" => ["a","b","c"] (clean + unique)
 const parseCertTypes = (raw: string): string[] =>
@@ -57,6 +59,41 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
   const [form, setForm] = useState(emptyForm);
   const [certInput, setCertInput] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [templatesLoading, setTemplatesLoading] = useState(false);
+
+  useEffect(() => {
+    if (!showModal) return;
+    let cancelled = false;
+
+    const fetchTemplates = async () => {
+      try {
+        setTemplatesLoading(true);
+        const response = await documentTemplateApi.getTemplates();
+        const payload = response.data?.templates ?? response.data;
+        const list = Array.isArray(payload) ? payload : [];
+        if (!cancelled) setTemplates(list);
+      } catch (error) {
+        console.error("Failed to load templates for single-student assignment:", error);
+        if (!cancelled) setTemplates([]);
+      } finally {
+        if (!cancelled) setTemplatesLoading(false);
+      }
+    };
+
+    fetchTemplates();
+    return () => {
+      cancelled = true;
+    };
+  }, [showModal]);
+
+  const singleTypeTemplates = form.certificateTypes.length === 1
+    ? templates.filter(
+        (template) =>
+          normalizeType(String(template.documentType || "")) === form.certificateTypes[0] &&
+          (!template.status || template.status === "active"),
+      )
+    : [];
 
   // Core upload (shared by file upload + single student form). Returns true on success.
   const uploadFile = async (file: File): Promise<boolean> => {
@@ -207,7 +244,15 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
       "End Date",
       "Mentor",
       "Director",
+      "templateId",
     ];
+    const selectedTemplateId =
+      finalTypes.length === 1 &&
+      singleTypeTemplates.some(
+        (template) => String(template._id || template.id) === form.templateId,
+      )
+        ? form.templateId
+        : "";
     const row = [
       form.name.trim(),
       form.email.trim(),
@@ -218,6 +263,7 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
       form.endDate,
       form.mentor.trim(),
       form.director.trim(),
+      selectedTemplateId,
     ]
       .map(csvEscape)
       .join(",");
@@ -558,6 +604,7 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
                     disabled={uploading}
                   />
                 </div>
+
               </div>
 
               {/* ---------- Dynamic Certificate Type ---------- */}
@@ -634,6 +681,28 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
                   })}
                 </div>
               </div>
+
+              {form.certificateTypes.length === 1 && (
+                <div>
+                  <label className={labelClass}>Certificate Template</label>
+                  <select
+                    value={form.templateId}
+                    onChange={(event) => updateField("templateId", event.target.value)}
+                    disabled={uploading || templatesLoading || singleTypeTemplates.length === 0}
+                    className={inputClass}
+                  >
+                    <option value="">Use the default matching template</option>
+                    {singleTypeTemplates.map((template) => (
+                      <option key={template._id || template.id} value={template._id || template.id}>
+                        {template.name || template.documentType}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-[11px] text-gray-500">
+                    Select one document type to attach its exact saved design.
+                  </p>
+                </div>
+              )}
 
               <div className="flex items-center justify-end gap-3 pt-2">
                 <button

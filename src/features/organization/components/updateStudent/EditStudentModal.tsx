@@ -34,6 +34,7 @@ export default function EditStudentModal({
 }: EditStudentModalProps) {
   // Document template API se aaye hue documentType naam (array of strings)
   const [docTypes, setDocTypes] = useState<string[]>([]);
+  const [templates, setTemplates] = useState<any[]>([]);
   const [typesLoading, setTypesLoading] = useState(true);
   const [typesError, setTypesError] = useState("");
 
@@ -73,6 +74,7 @@ export default function EditStudentModal({
           : Array.isArray(payload)
           ? payload
           : [];
+        if (!cancelled) setTemplates(templates);
 
         // Response se sirf documentType nikalo -> unique array
         const names: string[] = [];
@@ -145,7 +147,21 @@ export default function EditStudentModal({
     mentor: student.mentor || "",
     director: student.director || "",
     status: student.status || "active",
+    templateId:
+      student.templateId ||
+      student.documentTemplateId ||
+      (typeof student.template === "string" ? student.template : student.template?._id || ""),
   });
+  const templateOptions = activeTypes.length === 1
+    ? templates.filter(
+        (template) =>
+          normalizeType(template.documentType) === activeTypes[0] &&
+          (!template.status || template.status === "active"),
+      )
+    : [];
+  const selectedTemplateAvailable = templateOptions.some(
+    (template) => String(template._id || template.id) === formData.templateId,
+  );
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -168,18 +184,22 @@ export default function EditStudentModal({
     const assignedTypes = activeTypes.map(
       (key) => options.find((o) => o.key === key)!.value
     );
+    const { templateId, ...studentFields } = formData;
 
     try {
       setSaving(true);
       setError("");
       await organizationApi.updateStudent(student._id || student.id, {
-        ...formData,
+        ...studentFields,
         // Agar document types load nahi hue to student ke existing types ko mat chhedo
         ...(typesError
           ? {}
           : {
               certificateTypes: assignedTypes,
               ...(assignedTypes.length > 0 ? { certificateType: assignedTypes[0] } : {}),
+              ...(assignedTypes.length === 1
+                ? { templateId: selectedTemplateAvailable ? templateId : null }
+                : {}),
             }),
       });
       onSuccess();
@@ -201,6 +221,7 @@ export default function EditStudentModal({
             <div className="h-10 w-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
               <UserCheck size={22} />
             </div>
+
             <div>
               <h3 className="text-lg font-bold text-slate-900">Edit Student & Assigned Documents</h3>
               <p className="text-xs text-slate-500 font-mono">ID: {student.certificateId}</p>
@@ -300,6 +321,31 @@ export default function EditStudentModal({
               </div>
             )}
           </div>
+
+          {activeTypes.length === 1 && (
+            <div className="rounded-xl border border-slate-200 p-4">
+              <label htmlFor="assigned-template" className="block text-xs font-bold text-slate-800">
+                Exact certificate template
+              </label>
+              <p className="mt-1 text-[11px] text-slate-500">
+                Choose the design to attach to this document assignment.
+              </p>
+              <select
+                id="assigned-template"
+                value={selectedTemplateAvailable ? formData.templateId : ""}
+                onChange={(event) => setFormData((current) => ({ ...current, templateId: event.target.value }))}
+                disabled={typesLoading || templateOptions.length === 0}
+                className="mt-3 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-red-500 disabled:bg-slate-50"
+              >
+                <option value="">Use the default matching template</option>
+                {templateOptions.map((template) => (
+                  <option key={template._id || template.id} value={template._id || template.id}>
+                    {template.name || template.documentType}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Certificate ID & Course */}
           <div className="grid sm:grid-cols-2 gap-4">

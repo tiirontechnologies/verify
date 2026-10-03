@@ -3,7 +3,10 @@ import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../../layouts/DashboardLayout";
 import { Download } from "lucide-react";
 import { toPng } from "html-to-image";
-import { getMyCertificate } from "../../../api/certificate.api";
+import {
+  getMyCertificate,
+  getCertificateTemplateData,
+} from "../../../api/certificate.api";
 import type { CertificateData } from "../../../types/certificate";
 import certificateBg from "../../../assets/certificate-bg.png";
 import FabricCertificateRenderer from "../components/FabricCertificateRenderer";
@@ -143,18 +146,12 @@ export default function InternshipCertificatePage() {
           return;
         }
 
-        if (data.template?.design?.data) {
-          const orientation =
-            data.template.orientation ||
-            data.template.design?.orientation ||
-            data.template.design?.data?.orientation ||
-            (data.template.design?.data?.height > data.template.design?.data?.width ? "portrait" : "landscape");
-
-          setTemplateData({
-            ...data.template.design.data,
-            orientation,
-          });
+        const assignedTemplate = await getCertificateTemplateData(data);
+        if (!assignedTemplate) {
+          setError("The assigned certificate design is unavailable. Please contact your organization.");
+          return;
         }
+        setTemplateData(assignedTemplate);
 
         setCertificate({
           id: data._id,

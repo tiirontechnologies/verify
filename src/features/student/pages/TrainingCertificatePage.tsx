@@ -9,7 +9,10 @@ import { toPng } from "html-to-image";
 import DocumentHeader from "../../../components/shared/DocumentHeader";
 
 // 👇 agar tumhara actual function ka naam alag hai to sirf yaha badlo
-import { getMyCertificate} from "../../../api/certificate.api";
+import {
+  getMyCertificate,
+  getCertificateTemplateData,
+} from "../../../api/certificate.api";
 import type { CertificateData } from "../../../types/certificate";
 
 // 👇 training certificate ka background image (same ya alag, jo bhi use karna ho)
@@ -255,18 +258,12 @@ export default function TrainingCertificatePage() {
           return;
         }
 
-        if (data.template?.design?.data) {
-          const orientation =
-            data.template.orientation ||
-            data.template.design?.orientation ||
-            data.template.design?.data?.orientation ||
-            (data.template.design?.data?.height > data.template.design?.data?.width ? "portrait" : "landscape");
-
-          setTemplateData({
-            ...data.template.design.data,
-            orientation,
-          });
+        const assignedTemplate = await getCertificateTemplateData(data);
+        if (!assignedTemplate) {
+          setError("The assigned certificate design is unavailable. Please contact your organization.");
+          return;
         }
+        setTemplateData(assignedTemplate);
 
         setCertificate({
           id: data._id,

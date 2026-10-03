@@ -295,7 +295,7 @@ export default function Canvas({ template }: CanvasProps) {
           redo();
           return;
         } else if (key === "c") {
-          if (!activeObj) return;
+          if (!isTextObj) return;
           e.preventDefault();
           copyActiveObject();
           return;

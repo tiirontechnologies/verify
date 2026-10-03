@@ -2,7 +2,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../../../layouts/DashboardLayout";
-import { getMyCertificate } from "../../../api/certificate.api";
+import {
+  getMyCertificate,
+  getCertificateTemplateData,
+} from "../../../api/certificate.api";
 import FabricCertificateRenderer from "../components/FabricCertificateRenderer";
 import OfferLetterDocument from "../components/OfferLetterDocument";
 import DocumentHeader from "../../../components/shared/DocumentHeader";
@@ -71,21 +74,7 @@ export default function DocumentViewerPage({
 
         setDocumentData(match);
 
-        if (match.template?.design?.data) {
-          const orientation =
-            match.template.orientation ||
-            match.template.design?.orientation ||
-            match.template.design?.data?.orientation ||
-            (match.template.design?.data?.height >
-            match.template.design?.data?.width
-              ? "portrait"
-              : "landscape");
-
-          setTemplateData({
-            ...match.template.design.data,
-            orientation,
-          });
-        }
+        setTemplateData(await getCertificateTemplateData(match));
       } catch (err: any) {
         console.error("Failed to load document:", err);
         setError(err?.message || "Failed to load document details.");

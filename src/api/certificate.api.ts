@@ -1,4 +1,80 @@
 import axios from "./axios"
+import { documentTemplateApi } from "./documentTemplateApi";
+
+const normalizeTemplateType = (value?: string) =>
+  (value || "").toLowerCase().trim().replace(/[\s_]+/g, "-");
+
+function toFabricData(template: any) {
+  if (!template || typeof template !== "object") return null;
+
+  const data =
+    template.template?.design?.data ??
+    template.design?.data ??
+    template.templateData?.design?.data ??
+    template.templateData ??
+    template.data?.design?.data ??
+    template.design ??
+    template;
+
+  if (!data?.backgroundImage) return null;
+
+  const orientation =
+    template.orientation ||
+    template.design?.orientation ||
+    template.template?.design?.orientation ||
+    data.orientation ||
+    (Number(data.height) > Number(data.width) ? "portrait" : "landscape");
+
+  return { ...data, orientation };
+}
+
+export async function getCertificateTemplateData(certificate: any) {
+  const embedded = toFabricData(certificate);
+  if (embedded) return embedded;
+
+  const templateReference =
+    (typeof certificate?.template === "string" ? certificate.template : null) ||
+    certificate?.template?._id ||
+    certificate?.template?.id ||
+    certificate?.templateId ||
+    certificate?.documentTemplateId ||
+    certificate?.certificateTemplateId;
+
+  if (templateReference) {
+    try {
+      const response = await documentTemplateApi.getTemplateById(
+        String(templateReference),
+      );
+      const resolved = toFabricData(response.data?.template ?? response.data);
+      if (resolved) return resolved;
+    } catch (error) {
+      console.error("Failed to load assigned certificate template:", error);
+    }
+  }
+
+  try {
+    const response = await documentTemplateApi.getTemplates();
+    const payload = response.data?.templates ?? response.data;
+    const templates = Array.isArray(payload) ? payload : [];
+    const certificateType = normalizeTemplateType(certificate?.certificateType);
+    const matchingTemplates = templates.filter(
+      (template: any) =>
+        normalizeTemplateType(template.documentType) === certificateType &&
+        (!template.status || template.status === "active"),
+    );
+    const defaultTemplate = matchingTemplates.find(
+      (template: any) => template.isDefault || template.default,
+    );
+    const candidate = defaultTemplate ||
+      (matchingTemplates.length === 1 ? matchingTemplates[0] : null);
+
+    return toFabricData(candidate);
+  } catch (error) {
+    console.error("Failed to find assigned certificate template:", error);
+    return null;
+  }
+}
+
 export const getMyCertificate = async () => {
     const response = await axios.get(
         "/api/certificates/my",
