@@ -1,4 +1,5 @@
-﻿import Navbar from "../components/Navbar";
+﻿import { useEffect } from "react";
+import Navbar from "../components/Navbar";
 import HeroSection from "../components/HeroSection";
 import FeaturesSection from "../components/FeaturesSection";
 import HowItWorksSection from "../components/HowItWorksSection";
@@ -8,15 +9,15 @@ import QRCodeCTA from "../components/QRCodeCTA";
 import NewsletterSection from "../components/NewsletterSection";
 import Footer from "../../../components/shared/Footer";
 import useMeRedirect from "../../auth/hooks/useMeRedirect";
-import { useEffect } from "react";
 
 export default function LandingPage() {
-  const redirectToDashborad = useMeRedirect();
-  
-  // auto login feautures 
-  useEffect(()=>{
-redirectToDashborad();
-  },[])
+  // fail => kuch nahi, success => dashboard redirect
+  const checkLogin = useMeRedirect(false, true);
+
+  useEffect(() => {
+    checkLogin();
+  }, [checkLogin]);
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-white text-slate-900">
       <Navbar />

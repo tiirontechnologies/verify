@@ -1,32 +1,81 @@
-import { Search, Filter } from "lucide-react";
+import { Search, RotateCcw } from "lucide-react";
 
-export default function StudentSearchFilters() {
+interface StudentSearchFiltersProps {
+  searchQuery: string;
+  onSearchChange: (q: string) => void;
+  typeFilter: string;
+  onTypeFilterChange: (t: string) => void;
+  statusFilter: string;
+  onStatusFilterChange: (s: string) => void;
+  onReset: () => void;
+}
+
+export default function StudentSearchFilters({
+  searchQuery,
+  onSearchChange,
+  typeFilter,
+  onTypeFilterChange,
+  statusFilter,
+  onStatusFilterChange,
+  onReset,
+}: StudentSearchFiltersProps) {
   return (
     <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-      <div className="grid gap-4 lg:grid-cols-4">
-        <div className="relative lg:col-span-2">
+      <div className="grid gap-4 lg:grid-cols-12 items-center">
+        {/* Search Bar */}
+        <div className="relative lg:col-span-6">
           <Search
             size={18}
             className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
           />
-
           <input
             type="text"
-            placeholder="Search by student name, email or certificate ID..."
-            className="w-full rounded-2xl border border-gray-200 py-3 pl-11 pr-4 outline-none focus:border-red-500"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Search by student name, email, course or certificate ID..."
+            className="w-full rounded-2xl border border-gray-200 py-3 pl-11 pr-4 text-sm outline-none focus:border-red-500 focus:ring-2 focus:ring-red-100"
           />
         </div>
 
-        <select className="rounded-2xl border border-gray-200 px-4 py-3 outline-none focus:border-red-500">
-          <option>All Courses</option>
-          <option>Internship</option>
-          <option>Training</option>
-        </select>
+        {/* Document Type Filter */}
+        <div className="lg:col-span-3">
+          <select
+            value={typeFilter}
+            onChange={(e) => onTypeFilterChange(e.target.value)}
+            className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-red-500"
+          >
+            <option value="all">All Document Types</option>
+            <option value="offer-letter">Offer Letter</option>
+            <option value="internship">Internship Certificate</option>
+            <option value="training">Training Certificate</option>
+            <option value="appreciation-letter">Appreciation Letter</option>
+            <option value="custom">Custom Document</option>
+          </select>
+        </div>
 
-        <button className="flex items-center justify-center gap-2 rounded-2xl border border-gray-200 transition hover:bg-gray-50">
-          <Filter size={18} />
-          Filters
-        </button>
+        {/* Verification Status Filter */}
+        <div className="lg:col-span-2">
+          <select
+            value={statusFilter}
+            onChange={(e) => onStatusFilterChange(e.target.value)}
+            className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-red-500"
+          >
+            <option value="all">All Statuses</option>
+            <option value="active">Active / Verified</option>
+            <option value="revoked">Revoked</option>
+          </select>
+        </div>
+
+        {/* Reset Button */}
+        <div className="lg:col-span-1">
+          <button
+            onClick={onReset}
+            title="Reset Filters"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-gray-200 py-3 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
+          >
+            <RotateCcw size={16} />
+          </button>
+        </div>
       </div>
     </section>
   );

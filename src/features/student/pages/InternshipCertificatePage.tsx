@@ -1,16 +1,16 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
-
 import DashboardLayout from "../../../layouts/DashboardLayout";
-
-import { ArrowLeft, Download, Award } from "lucide-react";
+import { Download } from "lucide-react";
 import { toPng } from "html-to-image";
-
-import { getMyCertificate } from "../../../api/certificate.api";
+import {
+  getMyCertificate,
+  getCertificateTemplateData,
+} from "../../../api/certificate.api";
 import type { CertificateData } from "../../../types/certificate";
-
 import certificateBg from "../../../assets/certificate-bg.png";
-
+import FabricCertificateRenderer from "../components/FabricCertificateRenderer";
+import DocumentHeader from "../../../components/shared/DocumentHeader";
 
 const COURSE_TEMPLATES: Record<
   string,
@@ -95,7 +95,6 @@ function getCourseContent(certificate: CertificateData) {
     };
   }
 
-  // Fallback agar course teeno mein se koi match na kare
   const plainDescription = `Has successfully completed an internship as a ${certificate.role} with ${certificate.organization} from ${certificate.startDate} to ${certificate.endDate}. During this period, the intern contributed to real project work, collaborative workflows, and hands-on technical tasks, demonstrating strong dedication, technical skill, and professionalism throughout the internship.`;
 
   return {
@@ -128,6 +127,7 @@ export default function InternshipCertificatePage() {
   const outerRef = useRef<HTMLDivElement>(null);
 
   const [certificate, setCertificate] = useState<CertificateData | null>(null);
+  const [templateData, setTemplateData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [downloadingImage, setDownloadingImage] = useState(false);
@@ -136,11 +136,26 @@ export default function InternshipCertificatePage() {
     const fetchCertificate = async () => {
       try {
         const response = await getMyCertificate();
-        const data = response.data;
+        const certList = Array.isArray(response.data) ? response.data : [response.data];
+        const data = certList.find(
+          (c: any) => (c.certificateType || "").toLowerCase() === "internship"
+        );
+
+        if (!data) {
+          setError("No Internship Certificate Found");
+          return;
+        }
+
+        const assignedTemplate = await getCertificateTemplateData(data);
+        if (!assignedTemplate) {
+          setError("The assigned certificate design is unavailable. Please contact your organization.");
+          return;
+        }
+        setTemplateData(assignedTemplate);
 
         setCertificate({
           id: data._id,
-          type: data.certificateType.toLowerCase(),
+          type: data.certificateType?.toLowerCase(),
 
           studentName: data.studentName,
           email: data.email,
@@ -184,9 +199,6 @@ export default function InternshipCertificatePage() {
     fetchCertificate();
   }, []);
 
-  // outer container ko fixed width pe resize karke screenshot leta hai,
-  // taaki cqw-based font-size hamesha consistent calculate ho — fir
-  // original width wapas restore kar deta hai
   const captureCertificate = async () => {
     if (!certificateRef.current || !outerRef.current) return null;
 
@@ -198,21 +210,17 @@ export default function InternshipCertificatePage() {
     outerRef.current.style.width = `${CAPTURE_WIDTH}px`;
     outerRef.current.style.maxWidth = `${CAPTURE_WIDTH}px`;
 
-    // browser ko container-query recalc karne ka time do
     await new Promise((resolve) =>
       requestAnimationFrame(() => requestAnimationFrame(resolve))
     );
 
-    // 👇 cqw-based font-size wale saare elements ka computed px value
-    // freeze kar do, taaki toPng ke rasterize-time cqw galat calculate
-    // na ho — capture ke baad original style wapas restore kar denge
     const cqwElements = certificateRef.current.querySelectorAll<HTMLElement>(
       "[data-cqw-font]"
     );
     const restoreFns: Array<() => void> = [];
 
     cqwElements.forEach((el) => {
-      const computed = window.getComputedStyle(el).fontSize; // e.g. "18.4px"
+      const computed = window.getComputedStyle(el).fontSize;
       const prevInlineFontSize = el.style.fontSize;
       el.style.fontSize = computed;
       restoreFns.push(() => {
@@ -258,47 +266,16 @@ export default function InternshipCertificatePage() {
       <DashboardLayout>
         <div className="flex min-h-[70vh] items-center justify-center px-4">
           <div className="flex flex-col items-center">
-            {/* Loader */}
             <div className="relative">
               <div className="h-20 w-20 rounded-full border-4 border-red-100"></div>
-
               <div className="absolute inset-0 h-20 w-20 rounded-full border-4 border-transparent border-t-red-600 animate-spin"></div>
-
-              <div className="absolute inset-3 h-14 w-14 rounded-full border-4 border-transparent border-b-red-500 animate-spin [animation-direction:reverse] [animation-duration:1.5s]"></div>
-
-              <div className="absolute inset-0 flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-8 w-8 text-red-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z"
-                  />
-                </svg>
-              </div>
             </div>
-
-            {/* Text */}
             <h2 className="mt-8 text-2xl font-bold text-gray-900">
               Loading Certificate
             </h2>
-
             <p className="mt-2 text-sm text-gray-500">
               Please wait while we securely prepare your certificate.
             </p>
-
-            {/* Animated Dots */}
-            <div className="mt-6 flex gap-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-red-600 animate-bounce"></span>
-              <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-bounce delay-150"></span>
-              <span className="h-2.5 w-2.5 rounded-full bg-red-400 animate-bounce delay-300"></span>
-            </div>
           </div>
         </div>
       </DashboardLayout>
@@ -310,31 +287,16 @@ export default function InternshipCertificatePage() {
       <DashboardLayout>
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 -m-6 p-4 sm:p-6 flex items-center justify-center">
           <div className="relative w-full max-w-2xl overflow-hidden rounded-[24px] sm:rounded-[32px] border border-slate-200 bg-white/90 p-6 sm:p-10 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-sm text-center sm:p-14">
-            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-red-500/10 via-red-400/5 to-transparent"></div>
-
-            <div className="relative mx-auto flex h-16 w-16 sm:h-24 sm:w-24 items-center justify-center rounded-full bg-gradient-to-br from-red-50 to-red-100 shadow-inner">
-              <svg viewBox="0 0 24 24" className="h-7 w-7 sm:h-10 sm:w-10 text-red-500" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M9 12h6m-6 4h6M9 8h.01M15 8h.01" />
-                <path d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5z" />
-              </svg>
-            </div>
-
-            <h1 className="relative mt-6 sm:mt-8 text-2xl sm:text-4xl lg:text-5xl font-semibold text-slate-800">
+            <h1 className="relative mt-6 text-2xl font-semibold text-slate-800">
               Certificate Not Yet Available
             </h1>
-
-            <p className="relative mx-auto mt-4 sm:mt-5 max-w-2xl text-sm sm:text-lg leading-6 sm:leading-8 text-slate-500">
+            <p className="relative mx-auto mt-4 max-w-2xl text-sm text-slate-500">
               {error}
             </p>
-
-            <div className="relative mt-6 sm:mt-8 rounded-2xl border border-slate-100 bg-slate-50 px-4 sm:px-5 py-3 sm:py-4 text-xs sm:text-sm text-slate-500">
-              Your internship completion certificate will appear here once it has been issued by your organization.
-            </div>
-
-            <div className="relative mt-8 sm:mt-10">
+            <div className="relative mt-8">
               <button
                 onClick={() => navigate(-1)}
-                className="rounded-2xl bg-red-600 px-6 sm:px-8 py-3 sm:py-4 font-semibold text-white shadow-lg shadow-red-200 transition hover:bg-red-700 text-sm sm:text-base"
+                className="rounded-2xl bg-red-600 px-6 py-3 font-semibold text-white transition hover:bg-red-700 text-sm cursor-pointer"
               >
                 Go Back
               </button>
@@ -349,51 +311,62 @@ export default function InternshipCertificatePage() {
     return null;
   }
 
+  if (templateData) {
+    return (
+      <DashboardLayout>
+        <div className="bg-slate-100 min-h-screen -m-6 p-4 sm:p-8 space-y-6">
+          <DocumentHeader
+            title="Internship Certificate"
+            subtitle="View your official internship completion certificate."
+            docType="internship"
+            certificateId={certificate.certificateId}
+          />
+
+          <FabricCertificateRenderer
+            templateData={templateData}
+            studentData={{
+              studentName: certificate.studentName,
+              course: certificate.course,
+              role: certificate.role,
+              certificateId: certificate.certificateId,
+              issueDate: certificate.issueDate,
+              startDate: certificate.startDate,
+              endDate: certificate.endDate,
+              organization: certificate.organization,
+              mentor: certificate.mentor,
+              director: certificate.director,
+              email: certificate.email || "",
+            }}
+            hideHeader={true}
+          />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   const { description, plainDescription } = getCourseContent(certificate);
 
   return (
     <DashboardLayout>
-      <div className="bg-slate-100 min-h-screen -m-6 p-4 sm:p-8">
-        {/* Header */}
-      <div className="relative overflow-hidden bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200 p-5 sm:p-8 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-5">
-  <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-red-500/10 via-orange-400/5 to-transparent pointer-events-none" />
+      <div className="bg-slate-100 min-h-screen -m-6 p-4 sm:p-8 space-y-6">
+        <DocumentHeader
+          title="Internship Certificate"
+          subtitle="View your internship completion certificate and download it as an image."
+          docType="internship"
+          certificateId={certificate.certificateId}
+          actions={
+            <button
+              onClick={downloadCertificateImage}
+              disabled={downloadingImage}
+              className="bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white px-5 sm:px-7 py-2.5 sm:py-3.5 rounded-xl flex items-center justify-center gap-2 sm:gap-3 transition text-sm font-medium shadow-lg shadow-red-200 cursor-pointer"
+            >
+              <Download size={18} />
+              {downloadingImage ? "Preparing..." : "Download Image"}
+            </button>
+          }
+        />
 
-  <div className="relative">
-    <button
-      onClick={() => navigate(-1)}
-      className="flex items-center gap-2 text-red-600 hover:text-red-700 mb-4 sm:mb-5 transition text-sm sm:text-base font-medium"
-    >
-      <ArrowLeft size={18} />
-      Back
-    </button>
-
-    <div className="flex items-center gap-3 sm:gap-4">
-      <div className="flex h-11 w-11 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-red-50 to-orange-100 shadow-inner">
-        <Award className="h-5 w-5 sm:h-7 sm:w-7 text-red-600" />
-      </div>
-      <div>
-        <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold text-slate-900">
-          Internship Certificate
-        </h1>
-        <p className="text-slate-500 mt-1 text-xs sm:text-base">
-          View your internship completion certificate and download it as an image.
-        </p>
-      </div>
-    </div>
-  </div>
-
-  <button
-    onClick={downloadCertificateImage}
-    disabled={downloadingImage}
-    className="relative bg-red-600 hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed text-white px-5 sm:px-7 py-2.5 sm:py-3.5 rounded-xl flex items-center justify-center gap-2 sm:gap-3 transition text-sm sm:text-base font-medium shadow-lg shadow-red-200 self-start sm:self-auto"
-  >
-    <Download size={18} />
-    {downloadingImage ? "Preparing..." : "Download Image"}
-  </button>
-</div>
-
-        {/* Certificate */}
-        <div className="mt-6 sm:mt-8 bg-white rounded-2xl sm:rounded-3xl shadow-lg border p-3 sm:p-6">
+        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-lg border p-3 sm:p-6">
           <div style={outerStyle} ref={outerRef}>
             <div
               id="certificate"
@@ -413,7 +386,6 @@ export default function InternshipCertificatePage() {
                 borderRadius: "clamp(6px, 1cqw, 14px)",
               }}
             >
-              {/* Certificate ID value */}
               <div
                 data-cqw-font
                 style={{
@@ -423,7 +395,6 @@ export default function InternshipCertificatePage() {
                   fontSize: "clamp(8px, 1.15cqw, 17px)",
                   fontWeight: 700,
                   letterSpacing: "0.4px",
-                  // color: "#0f172a",
                   color: "#081F5C",
                   whiteSpace: "nowrap",
                 }}
@@ -431,7 +402,6 @@ export default function InternshipCertificatePage() {
                 {certificate.certificateId}
               </div>
 
-              {/* Issue Date value */}
               <div
                 data-cqw-font
                 style={{
@@ -441,7 +411,6 @@ export default function InternshipCertificatePage() {
                   fontSize: "clamp(8px, 1.15cqw, 17px)",
                   fontWeight: 700,
                   letterSpacing: "0.2px",
-                  // color: "#0f172a",
                   color: "#081F5C",
                   whiteSpace: "nowrap",
                 }}
@@ -449,7 +418,6 @@ export default function InternshipCertificatePage() {
                 {certificate.issueDate}
               </div>
 
-              {/* Student Name — sits just above the blank underline */}
               <div
                 data-cqw-font
                 style={{
@@ -461,9 +429,7 @@ export default function InternshipCertificatePage() {
                   textAlign: "center",
                   fontSize: "clamp(15px, 3cqw, 48px)",
                   fontWeight: 700,
-                  
                   color: "#081F5C",
-                  // color: "#223B72",
                   fontFamily: "'Great Vibes', 'Brush Script MT', cursive",
                   lineHeight: 1.5,
                 }}
@@ -471,7 +437,6 @@ export default function InternshipCertificatePage() {
                 {certificate.studentName?.trim()}
               </div>
 
-              {/* Body — course-specific description */}
               <div
                 data-cqw-font
                 style={{
@@ -490,8 +455,6 @@ export default function InternshipCertificatePage() {
                 }}
               >
                 {description}
-                <br />
-                <br />
               </div>
             </div>
           </div>

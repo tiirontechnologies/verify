@@ -55,3 +55,50 @@ input[type="reset"] {
 .hero-float {
   animation: float 5s ease-in-out infinite;
 }
+
+html.theme-dark {
+  color-scheme: dark;
+  background: #101216;
+  color: #f1f5f9;
+}
+
+html.theme-dark body {
+  background: #101216;
+  color: #f1f5f9;
+}
+
+html.theme-dark .bg-white,
+html.theme-dark .bg-slate-50,
+html.theme-dark .bg-gray-50 {
+  background-color: #191c22;
+}
+
+html.theme-dark .bg-slate-100,
+html.theme-dark .bg-gray-100 {
+  background-color: #242831;
+}
+
+html.theme-dark .text-slate-900,
+html.theme-dark .text-slate-800,
+html.theme-dark .text-gray-900,
+html.theme-dark .text-gray-800 {
+  color: #f1f5f9;
+}
+
+html.theme-dark .text-slate-700,
+html.theme-dark .text-slate-600,
+html.theme-dark .text-gray-700,
+html.theme-dark .text-gray-600 {
+  color: #cbd5e1;
+}
+
+html.theme-dark .text-slate-500,
+html.theme-dark .text-gray-500 {
+  color: #94a3b8;
+}
+
+html.theme-dark .border-slate-100,
+html.theme-dark .border-slate-200,
+html.theme-dark .border-gray-200 {
+  border-color: #30343d;
+}

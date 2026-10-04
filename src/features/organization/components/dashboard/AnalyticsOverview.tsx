@@ -8,17 +8,40 @@ import {
   YAxis,
 } from "recharts";
 
-const analyticsData = [
-  { day: "Mon", uploads: 22 },
-  { day: "Tue", uploads: 38 },
-  { day: "Wed", uploads: 31 },
-  { day: "Thu", uploads: 52 },
-  { day: "Fri", uploads: 61 },
-  { day: "Sat", uploads: 46 },
-  { day: "Sun", uploads: 74 },
-];
+interface AnalyticsOverviewProps {
+  certificates?: any[];
+}
 
-export default function AnalyticsOverview() {
+export default function AnalyticsOverview({
+  certificates = [],
+}: AnalyticsOverviewProps) {
+  // Aggregate certificate generation counts for the last 7 days
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  const last7DaysData = Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    const dayName = days[d.getDay()];
+
+    // Count certificates created on this date
+    const count = certificates.filter((cert) => {
+      if (!cert.createdAt) return false;
+      const certDate = new Date(cert.createdAt);
+      return (
+        certDate.getDate() === d.getDate() &&
+        certDate.getMonth() === d.getMonth() &&
+        certDate.getFullYear() === d.getFullYear()
+      );
+    }).length;
+
+    return {
+      day: dayName,
+      uploads: count,
+    };
+  });
+
+  const totalWeekly = last7DaysData.reduce((acc, curr) => acc + curr.uploads, 0);
+
   return (
     <section className="rounded-3xl border border-gray-200 bg-white shadow-sm">
       <div className="flex flex-col gap-6 border-b border-gray-100 p-6 lg:flex-row lg:items-center lg:justify-between">
@@ -32,29 +55,28 @@ export default function AnalyticsOverview() {
           </h2>
 
           <p className="mt-2 text-gray-500">
-            Student uploads and certificate generation during the
-            last 7 days.
+            Real student uploads and certificate generations over the last 7 days.
           </p>
         </div>
 
         <div className="flex gap-8">
           <div>
             <p className="text-sm text-gray-500">
-              This Week
+              Last 7 Days Total
             </p>
 
-            <h3 className="mt-1 text-3xl font-bold">
-              324
+            <h3 className="mt-1 text-3xl font-bold text-slate-900">
+              {totalWeekly}
             </h3>
           </div>
 
           <div>
             <p className="text-sm text-gray-500">
-              Growth
+              Database Status
             </p>
 
             <h3 className="mt-1 text-3xl font-bold text-green-600">
-              +18%
+              Active
             </h3>
           </div>
         </div>
@@ -62,7 +84,7 @@ export default function AnalyticsOverview() {
 
       <div className="h-[360px] p-6">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={analyticsData}>
+          <AreaChart data={last7DaysData}>
             <defs>
               <linearGradient
                 id="uploadGradient"
@@ -99,6 +121,7 @@ export default function AnalyticsOverview() {
             <YAxis
               tickLine={false}
               axisLine={false}
+              allowDecimals={false}
             />
 
             <Tooltip />

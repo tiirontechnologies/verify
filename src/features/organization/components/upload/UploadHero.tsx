@@ -1,6 +1,29 @@
-import { Download, UploadCloud } from "lucide-react";
+import { useState } from "react";
+import { Download, UploadCloud, Loader2 } from "lucide-react";
+import { organizationApi } from "../../../../api/organization.api";
 
 export default function UploadHero() {
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownloadSample = async () => {
+    try {
+      setDownloading(true);
+      const response = await organizationApi.downloadSampleTemplate();
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "Student_Certificate_Import_Template.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to download sample template:", err);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <section className="rounded-3xl border border-gray-200 bg-white shadow-sm">
       <div className="flex flex-col gap-6 p-8 lg:flex-row lg:items-center lg:justify-between">
@@ -21,9 +44,17 @@ export default function UploadHero() {
           </p>
         </div>
 
-        <button className="inline-flex items-center justify-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-6 py-3 font-medium text-red-600 transition hover:bg-red-100">
-          <Download size={18} />
-          Download Sample Excel
+        <button
+          onClick={handleDownloadSample}
+          disabled={downloading}
+          className="inline-flex items-center justify-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-6 py-3 font-semibold text-red-600 transition hover:bg-red-100 shadow-sm disabled:opacity-60"
+        >
+          {downloading ? (
+            <Loader2 size={18} className="animate-spin" />
+          ) : (
+            <Download size={18} />
+          )}
+          {downloading ? "Downloading..." : "Download Sample Excel"}
         </button>
       </div>
     </section>

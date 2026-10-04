@@ -151,7 +151,7 @@ const removeSkill = (index: number) => {
       });
       toast.success("Your profile has been updated successfully.");
 
-    } catch (error) {
+    } catch {
 
       toast.error("Unable to update your profile. Please try again.");
 

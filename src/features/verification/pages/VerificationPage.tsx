@@ -1,11 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import jsPDF from "jspdf";
+import { toCanvas } from "html-to-image";
+import toast from "react-hot-toast";
 
 import Navbar from "../../landing/components/Navbar";
 import Footer from "../../../components/shared/Footer";
 
 import VerificationHero from "../components/VerificationHero";
-const VerificationHeroAny = VerificationHero as any;
 
 import CandidateCard from "../components/CandidateCard";
 import StatusCard from "../components/StatusCard";
@@ -15,103 +17,167 @@ import AvailableCertificates from "../components/AvailableCertificates";
 import { verifyCertificate } from "../../../api/certificate.api";
 import type { CertificateData } from "../../../types/certificate";
 
-export default function VerificationPage() {
+// ISO date -> "30/09/2026", invalid/missing ho to empty string
+const fmtDate = (iso?: string): string => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? "" : d.toLocaleDateString("en-GB");
+};
 
+export default function VerificationPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [certificate, setCertificate] =
-    useState<CertificateData | null>(null);
-
+  const [certificate, setCertificate] = useState<CertificateData | null>(null);
+  const [certList, setCertList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const fetchCertificate = async () => {
+      try {
+        const raw: any = await verifyCertificate(id!);
 
-const fetchCertificate = async () => {
+        // axios response, {success, data} body, ya seedha object: teeno handle
+        const body = raw?.data ?? raw;
+        const data = body?.data ?? body;
 
-  try {
+        if (!data || body?.success === false) {
+          throw new Error(body?.message || "Certificate not found");
+        }
 
-    const response = await verifyCertificate(id!);
+        setCertificate({
+          id: data._id,
+          type: data.certificateType, // dynamic, backend se
+          studentName: data.studentName,
+          email: data.email,
+          certificateId: data.certificateId,
+          organization: data.organization,
+          course: data.course,
+          role: data.role,
+          issueDate: fmtDate(data.issueDate),
+          startDate: fmtDate(data.startDate),
+          endDate: fmtDate(data.endDate),
+          mentor: data.mentor,
+          director: data.director,
+          qrCode: data.qrCode || "../../assets/qrcode_inacademic.com.png",
+          status: data.status,
+        } as CertificateData);
 
-    const data = response?.data || response;
+        // AvailableCertificates ke liye raw data (ISO date ke saath)
+        setCertList([
+          {
+            _id: data._id,
+            certificateId: data.certificateId,
+            certificateType: data.certificateType,
+            organization: data.organization,
+            course: data.course,
+            role: data.role,
+            issueDate: data.issueDate,
+          },
+        ]);
+      } catch (error: any) {
+        console.error("ERROR:", error);
 
-    if (!data || data?.success === false) {
-      throw new Error(data?.message || "Certificate not found");
-    }
+        if (error.response) {
+          console.error("Status:", error.response.status);
+          console.error("Body:", error.response.data);
+        }
 
-    setCertificate({
+        const status = error.response?.status;
+        const backendMessage = error.response?.data?.message || error.message;
 
-      id: data._id,
+        navigate("/verification-failed", {
+          replace: true,
+          state: {
+            verificationId: id,
+            message:
+              status === 404 || /not found/i.test(backendMessage || "")
+                ? "Certificate not found"
+                : backendMessage ||
+                  "The verification ID you entered is invalid or does not exist.",
+          },
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      type: "internship",
-
-      studentName: data.studentName,
-
-      email: data.email,
-
-      certificateId: data.certificateId,
-
-      organization: data.organization,
-
-      course: data.course,
-
-      role: data.role,
-
-      issueDate: new Date(data.issueDate).toLocaleDateString("en-GB"),
-
-      startDate: new Date(data.startDate).toLocaleDateString("en-GB"),
-
-      endDate: new Date(data.endDate).toLocaleDateString("en-GB"),
-
-      mentor: data.mentor,
-
-      director: data.director,
-
-      qrCode: data.qrCode || "../../assets/qrcode_inacademic.com.png",
-
-      status: data.status,
-
-    });
-
-  } catch (error: any) {
-
-    console.error("ERROR:", error);
-
-    if (error.response) {
-      console.error("Status:", error.response.status);
-      console.error("Body:", error.response.data);
-    }
-
-    const status = error.response?.status;
-    const backendMessage = error.response?.data?.message || error.message;
-
-    navigate("/verification-failed", {
-      replace: true,
-      state: {
-        verificationId: id,
-        message:
-          status === 404 || /not found/i.test(backendMessage || "")
-            ? "Certificate not found"
-            : backendMessage ||
-              "The verification ID you entered is invalid or does not exist.",
-      },
-    });
-
-  } finally {
-
-    setLoading(false);
-
-  }
-
-};
     fetchCertificate();
-
   }, [id, navigate]);
 
-  if (loading) {
+  const downloadVerificationReport = async () => {
+    if (!reportRef.current || !certificate) return;
+    setDownloading(true);
 
+    try {
+      const image = await toCanvas(reportRef.current, {
+        pixelRatio: 2,
+        cacheBust: true,
+        backgroundColor: "#F8FAFC",
+        filter: (node) => !(node instanceof HTMLElement && node.hasAttribute("data-html2canvas-ignore")),
+      });
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 8;
+      const contentWidth = pageWidth - margin * 2;
+      const pixelsPerMm = image.width / contentWidth;
+      const pageSliceHeight = Math.floor((pageHeight - margin * 2) * pixelsPerMm);
+      let sourceY = 0;
+
+      while (sourceY < image.height) {
+        const sliceHeight = Math.min(pageSliceHeight, image.height - sourceY);
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = image.width;
+        pageCanvas.height = sliceHeight;
+        const context = pageCanvas.getContext("2d");
+        if (!context) throw new Error("Unable to prepare the report for download.");
+        context.drawImage(image, 0, sourceY, image.width, sliceHeight, 0, 0, image.width, sliceHeight);
+
+        if (sourceY > 0) pdf.addPage();
+        pdf.addImage(
+          pageCanvas.toDataURL("image/png"),
+          "PNG",
+          margin,
+          margin,
+          contentWidth,
+          sliceHeight / pixelsPerMm,
+        );
+        sourceY += sliceHeight;
+      }
+
+      pdf.save(`${certificate.certificateId || id || "verification"}-report.pdf`);
+    } catch (error) {
+      console.error("Verification report download failed:", error);
+      toast.error("Could not create the PDF. Please try again.");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const shareVerification = async () => {
+    const url = window.location.href;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Verified credential", url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        window.alert("Verification link copied to clipboard.");
+      }
+    } catch (error) {
+      if ((error as DOMException).name !== "AbortError") {
+        console.error("Verification link share failed:", error);
+      }
+    }
+  };
+
+  if (loading) {
     return (
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#fff7f7_0%,_#f8fafc_55%,_#f1f5f9_100%)] flex items-center justify-center px-6 py-20">
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#fff7f7_0%,_#f8fafc_55%,_#f1f5f9_100%)]">
+        <Navbar />
+        <main className="flex min-h-[calc(100vh-64px)] items-center justify-center px-6 py-20">
         <div className="relative w-full max-w-2xl overflow-hidden rounded-[32px] border border-slate-200 bg-white/90 p-10 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur-sm text-center">
           <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-red-500/10 via-red-400/5 to-transparent"></div>
 
@@ -138,9 +204,9 @@ const fetchCertificate = async () => {
             Secure verification in progress · checking certificate authenticity
           </div>
         </div>
+        </main>
       </div>
     );
-
   }
 
   if (!certificate) {
@@ -149,58 +215,29 @@ const fetchCertificate = async () => {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
-
       <Navbar />
+      <div className="mx-auto max-w-[210mm] px-3 pt-4 sm:px-5 lg:px-0">
+        <div ref={reportRef} className="mx-auto min-h-[297mm] space-y-5 border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8">
+          <VerificationHero verificationId={id ?? ""} downloading={downloading} onDownload={downloadVerificationReport} onShare={shareVerification} />
 
-      {/* Hero */}
+          <main>
+            <div className="grid grid-cols-1 gap-5 lg:gap-6">
+              <div className="space-y-5">
+                <CandidateCard certificate={certificate} />
+                <AvailableCertificates certificates={certList} />
+              </div>
 
-      <div className="max-w-[1650px] mx-auto px-6 lg:px-10 pt-8">
-
-        <VerificationHeroAny
-          verificationId={id ?? ""}
-        />
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <StatusCard certificate={certificate} />
+                <VerificationSummary certificate={certificate} />
+              </div>
+            </div>
+          </main>
+        </div>
 
       </div>
 
-      {/* Main */}
-
-      <main className="max-w-[1650px] mx-auto px-6 lg:px-10 py-8">
-
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-
-          {/* Left */}
-
-          <div className="xl:col-span-8 space-y-8">
-
-            <CandidateCard
-              certificate={certificate}
-            />
-
-            <AvailableCertificates />
-
-          </div>
-
-          {/* Right */}
-
-          <div className="xl:col-span-4 space-y-6">
-
-            <StatusCard
-              certificate={certificate}
-            />
-
-            <VerificationSummary
-              certificate={certificate}
-            />
-
-          </div>
-
-        </div>
-
-      </main>
-
       <Footer />
-
     </div>
   );
-
 }

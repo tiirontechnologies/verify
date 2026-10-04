@@ -2,7 +2,7 @@ export interface CertificateData {
 
     id: string;
 
-    type: "internship" | "training";
+    type: string;
 
     studentName: string;
 

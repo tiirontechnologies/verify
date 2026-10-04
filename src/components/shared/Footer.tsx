@@ -1,19 +1,19 @@
-﻿import { ExternalLink, Mail, MapPin, Phone, Share2 } from "lucide-react";
+import { ExternalLink, Mail, MapPin, Phone, Share2 } from "lucide-react";
 import { FaFacebookF, FaInstagram, FaLinkedinIn, FaTwitter } from "react-icons/fa";
 import logo from "../../assets/Tiiron_Technologies_Logo.png";
 
 const quickLinks = [
   { label: "Our Products", href: "https://tiirontechnologies.com/products" },
   { label: "Services Offered", href: "https://tiirontechnologies.com/services" },
-  { label: "Help & Support", href: "https://tiirontechnologies.com/help" },
+  { label: "Help & Support", href: "/help-support" },
   { label: "Request a Demo", href: "/book-demo" },
 ];
 
 const solutionLinks = [
-  { label: "Tiiron LMS", href: "https://www.tiiron.com/", external: true  },
-  { label: "Tiiron ERP", href: "https://erp.tiiron.com/", external: true  },
-  { label: "Inacademic", href: "https://inacademic.com/", external: true  },
-  { label: "Tiiron Academy", href: "https://academy.tiiron.com/", external: true  },
+  { label: "Tiiron LMS", href: "https://www.tiiron.com/", external: true },
+  { label: "Tiiron ERP", href: "https://erp.tiiron.com/", external: true },
+  { label: "Inacademic", href: "https://inacademic.com/", external: true },
+  { label: "Tiiron Academy", href: "https://academy.tiiron.com/", external: true },
 ];
 
 const companyLinks = [
@@ -72,10 +72,10 @@ export default function Footer() {
               gap-x-10
               gap-y-10
             "
-          >
+        >
           <div>
             <img src={logo} alt="Tiiron Technologies Logo" className="h-11 w-auto" />
-            <p className="mt-3 max-w-md text-base leading-6" style={{color: "#787773"}}>
+            <p className="mt-3 max-w-md text-base leading-6" style={{ color: "#787773" }}>
               Empowering institutions with AI powered products, enterprise software,
               and intelligent technologies that transform learning and drive
               innovation.
