@@ -5,6 +5,10 @@ import "./index.css";
 import App from "./App";
 import { SidebarProvider } from "./context/SidebarContext";
 
+if (localStorage.getItem("verify-theme") === "dark") {
+  document.documentElement.classList.add("theme-dark");
+}
+
 createRoot(document.getElementById("root")!).render(
   <SidebarProvider>
     <App />

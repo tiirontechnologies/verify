@@ -1,7 +1,10 @@
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck, Download, Share2 } from "lucide-react";
 
 type Props = {
   verificationId: string;
+  downloading?: boolean;
+  onDownload: () => void;
+  onShare: () => void;
 };
 
 /* Saari animations page load pe ek baar chalti hain. Config me kuch add nahi karna. */
@@ -41,7 +44,7 @@ const styles = `
 }
 `;
 
-export default function VerificationHero({ verificationId }: Props) {
+export default function VerificationHero({ verificationId, downloading, onDownload, onShare }: Props) {
   return (
     <section className="vh-rise relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#4A1B24] via-[#8E1C22] to-[#401720] shadow-xl ring-1 ring-white/10">
       <style>{styles}</style>
@@ -97,14 +100,19 @@ export default function VerificationHero({ verificationId }: Props) {
         </div>
 
         {/* Verification ID */}
-        <div
-          className="vh-rise w-full max-w-sm rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-center backdrop-blur-xl sm:text-left lg:w-auto lg:min-w-[280px]"
-          style={{ animationDelay: "0.5s" }}
-        >
-          <p className="text-xs font-medium text-red-200">Verification ID</p>
-          <p className="mt-1 break-all font-mono text-sm font-semibold tracking-wide text-white sm:text-base">
-            {verificationId}
-          </p>
+        <div className="vh-rise flex w-full max-w-sm flex-col gap-3 lg:w-auto lg:min-w-[280px]" style={{ animationDelay: "0.5s" }}>
+          <div className="rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-center backdrop-blur-xl sm:text-left">
+            <p className="text-xs font-medium text-red-200">Verification ID</p>
+            <p className="mt-1 break-all font-mono text-sm font-semibold text-white sm:text-base">{verificationId}</p>
+          </div>
+          <div className="grid grid-cols-2 gap-2" data-html2canvas-ignore="true">
+            <button type="button" onClick={onDownload} disabled={downloading} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-semibold text-red-800 transition hover:bg-red-50 disabled:opacity-60">
+              <Download size={16} /> {downloading ? "Preparing..." : "Download"}
+            </button>
+            <button type="button" onClick={onShare} className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-white/30 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/10">
+              <Share2 size={16} /> Share
+            </button>
+          </div>
         </div>
       </div>
     </section>
