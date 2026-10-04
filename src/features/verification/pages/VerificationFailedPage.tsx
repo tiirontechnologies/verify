@@ -1,8 +1,11 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Search } from "lucide-react";
 
 export default function VerificationFailedPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [verificationId, setVerificationId] = useState("");
   const message =
     (location.state as { message?: string } | null)?.message ||
     "The verification details provided do not match any certificate in our records.";
@@ -31,19 +34,39 @@ export default function VerificationFailedPage() {
           Please verify the ID carefully, or contact the issuer for a fresh verification ID if needed.
         </div>
 
-        <div className="relative mt-10 flex flex-col justify-center gap-4 sm:flex-row">
+        <form
+          className="relative mx-auto mt-8 flex w-full max-w-xl flex-col gap-3 sm:flex-row"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const id = verificationId.trim();
+            if (id) navigate(`/verification/${encodeURIComponent(id)}`);
+          }}
+        >
+          <label className="flex min-w-0 flex-1 items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-left">
+            <Search size={18} className="shrink-0 text-slate-400" />
+            <input
+              value={verificationId}
+              onChange={(event) => setVerificationId(event.target.value)}
+              placeholder="Enter another verification ID"
+              aria-label="Another verification ID"
+              className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+            />
+          </label>
+          <button
+            type="submit"
+            disabled={!verificationId.trim()}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-6 py-3 font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Search size={17} /> Verify ID
+          </button>
+        </form>
+
+        <div className="relative mt-5 flex justify-center">
           <button
             onClick={() => navigate("/")}
-            className="rounded-2xl bg-red-600  px-8 py-4 font-semibold text-white shadow-lg shadow-red-200 transition hover:bg-red-700"
+            className="rounded-xl border border-slate-200 bg-white px-6 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
           >
             Go Home
-          </button>
-
-          <button
-            onClick={() => navigate("/")}
-            className="rounded-2xl border border-red-200 bg-red-50 px-8 py-4 font-semibold text-red-600 transition hover:bg-red-100"
-          >
-            Verify Another ID
           </button>
         </div>
       </div>

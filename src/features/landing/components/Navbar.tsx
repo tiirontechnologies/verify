@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ChevronDown, Menu, X, User, LogOut } from "lucide-react";
 import logo from "../../../assets/Tiiron_Technologies_Logo.png";
 import api from "../../../api/axios";
+import { getCurrentUser } from "../../../api/auth.api";
 
 const mainLinks = [
   { label: "Home", href: "/" },
@@ -14,7 +15,7 @@ const mainLinks = [
 const exploreLinks = [
   { label: "Pricing", href: "https://tiirontechnologies.com/pricing" },
   { label: "Testimonials", href: "https://tiirontechnologies.com/comingsoon" },
-  { label: "Help & Support", href: "https://tiirontechnologies.com/help" },
+  { label: "Help & Support", href: "/help-support" },
   { label: "Book a Demo", href: "/book-demo" },
 ];
 
@@ -34,6 +35,29 @@ export default function Navbar() {
   });
 
   useEffect(() => {
+    let active = true;
+    getCurrentUser()
+      .then((response) => {
+        if (!active) return;
+        const currentUser =
+          response?.userRedirect?.user || response?.userRedirect || response?.user?.user || response?.user || response?.data?.user || response?.data || response;
+        if (currentUser?.role || currentUser?.roleId || currentUser?.name || currentUser?.email) {
+          setUser(currentUser);
+          localStorage.setItem("user", JSON.stringify(currentUser));
+        } else {
+          setUser(null);
+          sessionStorage.removeItem("user");
+          localStorage.removeItem("user");
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setUser(null);
+          sessionStorage.removeItem("user");
+          localStorage.removeItem("user");
+        }
+      });
+
     const syncUser = () => {
       try {
         setUser(
@@ -46,10 +70,13 @@ export default function Navbar() {
       }
     };
     window.addEventListener("storage", syncUser);
-    return () => window.removeEventListener("storage", syncUser);
+    return () => {
+      active = false;
+      window.removeEventListener("storage", syncUser);
+    };
   }, []);
 
-  const profilePath = user?.role === "admin" ? "/organization/profile" : "/student/profile";
+  const profilePath = user?.role === "admin" || user?.roleId === "admin" ? "/organization/profile" : "/student/profile";
   const handleLogout = async () => {
     try {
       await api.post("/api/auth/logout", {});
@@ -107,7 +134,7 @@ export default function Navbar() {
             {user ? (
               <>
                 <a href={profilePath} className="hidden md:inline-flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:border-[#ef233c] hover:text-[#ef233c]">
-                  <User size={17} /> {user.name || "Profile"}
+                  <User size={17} /> {user.name || user.email || "Profile"}
                 </a>
                 <button type="button" onClick={handleLogout} title="Log out" aria-label="Log out" className="hidden md:inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-300 text-red-600 transition hover:border-red-600 hover:bg-red-50">
                   <LogOut size={18} />
@@ -158,7 +185,7 @@ export default function Navbar() {
             {mobileExploreOpen && (
               <div className="rounded-xl border border-slate-200 bg-white">
                 {exploreLinks.map((item) => (
-                  <a key={item.label} href={item.href} className="block px-4 py-3 text-base font-medium text-slate-900 transition hover:bg-slate-50 hover:text-[#ef233c]">
+                  <a key={item.label} href={item.href} onClick={() => setOpen(false)} className="block px-4 py-3 text-base font-medium text-slate-900 transition hover:bg-slate-50 hover:text-[#ef233c]">
                     {item.label}
                   </a>
                 ))}

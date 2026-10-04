@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Download } from "lucide-react";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import { toCanvas } from "html-to-image";
+import toast from "react-hot-toast";
 
 import Navbar from "../../landing/components/Navbar";
 import Footer from "../../../components/shared/Footer";
 
 import VerificationHero from "../components/VerificationHero";
-const VerificationHeroAny = VerificationHero as any;
 
 import CandidateCard from "../components/CandidateCard";
 import StatusCard from "../components/StatusCard";
@@ -113,31 +112,64 @@ export default function VerificationPage() {
     setDownloading(true);
 
     try {
-      const image = await html2canvas(reportRef.current, {
-        scale: 2,
-        useCORS: true,
+      const image = await toCanvas(reportRef.current, {
+        pixelRatio: 2,
+        cacheBust: true,
         backgroundColor: "#F8FAFC",
+        filter: (node) => !(node instanceof HTMLElement && node.hasAttribute("data-html2canvas-ignore")),
       });
-      const orientation = image.width >= image.height ? "landscape" : "portrait";
-      const pdf = new jsPDF({ orientation, unit: "mm", format: "a4" });
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       const margin = 8;
-      const scale = Math.min(
-        (pageWidth - margin * 2) / image.width,
-        (pageHeight - margin * 2) / image.height,
-      );
-      const width = image.width * scale;
-      const height = image.height * scale;
-      const x = (pageWidth - width) / 2;
-      const y = (pageHeight - height) / 2;
+      const contentWidth = pageWidth - margin * 2;
+      const pixelsPerMm = image.width / contentWidth;
+      const pageSliceHeight = Math.floor((pageHeight - margin * 2) * pixelsPerMm);
+      let sourceY = 0;
 
-      pdf.addImage(image.toDataURL("image/png"), "PNG", x, y, width, height);
+      while (sourceY < image.height) {
+        const sliceHeight = Math.min(pageSliceHeight, image.height - sourceY);
+        const pageCanvas = document.createElement("canvas");
+        pageCanvas.width = image.width;
+        pageCanvas.height = sliceHeight;
+        const context = pageCanvas.getContext("2d");
+        if (!context) throw new Error("Unable to prepare the report for download.");
+        context.drawImage(image, 0, sourceY, image.width, sliceHeight, 0, 0, image.width, sliceHeight);
+
+        if (sourceY > 0) pdf.addPage();
+        pdf.addImage(
+          pageCanvas.toDataURL("image/png"),
+          "PNG",
+          margin,
+          margin,
+          contentWidth,
+          sliceHeight / pixelsPerMm,
+        );
+        sourceY += sliceHeight;
+      }
+
       pdf.save(`${certificate.certificateId || id || "verification"}-report.pdf`);
     } catch (error) {
       console.error("Verification report download failed:", error);
+      toast.error("Could not create the PDF. Please try again.");
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const shareVerification = async () => {
+    const url = window.location.href;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Verified credential", url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        window.alert("Verification link copied to clipboard.");
+      }
+    } catch (error) {
+      if ((error as DOMException).name !== "AbortError") {
+        console.error("Verification link share failed:", error);
+      }
     }
   };
 
@@ -184,29 +216,18 @@ export default function VerificationPage() {
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       <Navbar />
-      <div className="mx-auto max-w-[1650px] px-4 pt-4 sm:px-6 lg:px-10">
-        <div className="mt-4 flex justify-end">
-          <button
-            type="button"
-            onClick={downloadVerificationReport}
-            disabled={downloading}
-            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 transition hover:border-red-400 hover:bg-red-50 disabled:cursor-wait disabled:opacity-60"
-          >
-            <Download size={16} /> {downloading ? "Preparing PDF..." : "Download report"}
-          </button>
-        </div>
-
-        <div ref={reportRef} className="space-y-5 pb-6 pt-4 lg:space-y-8 lg:pb-8">
-          <VerificationHeroAny verificationId={id ?? ""} />
+      <div className="mx-auto max-w-[210mm] px-3 pt-4 sm:px-5 lg:px-0">
+        <div ref={reportRef} className="mx-auto min-h-[297mm] space-y-5 border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-8">
+          <VerificationHero verificationId={id ?? ""} downloading={downloading} onDownload={downloadVerificationReport} onShare={shareVerification} />
 
           <main>
-            <div className="grid grid-cols-1 gap-5 lg:gap-8 xl:grid-cols-12">
-              <div className="space-y-5 xl:col-span-8 lg:space-y-8">
+            <div className="grid grid-cols-1 gap-5 lg:gap-6">
+              <div className="space-y-5">
                 <CandidateCard certificate={certificate} />
                 <AvailableCertificates certificates={certList} />
               </div>
 
-              <div className="space-y-5 xl:col-span-4 lg:space-y-6">
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <StatusCard certificate={certificate} />
                 <VerificationSummary certificate={certificate} />
               </div>
