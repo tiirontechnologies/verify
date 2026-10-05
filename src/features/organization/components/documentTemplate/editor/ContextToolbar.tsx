@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { Shadow } from "fabric";
 import { useFabric } from "./FabricContext";
 import { FabricToolService } from "./services/FabricToolService";
 import { ImageUploadService } from "./services/ImageUploadService";
@@ -34,15 +33,6 @@ const FONT_FAMILIES = [
   { label: "Arial", value: "Arial" },
 ];
 
-const PRESET_COLORS = [
-  { name: "Navy", color: "#081F5C" },
-  { name: "Red", color: "#ef4444" },
-  { name: "Emerald", color: "#059669" },
-  { name: "Gold", color: "#d97706" },
-  { name: "Charcoal", color: "#1f2937" },
-  { name: "Black", color: "#000000" },
-];
-
 const QUICK_VARS = [
   "{{startDate}}",
   "{{endDate}}",
@@ -64,16 +54,10 @@ export default function ContextToolbar() {
   const [underline, setUnderline] = useState(false);
   const [linethrough, setLinethrough] = useState(false);
   const [textAlign, setTextAlign] = useState("left");
-  const [boxWidth, setBoxWidth] = useState(400);
   const [opacity, setOpacity] = useState(1);
-  const [charSpacing, setCharSpacing] = useState(0);
-  const [lineHeight, setLineHeight] = useState(1.16);
-  const [textBackground, setTextBackground] = useState("#ffffff");
   const [stroke, setStroke] = useState("#000000");
   const [strokeWidth, setStrokeWidth] = useState(0);
   const [cornerRadius, setCornerRadius] = useState(0);
-  const [hasShadow, setHasShadow] = useState(false);
-  const [crop, setCrop] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [geometry, setGeometry] = useState({ x: 0, y: 0, width: 0, height: 0, angle: 0 });
   const [varMenuOpen, setVarMenuOpen] = useState(false);
   const [showMore, setShowMore] = useState(false);
@@ -92,10 +76,6 @@ export default function ContextToolbar() {
         setUnderline(Boolean((activeObject as any).underline));
         setLinethrough(Boolean((activeObject as any).linethrough));
         setTextAlign((activeObject as any).textAlign || "left");
-        setBoxWidth((activeObject as any).width || 400);
-        setCharSpacing((activeObject as any).charSpacing || 0);
-        setLineHeight((activeObject as any).lineHeight || 1.16);
-        setTextBackground((activeObject as any).textBackgroundColor || "#ffffff");
       }
       if ((activeObject as any).fill) {
         setFill(typeof (activeObject as any).fill === "string" ? (activeObject as any).fill : "#000000");
@@ -104,7 +84,6 @@ export default function ContextToolbar() {
       setStroke(typeof activeObject.stroke === "string" ? activeObject.stroke : "#000000");
       setStrokeWidth(activeObject.strokeWidth || 0);
       setCornerRadius(activeObject.rx || 0);
-      setHasShadow(Boolean(activeObject.shadow));
       setGeometry({
         x: Math.round(activeObject.left || 0),
         y: Math.round(activeObject.top || 0),
@@ -112,14 +91,6 @@ export default function ContextToolbar() {
         height: Math.round(activeObject.getScaledHeight?.() || 0),
         angle: Math.round(activeObject.angle || 0),
       });
-      if (activeObject.type === "image") {
-        setCrop({
-          x: Math.round(activeObject.cropX || 0),
-          y: Math.round(activeObject.cropY || 0),
-          width: Math.round(activeObject.width || 0),
-          height: Math.round(activeObject.height || 0),
-        });
-      }
     };
 
     syncProps();
