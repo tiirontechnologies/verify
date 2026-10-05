@@ -65,18 +65,27 @@ export default function VerificationPage() {
           status: data.status,
         } as CertificateData);
 
-        // AvailableCertificates ke liye raw data (ISO date ke saath)
-        setCertList([
-          {
-            _id: data._id,
-            certificateId: data.certificateId,
-            certificateType: data.certificateType,
-            organization: data.organization,
-            course: data.course,
-            role: data.role,
-            issueDate: data.issueDate,
-          },
-        ]);
+        const relatedCertificates = Array.isArray(data.certificates)
+          ? data.certificates
+          : Array.isArray(data.relatedCertificates)
+            ? data.relatedCertificates
+            : [];
+        const reportCertificates = [data, ...relatedCertificates];
+        const uniqueCertificates = reportCertificates.filter((item, index, list) => {
+          const itemId = item.certificateId || item._id;
+          return list.findIndex((candidate) => (candidate.certificateId || candidate._id) === itemId) === index;
+        });
+
+        // AvailableCertificates receives raw records so issue dates remain parseable.
+        setCertList(uniqueCertificates.map((item) => ({
+          _id: item._id,
+          certificateId: item.certificateId,
+          certificateType: item.certificateType,
+          organization: item.organization,
+          course: item.course,
+          role: item.role,
+          issueDate: item.issueDate,
+        })));
       } catch (error: any) {
         console.error("ERROR:", error);
 
@@ -125,27 +134,35 @@ export default function VerificationPage() {
       const contentWidth = pageWidth - margin * 2;
       const pixelsPerMm = image.width / contentWidth;
       const pageSliceHeight = Math.floor((pageHeight - margin * 2) * pixelsPerMm);
-      let sourceY = 0;
+      const availableHeight = pageHeight - margin * 2;
 
-      while (sourceY < image.height) {
-        const sliceHeight = Math.min(pageSliceHeight, image.height - sourceY);
-        const pageCanvas = document.createElement("canvas");
-        pageCanvas.width = image.width;
-        pageCanvas.height = sliceHeight;
-        const context = pageCanvas.getContext("2d");
-        if (!context) throw new Error("Unable to prepare the report for download.");
-        context.drawImage(image, 0, sourceY, image.width, sliceHeight, 0, 0, image.width, sliceHeight);
+      if (certList.length <= 3) {
+        const scale = Math.min(contentWidth / image.width, availableHeight / image.height);
+        const width = image.width * scale;
+        const height = image.height * scale;
+        pdf.addImage(image, "PNG", (pageWidth - width) / 2, (pageHeight - height) / 2, width, height);
+      } else {
+        let sourceY = 0;
+        while (sourceY < image.height) {
+          const sliceHeight = Math.min(pageSliceHeight, image.height - sourceY);
+          const pageCanvas = document.createElement("canvas");
+          pageCanvas.width = image.width;
+          pageCanvas.height = sliceHeight;
+          const context = pageCanvas.getContext("2d");
+          if (!context) throw new Error("Unable to prepare the report for download.");
+          context.drawImage(image, 0, sourceY, image.width, sliceHeight, 0, 0, image.width, sliceHeight);
 
-        if (sourceY > 0) pdf.addPage();
-        pdf.addImage(
-          pageCanvas.toDataURL("image/png"),
-          "PNG",
-          margin,
-          margin,
-          contentWidth,
-          sliceHeight / pixelsPerMm,
-        );
-        sourceY += sliceHeight;
+          if (sourceY > 0) pdf.addPage();
+          pdf.addImage(
+            pageCanvas.toDataURL("image/png"),
+            "PNG",
+            margin,
+            margin,
+            contentWidth,
+            sliceHeight / pixelsPerMm,
+          );
+          sourceY += sliceHeight;
+        }
       }
 
       pdf.save(`${certificate.certificateId || id || "verification"}-report.pdf`);

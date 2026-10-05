@@ -1,5 +1,5 @@
 import DashboardLayout from "../../../layouts/DashboardLayout";
-import { FileCheck } from "lucide-react";
+import { Download, FileCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { getMyCertificate } from "../../../api/certificate.api";
@@ -55,7 +55,7 @@ const outlineBtn =
 
 /* ---------- Card ---------- */
 
-function DocumentCard({ cert, onView }: { cert: Certificate; onView: () => void }) {
+function DocumentCard({ cert, onView, onDownload }: { cert: Certificate; onView: () => void; onDownload: () => void }) {
   const title = formatType(cert.certificateType);
   const style = getTypeStyle(cert.certificateType);
 
@@ -85,9 +85,14 @@ function DocumentCard({ cert, onView }: { cert: Certificate; onView: () => void 
       </div>
 
       <div className="border-t border-gray-100 p-4">
-        <button onClick={onView} className={outlineBtn}>
-          View {title}
-        </button>
+        <div className="flex gap-2">
+          <button type="button" onClick={onView} className={`${outlineBtn} flex-1`}>
+            View {title}
+          </button>
+          <button type="button" onClick={onDownload} title={`Download ${title} PDF`} aria-label={`Download ${title} PDF`} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-700">
+            <Download size={16} /><span className="hidden sm:inline">PDF</span>
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -283,6 +288,9 @@ export default function GenerateCertificatePage() {
                   navigate(
                     `/student/certificates/doc/${cert._id || cert.certificateId}`
                   )
+                }
+                onDownload={() =>
+                  navigate(`/student/certificates/doc/${cert._id || cert.certificateId}?download=1`)
                 }
               />
             ))}

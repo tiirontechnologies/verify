@@ -32,6 +32,7 @@ import OrganizationSignupPage from "./features/auth/pages/OrganizationSignupPage
 import NotFoundPage from "./pages/NotFoundPage";
 import ComingSoon from "./pages/ComingSoon";
 import SubscriptionPage from "./pages/Subscription";
+import DashboardLayout from "./layouts/DashboardLayout";
 import HelpSupportPage from "./pages/HelpandSupport";
 
 // function AuthBootstrap() {
@@ -122,7 +123,11 @@ function App() {
 /> */}
 <Route
   path="/designer"
-  element={<DocumentTemplateDesigner />}
+  element={
+    <ProtectedRoute>
+      <DocumentTemplateDesigner />
+    </ProtectedRoute>
+  }
 />
 
 <Route
@@ -168,7 +173,11 @@ function App() {
 />
 <Route
     path="/designer"
-    element={<DocumentTemplateDesigner />}
+    element={
+      <ProtectedRoute>
+        <DocumentTemplateDesigner />
+      </ProtectedRoute>
+    }
 />
 <Route
   path="/student/settings"
@@ -291,9 +300,11 @@ element={
 <Route
 path="/Subscription"
 element={
-  <SubscriptionPage/>
-      
-  
+  <ProtectedRoute>
+    <DashboardLayout>
+      <SubscriptionPage />
+    </DashboardLayout>
+  </ProtectedRoute>
 }
 />
 

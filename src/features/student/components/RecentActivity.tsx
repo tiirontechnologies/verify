@@ -68,7 +68,7 @@ export default function RecentActivity({id}:RecentActivityProps) {
             setVerificationError("");
             setVerifyModalOpen(true);
           }}
-          className="flex w-full items-center gap-4 text-left text-slate-700 transition hover:text-red-700"
+          className="flex w-full items-center gap-4 text-left transition hover:text-red-700"
         >
           <Search className="text-red-600" />
           <span>Verify another credential</span>

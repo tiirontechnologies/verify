@@ -134,7 +134,7 @@ import Canvas from "./Canvas";
 import ContextToolbar from "./ContextToolbar";
 import PageBar from "./PageBar";
 import { useFabric } from "./FabricContext";
-import { Monitor, ArrowLeft, Eye, AlertTriangle, Layers, Layout } from "lucide-react";
+import { Monitor, ArrowLeft, Eye, AlertTriangle, Layers, Layout, ChevronLeft, ChevronRight, X } from "lucide-react";
 
 interface WorkspaceProps {
   template?: any;
@@ -145,7 +145,7 @@ export default function Workspace({
   template,
   onBack,
 }: WorkspaceProps) {
-  const { activeObject } = useFabric();
+  const { activeObject, pages, activePageId, switchPage, previewMode, setPreviewMode } = useFabric();
   const [showMobileNotice, setShowMobileNotice] = useState(false);
   const [mobileTab, setMobileTab] = useState<"canvas" | "sidebar">("canvas");
 
@@ -157,6 +157,29 @@ export default function Workspace({
     };
     checkMobile();
   }, []);
+
+  if (previewMode) {
+    const activePageIndex = pages.findIndex((page) => page.id === activePageId);
+    return (
+      <div className="fixed inset-0 z-[100] flex flex-col bg-[#e9e9ee]">
+        <header className="flex h-12 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-3 sm:px-5">
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-red-600">Preview</p>
+            <h1 className="truncate text-sm font-semibold text-slate-900">{template?.name || "Untitled design"}</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => activePageIndex > 0 && switchPage(pages[activePageIndex - 1].id)} disabled={activePageIndex <= 0} aria-label="Previous page" className="rounded-lg border border-slate-200 p-2 text-slate-700 hover:bg-slate-50 disabled:opacity-40"><ChevronLeft size={17} /></button>
+            <span className="min-w-16 text-center text-xs font-semibold text-slate-600">{Math.max(activePageIndex + 1, 1)} / {pages.length}</span>
+            <button type="button" onClick={() => activePageIndex < pages.length - 1 && switchPage(pages[activePageIndex + 1].id)} disabled={activePageIndex >= pages.length - 1} aria-label="Next page" className="rounded-lg border border-slate-200 p-2 text-slate-700 hover:bg-slate-50 disabled:opacity-40"><ChevronRight size={17} /></button>
+            <button type="button" onClick={() => setPreviewMode(false)} className="ml-1 inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white hover:bg-slate-700"><X size={15} /> Exit</button>
+          </div>
+        </header>
+        <main className="flex min-h-0 flex-1">
+          <Canvas template={template} previewMode />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen flex-col bg-gray-50 overflow-hidden relative">

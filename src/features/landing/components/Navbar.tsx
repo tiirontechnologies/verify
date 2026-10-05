@@ -77,6 +77,12 @@ export default function Navbar() {
   }, []);
 
   const profilePath = user?.role === "admin" || user?.roleId === "admin" ? "/organization/profile" : "/student/profile";
+  const profileImage = user?.profileImage || user?.profilePicture;
+
+  const handleProfileImageError = () => {
+    setUser((current: any) => current ? { ...current, profileImage: null, profilePicture: null } : current);
+  };
+
   const handleLogout = async () => {
     try {
       await api.post("/api/auth/logout", {});
@@ -134,13 +140,22 @@ export default function Navbar() {
             {user ? (
               <>
                 <a href={profilePath} className="hidden md:inline-flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:border-[#ef233c] hover:text-[#ef233c]">
-                  <User size={17} /> {user.name || user.email || "Profile"}
+                  {profileImage ? (
+                    <img src={profileImage} alt="" onError={handleProfileImageError} className="h-7 w-7 rounded-full border border-slate-200 object-cover" />
+                  ) : (
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-600"><User size={16} /></span>
+                  )}
+                  {user.name || user.email || "Profile"}
                 </a>
                 <button type="button" onClick={handleLogout} title="Log out" aria-label="Log out" className="hidden md:inline-flex h-10 w-10 items-center justify-center rounded-full border border-red-300 text-red-600 transition hover:border-red-600 hover:bg-red-50">
                   <LogOut size={18} />
                 </button>
-                <a href={profilePath} className="md:hidden p-2 rounded-full text-slate-900 hover:bg-slate-100" aria-label="Profile">
-                  <User size={18} />
+                <a href={profilePath} className="md:hidden flex h-9 w-9 items-center justify-center overflow-hidden rounded-full text-slate-900 hover:bg-slate-100" aria-label="Profile">
+                  {profileImage ? (
+                    <img src={profileImage} alt={`${user.name || "User"} profile`} onError={handleProfileImageError} className="h-full w-full rounded-full object-cover" />
+                  ) : (
+                    <User size={18} />
+                  )}
                 </a>
               </>
             ) : (

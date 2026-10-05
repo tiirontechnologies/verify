@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { paymentApi } from "../api/payment";
-import Navbar from "../features/landing/components/Navbar";
-import Topbar from "../components/shared/Topbar";
-import useMeRedirect from "../features/auth/hooks/useMeRedirect";
 import { useNavigate } from "react-router-dom";
 // import tiironLogo from "../assets/Tiiron_Technologies_Logo.png";
 
@@ -133,33 +130,11 @@ const SubscriptionPage: React.FC = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  const checkLogin = useMeRedirect(false);
-  // null = abhi check ho raha hai (flicker se bachne ke liye)
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-
   const navigate = useNavigate();
 
   useEffect(() => {
     loadRazorpayScript();
   }, []);
-
-  // Login check: Topbar (login) ya Navbar (logout) decide karne ke liye
-  useEffect(() => {
-    let active = true;
-
-    (async () => {
-      try {
-        const result = await checkLogin();
-        if (active) setIsLoggedIn(Boolean(result));
-      } catch {
-        if (active) setIsLoggedIn(false);
-      }
-    })();
-
-    return () => {
-      active = false;
-    };
-  }, [checkLogin]);
 
   const handleGetStarted = async (plan: Plan) => {
     setErrorMsg(null);
@@ -273,16 +248,13 @@ const SubscriptionPage: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full bg-[#fdfaf9] text-neutral-900 antialiased">
-      {/* Login ho to Topbar, logout ho to Navbar */}
-      {isLoggedIn === null ? null : isLoggedIn ? <Topbar /> : <Navbar />}
-
       {/* ambient tint */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute left-1/2 top-[-15%] h-[500px] w-[900px] -translate-x-1/2 rounded-full bg-rose-200/40 blur-[130px]" />
         <div className="absolute bottom-[-20%] right-[-10%] h-[400px] w-[500px] rounded-full bg-red-100/60 blur-[130px]" />
       </div>
 
-      <div className="relative mx-auto max-w-6xl px-6 py-20">
+      <div className="relative mx-auto max-w-6xl px-6 ">
         {/* Header */}
         <div className="mx-auto max-w-2xl text-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-medium text-rose-700">

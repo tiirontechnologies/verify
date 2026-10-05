@@ -1,10 +1,20 @@
 import {
+  FabricObject,
   Canvas,
   Textbox,
   Rect,
   Circle,
+  Ellipse,
   Line,
+  Polygon,
+  Triangle,
 } from "fabric";
+
+for (const property of ["isCertificateVariable", "isPageBackground", "backgroundScaleMode", "backgroundScale"]) {
+  if (!FabricObject.customProperties.includes(property)) {
+    FabricObject.customProperties = [...FabricObject.customProperties, property];
+  }
+}
 
 export class FabricToolService {
   static addText(canvas: Canvas, textContent = "Double Click to Edit", options: any = {}) {
@@ -130,6 +140,36 @@ export class FabricToolService {
     canvas.renderAll();
   }
 
+  static addVariable(canvas: Canvas, tag: string) {
+    const cleanTag = tag.startsWith("{{") && tag.endsWith("}}") ? tag : `{{${tag.replace(/^\{\{|\}\}$/g, "")}}}`;
+    const variableCount = canvas.getObjects().filter((object: any) => object.isCertificateVariable).length;
+    const pageWidth = canvas.getWidth() || 1056;
+    const pageHeight = canvas.getHeight() || 747;
+    const boxWidth = Math.min(320, pageWidth - 48);
+    const rowHeight = 42;
+    const maxRows = Math.max(1, Math.floor((pageHeight - 100) / rowHeight));
+    const column = Math.floor(variableCount / maxRows);
+    const row = variableCount % maxRows;
+    const left = Math.min(24 + column * (boxWidth + 16), Math.max(24, pageWidth - boxWidth - 24));
+    const top = Math.min(72 + row * rowHeight, Math.max(24, pageHeight - 48));
+    const text = new Textbox(cleanTag, {
+      left,
+      top,
+      width: boxWidth,
+      fontSize: 22,
+      fill: "#081f5c",
+      fontFamily: "Arial",
+      fontWeight: "bold",
+      editable: true,
+      splitByGrapheme: false,
+      name: `Variable ${cleanTag}`,
+      isCertificateVariable: true,
+    } as any);
+    canvas.add(text);
+    canvas.setActiveObject(text);
+    canvas.requestRenderAll();
+  }
+
   static addRectangle(canvas: Canvas) {
     const rect = new Rect({
       left: canvas.width ? canvas.width / 2 - 100 : 150,
@@ -139,11 +179,67 @@ export class FabricToolService {
       fill: "#ef4444",
       stroke: "#dc2626",
       strokeWidth: 0,
+      name: "Rectangle" as any,
     });
 
     canvas.add(rect);
     canvas.setActiveObject(rect);
     canvas.renderAll();
+  }
+
+  static addRoundedRectangle(canvas: Canvas) {
+    const rect = new Rect({
+      left: (canvas.width || 1056) / 2 - 100,
+      top: (canvas.height || 747) / 2 - 60,
+      width: 200,
+      height: 120,
+      rx: 18,
+      ry: 18,
+      fill: "#0f766e",
+      stroke: "#115e59",
+      strokeWidth: 0,
+      name: "Rounded rectangle" as any,
+    });
+    canvas.add(rect);
+    canvas.setActiveObject(rect);
+    canvas.requestRenderAll();
+  }
+
+  private static addPolygon(canvas: Canvas, label: string, sides: number, innerRadiusRatio = 1) {
+    const radius = 64;
+    const center = radius;
+    const points = Array.from({ length: innerRadiusRatio < 1 ? sides * 2 : sides }, (_, index) => {
+      const angle = -Math.PI / 2 + index * Math.PI / sides;
+      const pointRadius = innerRadiusRatio < 1 && index % 2 === 1 ? radius * innerRadiusRatio : radius;
+      return { x: center + Math.cos(angle) * pointRadius, y: center + Math.sin(angle) * pointRadius };
+    });
+    const polygon = new Polygon(points, {
+      left: (canvas.width || 1056) / 2 - radius,
+      top: (canvas.height || 747) / 2 - radius,
+      fill: "#2563eb",
+      stroke: "#1d4ed8",
+      strokeWidth: 1,
+      name: label,
+    } as any);
+    canvas.add(polygon);
+    canvas.setActiveObject(polygon);
+    canvas.requestRenderAll();
+  }
+
+  static addPentagon(canvas: Canvas) {
+    this.addPolygon(canvas, "Pentagon", 5);
+  }
+
+  static addHexagon(canvas: Canvas) {
+    this.addPolygon(canvas, "Hexagon", 6);
+  }
+
+  static addDiamond(canvas: Canvas) {
+    this.addPolygon(canvas, "Diamond", 4);
+  }
+
+  static addCertificateBadge(canvas: Canvas) {
+    this.addPolygon(canvas, "Certificate badge", 12, 0.78);
   }
 
   static addCircle(canvas: Canvas) {
@@ -152,11 +248,91 @@ export class FabricToolService {
       top: canvas.height ? canvas.height / 2 - 60 : 150,
       radius: 60,
       fill: "#3b82f6",
+      name: "Circle" as any,
     });
 
     canvas.add(circle);
     canvas.setActiveObject(circle);
     canvas.renderAll();
+  }
+
+  static addEllipse(canvas: Canvas) {
+    const ellipse = new Ellipse({
+      left: (canvas.width || 1056) / 2 - 90,
+      top: (canvas.height || 747) / 2 - 55,
+      rx: 90,
+      ry: 55,
+      fill: "#0f766e",
+      name: "Ellipse" as any,
+    });
+    canvas.add(ellipse);
+    canvas.setActiveObject(ellipse);
+    canvas.requestRenderAll();
+  }
+
+  static addTriangle(canvas: Canvas) {
+    const triangle = new Triangle({
+      left: (canvas.width || 1056) / 2 - 70,
+      top: (canvas.height || 747) / 2 - 60,
+      width: 140,
+      height: 120,
+      fill: "#f59e0b",
+      name: "Triangle" as any,
+    });
+    canvas.add(triangle);
+    canvas.setActiveObject(triangle);
+    canvas.requestRenderAll();
+  }
+
+  static addStar(canvas: Canvas) {
+    const center = 60;
+    const points = Array.from({ length: 10 }, (_, index) => {
+      const angle = -Math.PI / 2 + index * Math.PI / 5;
+      const radius = index % 2 === 0 ? 60 : 27;
+      return { x: center + Math.cos(angle) * radius, y: center + Math.sin(angle) * radius };
+    });
+    const star = new Polygon(points, {
+      left: (canvas.width || 1056) / 2 - center,
+      top: (canvas.height || 747) / 2 - center,
+      fill: "#eab308",
+      stroke: "#ca8a04",
+      strokeWidth: 1,
+    });
+    star.set("name", "Star");
+    canvas.add(star);
+    canvas.setActiveObject(star);
+    canvas.requestRenderAll();
+  }
+
+  static addArrow(canvas: Canvas) {
+    const arrow = new Polygon(
+      [{ x: 0, y: 12 }, { x: 76, y: 12 }, { x: 76, y: 0 }, { x: 110, y: 24 }, { x: 76, y: 48 }, { x: 76, y: 36 }, { x: 0, y: 36 }],
+      {
+        left: (canvas.width || 1056) / 2 - 55,
+        top: (canvas.height || 747) / 2 - 24,
+        fill: "#2563eb",
+      },
+    );
+    arrow.set("name", "Arrow");
+    canvas.add(arrow);
+    canvas.setActiveObject(arrow);
+    canvas.requestRenderAll();
+  }
+
+  static addFrame(canvas: Canvas) {
+    const frame = new Rect({
+      left: (canvas.width || 1056) / 2 - 180,
+      top: (canvas.height || 747) / 2 - 110,
+      width: 360,
+      height: 220,
+      fill: "rgba(255,255,255,0)",
+      stroke: "#b45309",
+      strokeWidth: 8,
+      name: "Certificate frame" as any,
+    });
+    canvas.add(frame);
+    canvas.setActiveObject(frame);
+    canvas.requestRenderAll();
   }
 
   static addLine(canvas: Canvas) {
@@ -165,6 +341,7 @@ export class FabricToolService {
       top: canvas.height ? canvas.height / 2 : 150,
       stroke: "#000000",
       strokeWidth: 2,
+      name: "Divider line" as any,
     });
 
     canvas.add(line);
