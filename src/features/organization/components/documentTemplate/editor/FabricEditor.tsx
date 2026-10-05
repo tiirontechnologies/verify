@@ -14,9 +14,17 @@ export default function FabricEditor({
     template?.design?.orientation ||
     template?.design?.data?.orientation ||
     "landscape";
+  const initialPages =
+    template?.design?.pages || template?.design?.data?.pages || undefined;
+  const initialActivePageId =
+    template?.design?.activePageId || template?.design?.data?.activePageId;
 
   return (
-    <FabricProvider initialOrientation={initialOrientation}>
+    <FabricProvider
+      initialOrientation={initialOrientation}
+      initialPages={initialPages}
+      initialActivePageId={initialActivePageId}
+    >
       <Workspace
         template={template}
         onBack={onBack}

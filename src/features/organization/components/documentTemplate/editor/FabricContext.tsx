@@ -232,6 +232,8 @@ interface FabricContextType {
   setCanvas: (canvas: Canvas | null) => void;
   activeObject: any;
   setActiveObject: (obj: any) => void;
+  previewMode: boolean;
+  setPreviewMode: React.Dispatch<React.SetStateAction<boolean>>;
   orientation: "landscape" | "portrait";
   setOrientation: (orientation: "landscape" | "portrait") => void;
   zoomLevel: number;
@@ -246,10 +248,13 @@ interface FabricContextType {
   // Multi-page (Canva-style) management
   pages: PageData[];
   activePageId: string;
+  getPagesSnapshot: () => PageData[];
   addPage: () => void;
   switchPage: (pageId: string) => void;
   duplicatePage: (pageId: string) => void;
   deletePage: (pageId: string) => void;
+  renamePage: (pageId: string, name: string) => void;
+  reorderPages: (sourceId: string, targetId: string) => void;
 }
 
 const FabricContext = createContext<FabricContextType | null>(null);
@@ -257,12 +262,17 @@ const FabricContext = createContext<FabricContextType | null>(null);
 export function FabricProvider({
   children,
   initialOrientation = "landscape",
+  initialPages,
+  initialActivePageId,
 }: {
   children: ReactNode;
   initialOrientation?: "landscape" | "portrait";
+  initialPages?: PageData[];
+  initialActivePageId?: string;
 }) {
   const [canvas, setCanvasState] = useState<Canvas | null>(null);
   const [activeObject, setActiveObject] = useState<any>(null);
+  const [previewMode, setPreviewMode] = useState(false);
   const [orientation, setOrientation] = useState<"landscape" | "portrait">(
     initialOrientation
   );
@@ -285,12 +295,12 @@ export function FabricProvider({
     setCanRedo(redoStackRef.current.length > 0);
   };
 
-  const resetHistory = () => {
+  const resetHistory = useCallback(() => {
     undoStackRef.current = [];
     redoStackRef.current = [];
     setCanUndo(false);
     setCanRedo(false);
-  };
+  }, []);
 
   const saveHistory = useCallback(() => {
     if (!canvas || isProcessingHistoryRef.current) return;
@@ -314,7 +324,9 @@ export function FabricProvider({
   }, [canvas]);
 
   const undo = useCallback(async () => {
-    if (!canvas || undoStackRef.current.length <= 1 || isProcessingHistoryRef.current) return;
+    if (!canvas || isProcessingHistoryRef.current) return;
+    saveHistory();
+    if (undoStackRef.current.length <= 1) return;
     try {
       isProcessingHistoryRef.current = true;
       const currentState = undoStackRef.current.pop();
@@ -332,7 +344,7 @@ export function FabricProvider({
     } finally {
       isProcessingHistoryRef.current = false;
     }
-  }, [canvas]);
+  }, [canvas, saveHistory]);
 
   const redo = useCallback(async () => {
     if (!canvas || redoStackRef.current.length === 0 || isProcessingHistoryRef.current) return;
@@ -372,8 +384,10 @@ export function FabricProvider({
       updateHistoryState();
     }
 
+    let historyTimer: number | undefined;
     const handleCanvasChange = () => {
-      saveHistory();
+      window.clearTimeout(historyTimer);
+      historyTimer = window.setTimeout(saveHistory, 120);
     };
 
     canvas.on("object:added", handleCanvasChange);
@@ -382,6 +396,7 @@ export function FabricProvider({
     canvas.on("path:created", handleCanvasChange);
 
     return () => {
+      window.clearTimeout(historyTimer);
       canvas.off("object:added", handleCanvasChange);
       canvas.off("object:modified", handleCanvasChange);
       canvas.off("object:removed", handleCanvasChange);
@@ -392,10 +407,10 @@ export function FabricProvider({
   // ---------------------------------------------------------------------
   // Multi-page (Canva-style) management
   // ---------------------------------------------------------------------
-  const [pages, setPages] = useState<PageData[]>([
+  const [pages, setPages] = useState<PageData[]>(() => initialPages?.length ? initialPages : [
     { id: "page-1", name: "Page 1", json: null, orientation: initialOrientation, thumbnail: null },
   ]);
-  const [activePageId, setActivePageId] = useState<string>("page-1");
+  const [activePageId, setActivePageId] = useState<string>(initialActivePageId || initialPages?.[0]?.id || "page-1");
 
   const captureThumbnail = (c: Canvas): string | null => {
     try {
@@ -405,15 +420,71 @@ export function FabricProvider({
     }
   };
 
+  const snapshotCanvas = (c: Canvas, pageOrientation: "landscape" | "portrait") => {
+    const json = c.toJSON() as any;
+    json.width = c.getWidth();
+    json.height = c.getHeight();
+    json.orientation = pageOrientation;
+    return json;
+  };
+
+  const getPagesSnapshot = useCallback(() => pages.map((page) => {
+    if (page.id !== activePageId || !canvas) return page;
+    return {
+      ...page,
+      json: snapshotCanvas(canvas, orientation),
+      orientation,
+      thumbnail: captureThumbnail(canvas),
+    };
+  }), [pages, activePageId, canvas, orientation]);
+
+  const loadPage = useCallback(async (page: PageData) => {
+    if (!canvas) return;
+    isProcessingHistoryRef.current = true;
+    try {
+      if (page.json) {
+        await canvas.loadFromJSON(page.json);
+      } else {
+        canvas.clear();
+        canvas.backgroundImage = undefined;
+        canvas.backgroundColor = "#ffffff";
+      }
+      const dimensions = page.orientation === "portrait"
+        ? { width: 747, height: 1056 }
+        : { width: 1056, height: 747 };
+      canvas.setDimensions(dimensions);
+      setCanvasDimensions(dimensions);
+      setOrientation(page.orientation);
+      canvas.renderAll();
+      setActivePageId(page.id);
+      setActiveObject(null);
+    } finally {
+      isProcessingHistoryRef.current = false;
+      resetHistory();
+    }
+  }, [canvas, resetHistory, setCanvasDimensions, setOrientation]);
+
+  useEffect(() => {
+    setPages((current) => current.map((page) =>
+      page.id === activePageId && page.orientation !== orientation
+        ? { ...page, orientation }
+        : page,
+    ));
+  }, [activePageId, orientation]);
+
   const addPage = useCallback(() => {
     if (canvas) {
-      const currentJson = canvas.toJSON();
+      const currentJson = snapshotCanvas(canvas, orientation);
       const currentThumb = captureThumbnail(canvas);
       setPages((prev) =>
         prev.map((p) => (p.id === activePageId ? { ...p, json: currentJson, orientation, thumbnail: currentThumb } : p))
       );
       canvas.clear();
+      canvas.backgroundImage = undefined;
       canvas.backgroundColor = "#ffffff";
+      canvas.setDimensions({ width: 1056, height: 747 });
+      setOrientation("landscape");
+      setCanvasDimensions({ width: 1056, height: 747 });
       canvas.renderAll();
     }
 
@@ -423,39 +494,26 @@ export function FabricProvider({
       { id: newId, name: `Page ${prev.length + 1}`, json: null, orientation: "landscape", thumbnail: null },
     ]);
     setActivePageId(newId);
-    // setOrientation("landscape");
     setActiveObject(null);
     resetHistory();
-  }, [canvas, activePageId, orientation]);
+  }, [canvas, activePageId, orientation, resetHistory, setCanvasDimensions, setOrientation]);
 
   const switchPage = useCallback(
     (pageId: string) => {
       if (!canvas || pageId === activePageId) return;
 
-      const currentJson = canvas.toJSON();
+      const currentJson = snapshotCanvas(canvas, orientation);
       const currentThumb = captureThumbnail(canvas);
       const targetPage = pages.find((p) => p.id === pageId);
 
       setPages((prev) =>
         prev.map((p) => (p.id === activePageId ? { ...p, json: currentJson, orientation, thumbnail: currentThumb } : p))
       );
-      setActivePageId(pageId);
-      setActiveObject(null);
-
       if (targetPage) {
-        setOrientation(targetPage.orientation);
-        if (targetPage.json) {
-          canvas.loadFromJSON(targetPage.json).then(() => canvas.renderAll());
-        } else {
-          canvas.clear();
-          canvas.backgroundColor = "#ffffff";
-          canvas.renderAll();
-        }
+        void loadPage(targetPage);
       }
-
-      resetHistory();
     },
-    [canvas, activePageId, orientation, pages]
+    [canvas, activePageId, orientation, pages, loadPage]
   );
 
   const duplicatePage = useCallback(
@@ -466,28 +524,32 @@ export function FabricProvider({
       let sourceJson = source.json;
       let sourceThumb = source.thumbnail;
       if (pageId === activePageId && canvas) {
-        sourceJson = canvas.toJSON();
+        sourceJson = snapshotCanvas(canvas, orientation);
         sourceThumb = captureThumbnail(canvas);
       }
 
       const newId = `page-${Date.now()}`;
       const idx = pages.findIndex((p) => p.id === pageId);
 
+      const duplicate: PageData = {
+        id: newId,
+        name: `${source.name} copy`,
+        json: sourceJson ? JSON.parse(JSON.stringify(sourceJson)) : null,
+        orientation: source.orientation,
+        thumbnail: sourceThumb,
+      };
+
       setPages((prev) => {
         const next = [...prev];
         next.splice(idx + 1, 0, {
-          id: newId,
-          name: `${source.name} copy`,
-          json: sourceJson,
-          orientation: source.orientation,
-          thumbnail: sourceThumb,
+          ...duplicate,
         });
         return next;
       });
 
-      switchPage(newId);
+      void loadPage(duplicate);
     },
-    [pages, activePageId, canvas, switchPage]
+    [pages, activePageId, canvas, orientation, loadPage]
   );
 
   const deletePage = useCallback(
@@ -498,13 +560,32 @@ export function FabricProvider({
 
       if (pageId === activePageId) {
         const fallback = pages[idx - 1] || pages[idx + 1];
-        if (fallback) switchPage(fallback.id);
+        if (fallback) void loadPage(fallback);
       }
 
       setPages((prev) => prev.filter((p) => p.id !== pageId));
     },
-    [pages, activePageId, switchPage]
+    [pages, activePageId, loadPage]
   );
+
+  const renamePage = useCallback((pageId: string, name: string) => {
+    const nextName = name.trim();
+    if (!nextName) return;
+    setPages((prev) => prev.map((page) => page.id === pageId ? { ...page, name: nextName } : page));
+  }, []);
+
+  const reorderPages = useCallback((sourceId: string, targetId: string) => {
+    if (sourceId === targetId) return;
+    setPages((prev) => {
+      const sourceIndex = prev.findIndex((page) => page.id === sourceId);
+      const targetIndex = prev.findIndex((page) => page.id === targetId);
+      if (sourceIndex < 0 || targetIndex < 0) return prev;
+      const next = [...prev];
+      const [page] = next.splice(sourceIndex, 1);
+      next.splice(targetIndex, 0, page);
+      return next;
+    });
+  }, []);
 
   return (
     <FabricContext.Provider
@@ -513,6 +594,8 @@ export function FabricProvider({
         setCanvas,
         activeObject,
         setActiveObject,
+        previewMode,
+        setPreviewMode,
         orientation,
         setOrientation,
         zoomLevel,
@@ -526,10 +609,13 @@ export function FabricProvider({
         saveHistory,
         pages,
         activePageId,
+        getPagesSnapshot,
         addPage,
         switchPage,
         duplicatePage,
         deletePage,
+        renamePage,
+        reorderPages,
       }}
     >
       {children}

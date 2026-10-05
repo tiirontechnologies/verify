@@ -258,10 +258,11 @@
 // }
 
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { FabricObject } from "fabric";
 import { useFabric } from "./FabricContext";
 import { FabricToolService } from "./services/FabricToolService";
-import { ImageUploadService } from "./services/ImageUploadService";
+import { ImageUploadService, type BackgroundScaleMode } from "./services/ImageUploadService";
 import {
   Type,
   Image as ImageIcon,
@@ -273,7 +274,24 @@ import {
   Minus,
   Upload,
   Plus,
+  Layers3,
+  Eye,
+  EyeOff,
+  LockKeyhole,
+  UnlockKeyhole,
+  Copy,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  Triangle as TriangleIcon,
+  Star,
+  MoveRight,
+  Frame,
 } from "lucide-react";
+
+if (!FabricObject.customProperties.includes("name")) {
+  FabricObject.customProperties = [...FabricObject.customProperties, "name"];
+}
 
 const DYNAMIC_PLACEHOLDERS = [
   { tag: "{{studentName}}", label: "Student Name", category: "Student" },
@@ -294,23 +312,87 @@ const NAV_ITEMS = [
   { id: "text", label: "Text", icon: Type },
   { id: "media", label: "Media", icon: ImageIcon },
   { id: "shapes", label: "Shapes", icon: Square },
+  { id: "layers", label: "Layers", icon: Layers3 },
 ] as const;
 
 export default function LeftSidebar() {
-  const { canvas, orientation, setOrientation, setCanvasDimensions } = useFabric();
+  const { canvas, orientation, setOrientation, setActiveObject } = useFabric();
 
   const [activeTab, setActiveTab] = useState<
-    "placeholders" | "text" | "media" | "shapes"
+    "placeholders" | "text" | "media" | "shapes" | "layers"
   >("placeholders");
 
   const [customVar, setCustomVar] = useState("");
   const [collapsed, setCollapsed] = useState(false);
+  const [layerVersion, setLayerVersion] = useState(0);
+  const [draggedLayer, setDraggedLayer] = useState<any>(null);
+  const [backgroundMode, setBackgroundMode] = useState<BackgroundScaleMode>("contain");
+  const [backgroundScale, setBackgroundScale] = useState(1);
+
+  useEffect(() => {
+    if (!canvas) return;
+    const refreshLayers = () => setLayerVersion((version) => version + 1);
+    canvas.on("object:added", refreshLayers);
+    canvas.on("object:removed", refreshLayers);
+    canvas.on("object:modified", refreshLayers);
+    return () => {
+      canvas.off("object:added", refreshLayers);
+      canvas.off("object:removed", refreshLayers);
+      canvas.off("object:modified", refreshLayers);
+    };
+  }, [canvas]);
+
+  useEffect(() => {
+    if (!canvas) return;
+    const syncBackgroundControls = () => {
+      const background = canvas.backgroundImage as any;
+      if (!background) return;
+      setBackgroundMode(background.backgroundScaleMode || "contain");
+      setBackgroundScale(background.backgroundScale || 1);
+    };
+    syncBackgroundControls();
+    canvas.on("object:modified", syncBackgroundControls);
+    return () => canvas.off("object:modified", syncBackgroundControls);
+  }, [canvas]);
 
   const handleAddCustomVar = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!customVar.trim() || !canvas) return;
     FabricToolService.addPlaceholder(canvas, customVar.trim());
     setCustomVar("");
+  };
+
+  const layerObjects = canvas ? canvas.getObjects().slice().reverse() : [];
+
+  const moveLayer = (object: any, direction: -1 | 1) => {
+    if (!canvas) return;
+    const currentIndex = canvas.getObjects().indexOf(object);
+    const nextIndex = Math.max(0, Math.min(canvas.getObjects().length - 1, currentIndex + direction));
+    canvas.moveObjectTo(object, nextIndex);
+    canvas.requestRenderAll();
+    canvas.fire("object:modified", { target: object });
+    setLayerVersion((version) => version + 1);
+  };
+
+  const reorderLayer = (source: any, target: any) => {
+    if (!canvas || source === target) return;
+    const sourceIndex = canvas.getObjects().indexOf(source);
+    const targetIndex = canvas.getObjects().indexOf(target);
+    if (sourceIndex < 0 || targetIndex < 0) return;
+    canvas.moveObjectTo(source, targetIndex);
+    canvas.requestRenderAll();
+    canvas.fire("object:modified", { target: source });
+    setLayerVersion((version) => version + 1);
+  };
+
+  const duplicateLayer = async (object: any) => {
+    if (!canvas) return;
+    const clone = await object.clone();
+    clone.set({ left: (clone.left || 0) + 20, top: (clone.top || 0) + 20 });
+    canvas.add(clone);
+    canvas.setActiveObject(clone);
+    setActiveObject(clone);
+    canvas.requestRenderAll();
   };
 
   return (
@@ -381,6 +463,30 @@ export default function LeftSidebar() {
                 </div>
               </div>
 
+              <div className="flex items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white p-2.5">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500">Page background</p>
+                  <button type="button" onClick={() => {
+                    if (!canvas) return;
+                    canvas.backgroundColor = "transparent";
+                    canvas.requestRenderAll();
+                    canvas.fire("object:modified", { target: canvas.backgroundImage as any });
+                  }} className="mt-1 text-[10px] font-semibold text-red-600 hover:underline">Transparent</button>
+                </div>
+                <input
+                  type="color"
+                  aria-label="Page background color"
+                  value={canvas && typeof canvas.backgroundColor === "string" && /^#[0-9a-f]{6}$/i.test(canvas.backgroundColor) ? canvas.backgroundColor : "#ffffff"}
+                  onChange={(event) => {
+                    if (!canvas) return;
+                    canvas.backgroundColor = event.target.value;
+                    canvas.requestRenderAll();
+                    canvas.fire("object:modified", { target: canvas.backgroundImage as any });
+                  }}
+                  className="h-8 w-9 cursor-pointer rounded border border-gray-200 p-0.5"
+                />
+              </div>
+
               {/* Custom Variable */}
               <form onSubmit={handleAddCustomVar} className="flex gap-1.5">
                 <input
@@ -439,10 +545,7 @@ export default function LeftSidebar() {
               <button
                 onClick={() => {
                   if (!canvas) return;
-                  ImageUploadService.uploadBackground(canvas, (detectedOrientation, dims) => {
-                    setOrientation(detectedOrientation);
-                    setCanvasDimensions(dims);
-                  });
+                  ImageUploadService.uploadBackground(canvas, backgroundMode, backgroundScale);
                 }}
                 className="w-full flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-gray-200 hover:border-red-300 hover:bg-red-50/40 p-5 transition text-gray-500 hover:text-red-600"
               >
@@ -457,6 +560,117 @@ export default function LeftSidebar() {
                 <ImageIcon size={20} />
                 <span className="text-[11px] font-bold">Upload Logo / Image</span>
               </button>
+
+              <div className="space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
+                <label className="block text-[10px] font-bold uppercase tracking-wide text-gray-500">
+                  Background fit
+                  <select
+                    value={backgroundMode}
+                    onChange={(event) => {
+                      const mode = event.target.value as BackgroundScaleMode;
+                      setBackgroundMode(mode);
+                      if (canvas?.backgroundImage) ImageUploadService.applyBackgroundSize(canvas, mode, backgroundScale);
+                    }}
+                    className="mt-1.5 w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs font-semibold normal-case text-gray-700"
+                  >
+                    <option value="contain">Fit inside page</option>
+                    <option value="cover">Fill page, crop edges</option>
+                    <option value="stretch">Stretch to page</option>
+                  </select>
+                </label>
+                <label className="block text-[10px] font-bold uppercase tracking-wide text-gray-500">
+                  Background size <span className="float-right font-mono text-gray-600">{Math.round(backgroundScale * 100)}%</span>
+                  <input
+                    type="range"
+                    min={0.5}
+                    max={1.5}
+                    step={0.05}
+                    value={backgroundScale}
+                    onChange={(event) => {
+                      const value = Number(event.target.value);
+                      setBackgroundScale(value);
+                      if (canvas?.backgroundImage) ImageUploadService.applyBackgroundSize(canvas, backgroundMode, value);
+                    }}
+                    className="mt-2 w-full accent-red-600"
+                    aria-label="Background size"
+                  />
+                </label>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "layers" && (
+            <div className="space-y-2" key={layerVersion}>
+              <div className="flex items-center justify-between px-0.5">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500">Layers</p>
+                <span className="text-[10px] text-gray-400">{layerObjects.length} items</span>
+              </div>
+              {layerObjects.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-gray-200 p-4 text-center text-xs text-gray-400">Add an element to see it here.</p>
+              ) : layerObjects.map((object: any, reversedIndex) => {
+                const index = layerObjects.length - reversedIndex - 1;
+                const label = object.name || object.text || object.type || "Layer";
+                const locked = object.selectable === false;
+                return (
+                  <div
+                    key={`${object.type}-${index}`}
+                    draggable
+                    onDragStart={() => setDraggedLayer(object)}
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      if (draggedLayer) reorderLayer(draggedLayer, object);
+                      setDraggedLayer(null);
+                    }}
+                    onDragEnd={() => setDraggedLayer(null)}
+                    className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white p-1.5"
+                  >
+                    <button type="button" onClick={() => {
+                      canvas?.setActiveObject(object);
+                      setActiveObject(object);
+                      canvas?.requestRenderAll();
+                    }} onDoubleClick={() => {
+                      const name = window.prompt("Rename layer", String(label));
+                      if (name?.trim()) {
+                        object.set("name", name.trim());
+                        canvas?.fire("object:modified", { target: object });
+                        setLayerVersion((version) => version + 1);
+                      }
+                    }} className="min-w-0 flex-1 truncate px-1.5 py-1 text-left text-[11px] font-semibold text-gray-700 hover:text-red-700" title={`${String(label)} - drag to reorder, double-click to rename`}>
+                      {String(label).slice(0, 30)}
+                    </button>
+                    <button type="button" onClick={() => {
+                      object.set("visible", object.visible === false);
+                      canvas?.requestRenderAll();
+                      canvas?.fire("object:modified", { target: object });
+                      setLayerVersion((version) => version + 1);
+                    }} title={object.visible === false ? "Show layer" : "Hide layer"} aria-label={object.visible === false ? "Show layer" : "Hide layer"} className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-800">
+                      {object.visible === false ? <EyeOff size={13} /> : <Eye size={13} />}
+                    </button>
+                    <button type="button" onClick={() => {
+                      if (!locked) {
+                        if (canvas?.getActiveObjects().includes(object)) canvas.discardActiveObject();
+                        object.set({ selectable: false, evented: false, hasControls: false });
+                      } else {
+                        object.set({ selectable: true, evented: true, hasControls: true });
+                      }
+                      canvas?.requestRenderAll();
+                      canvas?.fire("object:modified", { target: object });
+                      setLayerVersion((version) => version + 1);
+                    }} title={locked ? "Unlock layer" : "Lock layer"} aria-label={locked ? "Unlock layer" : "Lock layer"} className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-800">
+                      {locked ? <LockKeyhole size={13} /> : <UnlockKeyhole size={13} />}
+                    </button>
+                    <button type="button" onClick={() => moveLayer(object, 1)} title="Bring forward" aria-label="Bring layer forward" className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-800"><ArrowUp size={13} /></button>
+                    <button type="button" onClick={() => moveLayer(object, -1)} title="Send backward" aria-label="Send layer backward" className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-800"><ArrowDown size={13} /></button>
+                    <button type="button" onClick={() => void duplicateLayer(object)} title="Duplicate layer" aria-label="Duplicate layer" className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-800"><Copy size={13} /></button>
+                    <button type="button" onClick={() => {
+                      canvas?.remove(object);
+                      canvas?.requestRenderAll();
+                      setLayerVersion((version) => version + 1);
+                    }} title="Delete layer" aria-label="Delete layer" className="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600"><Trash2 size={13} /></button>
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -476,6 +690,46 @@ export default function LeftSidebar() {
               >
                 <Circle size={22} className="text-gray-700" />
                 <span className="text-[10px] font-bold text-gray-600">Circle</span>
+              </button>
+
+              <button
+                onClick={() => canvas && FabricToolService.addEllipse(canvas)}
+                className="flex flex-col items-center justify-center gap-1.5 border border-gray-200 rounded-xl py-4 bg-white hover:bg-gray-50 hover:border-red-200 transition"
+              >
+                <Circle size={22} className="scale-x-125 text-teal-700" />
+                <span className="text-[10px] font-bold text-gray-600">Ellipse</span>
+              </button>
+
+              <button
+                onClick={() => canvas && FabricToolService.addTriangle(canvas)}
+                className="flex flex-col items-center justify-center gap-1.5 border border-gray-200 rounded-xl py-4 bg-white hover:bg-gray-50 hover:border-red-200 transition"
+              >
+                <TriangleIcon size={22} className="text-amber-600" />
+                <span className="text-[10px] font-bold text-gray-600">Triangle</span>
+              </button>
+
+              <button
+                onClick={() => canvas && FabricToolService.addStar(canvas)}
+                className="flex flex-col items-center justify-center gap-1.5 border border-gray-200 rounded-xl py-4 bg-white hover:bg-gray-50 hover:border-red-200 transition"
+              >
+                <Star size={22} className="text-yellow-600" />
+                <span className="text-[10px] font-bold text-gray-600">Star</span>
+              </button>
+
+              <button
+                onClick={() => canvas && FabricToolService.addArrow(canvas)}
+                className="flex flex-col items-center justify-center gap-1.5 border border-gray-200 rounded-xl py-4 bg-white hover:bg-gray-50 hover:border-red-200 transition"
+              >
+                <MoveRight size={22} className="text-blue-600" />
+                <span className="text-[10px] font-bold text-gray-600">Arrow</span>
+              </button>
+
+              <button
+                onClick={() => canvas && FabricToolService.addFrame(canvas)}
+                className="flex flex-col items-center justify-center gap-1.5 border border-gray-200 rounded-xl py-4 bg-white hover:bg-gray-50 hover:border-red-200 transition"
+              >
+                <Frame size={22} className="text-orange-700" />
+                <span className="text-[10px] font-bold text-gray-600">Frame</span>
               </button>
 
               <button

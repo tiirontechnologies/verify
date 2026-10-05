@@ -107,3 +107,4 @@ export default function AdvertisementsPage() {
     </DashboardLayout>
   );
 }
+

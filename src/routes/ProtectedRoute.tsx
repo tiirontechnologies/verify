@@ -65,6 +65,7 @@
 
 
 import { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
 import useMeRedirect from "../features/auth/hooks/useMeRedirect"; // apne actual hooks folder path se adjust kar lena
 
 type ProtectedRouteProps = {
@@ -75,7 +76,7 @@ export default function ProtectedRoute({
   children,
 }: ProtectedRouteProps) {
   const [status, setStatus] = useState<"loading" | "authenticated" | "unauthenticated">("loading");
-  const meRedirect = useMeRedirect();
+  const meRedirect = useMeRedirect(false, false);
 
   useEffect(() => {
     const verifyAuth = async () => {
@@ -92,7 +93,7 @@ export default function ProtectedRoute({
   }
 
   if (status === "unauthenticated") {
-    return null;
+    return <Navigate to="/login" replace />;
   }
 
   return <>{children}</>;
