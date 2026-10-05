@@ -19,6 +19,7 @@ type MeResponse = {
 
     [key: string]: unknown;
   };
+  userRedirect?: MeResponse["user"];
 };
 
 /**
@@ -47,17 +48,19 @@ export default function useMeRedirect(
 
       const data = (await response.json().catch(() => ({}))) as MeResponse;
 
-      const nestedUser = data?.user?.user;
+      const nestedUser = data?.user?.user || data?.userRedirect?.user || data?.userRedirect;
 
-      const role = nestedUser?.role || data?.user?.role || data?.role;
-      const roleId = nestedUser?.roleId || data?.user?.roleId || data?.roleId;
+      const role = nestedUser?.role || data?.user?.role || data?.role || data?.userRedirect?.role;
+      const roleId = nestedUser?.roleId || data?.user?.roleId || data?.roleId || data?.userRedirect?.roleId;
 
-      // 403 + admin
+      // Admins without an active subscription may still view the dashboard.
       if (response.status === 403 && roleId === "admin") {
-        if (redirectOnFail) {
-          navigate("/subscription", { replace: true });
-        }
-        return false;
+        const user = { ...(nestedUser || data?.user || {}), role: role || "admin", roleId };
+        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("subscriptionRequired", "true");
+        window.dispatchEvent(new Event("subscription-status-change"));
+        if (redirectOnSuccess) navigate("/organization/dashboard", { replace: true });
+        return true;
       }
 
       // Unauthorized / invalid user
@@ -83,6 +86,8 @@ export default function useMeRedirect(
       const user = nestedUser || data?.user || { role, roleId };
 
       localStorage.setItem("user", JSON.stringify(user));
+      localStorage.removeItem("subscriptionRequired");
+      window.dispatchEvent(new Event("subscription-status-change"));
 
       // Role based redirect (success)
       if (redirectOnSuccess) {

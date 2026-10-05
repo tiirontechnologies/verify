@@ -727,7 +727,10 @@
 
 
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Canvas as FabricCanvas } from "fabric";
+import jsPDF from "jspdf";
+import toast from "react-hot-toast";
 import { useFabric } from "./FabricContext";
 import { FabricToolService } from "./services/FabricToolService";
 import { documentTemplateApi } from "../../../../../api/documentTemplateApi";
@@ -746,6 +749,9 @@ import {
   Undo2,
   Redo2,
   Loader2,
+  Eye,
+  Download,
+  ChevronDown,
 } from "lucide-react";
 
 interface HeaderProps {
@@ -771,14 +777,21 @@ export default function Header({
     canRedo,
     undo,
     redo,
+    pages,
+    activePageId,
+    getPagesSnapshot,
+    setPreviewMode,
   } = useFabric();
 
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
   const [templateName, setTemplateName] = useState(template?.name || "");
   const [documentType, setDocumentType] = useState(template?.documentType || "Other");
   const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"saved" | "unsaved" | "saving" | "error">("saved");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [currentTemplate, setCurrentTemplate] = useState<any>(template);
+  const [exportMenuOpen, setExportMenuOpen] = useState(false);
+  const autosaveTimerRef = useRef<number | undefined>(undefined);
 
   const [prevTemplate, setPrevTemplate] = useState(template);
   if (template !== prevTemplate) {
@@ -793,15 +806,18 @@ export default function Header({
     }
   }
 
-  const handleSave = async () => {
+  const handleSave = async (manual = true) => {
     if (!canvas) return;
+    if (manual) window.clearTimeout(autosaveTimerRef.current);
+    if (!manual && !currentTemplate?._id) return;
     if (!templateName.trim()) {
-      setMessage({ type: "error", text: "Please enter a template name." });
+      if (manual) setMessage({ type: "error", text: "Please enter a template name." });
       return;
     }
 
     setSaving(true);
-    setMessage(null);
+    setSaveStatus("saving");
+    if (manual) setMessage(null);
 
     // free string — koi bhi value chalegi, khali chhod dene par "Other" chala jayega
     const finalDocumentType = documentType.trim() || "Other";
@@ -809,6 +825,10 @@ export default function Header({
     try {
       const canvasJson = canvas.toJSON();
       (canvasJson as any).orientation = orientation;
+      (canvasJson as any).width = canvas.getWidth();
+      (canvasJson as any).height = canvas.getHeight();
+      (canvasJson as any).pages = getPagesSnapshot();
+      (canvasJson as any).activePageId = activePageId;
 
       let savedData: any = null;
 
@@ -845,30 +865,175 @@ export default function Header({
         if (onTemplateUpdate) onTemplateUpdate(savedData);
       }
 
-      setMessage({ type: "success", text: "Template saved successfully!" });
-
-      setTimeout(() => {
-        setIsSaveModalOpen(false);
-        if (onSaveSuccess) {
-          onSaveSuccess("Template saved successfully! Click 'Back to Dashboard' whenever you are done.");
-        }
-      }, 500);
+      setSaveStatus("saved");
+      if (manual) {
+        setMessage({ type: "success", text: "Template saved successfully!" });
+        setTimeout(() => {
+          setIsSaveModalOpen(false);
+          if (onSaveSuccess) {
+            onSaveSuccess("Template saved successfully! Click 'Back to Dashboard' whenever you are done.");
+          }
+        }, 500);
+      }
     } catch (err: any) {
       console.error("Save error:", err);
-      setMessage({
-        type: "error",
-        text: err.response?.data?.message || "Failed to save template.",
-      });
+      setSaveStatus("error");
+      if (manual) {
+        setMessage({
+          type: "error",
+          text: err.response?.data?.message || "Failed to save template.",
+        });
+      }
     } finally {
       setSaving(false);
     }
   };
+
+  const saveHandlerRef = useRef(handleSave);
+  saveHandlerRef.current = handleSave;
+  const scheduleAutosaveRef = useRef<() => void>(() => undefined);
+  scheduleAutosaveRef.current = () => {
+    setSaveStatus("unsaved");
+    if (!currentTemplate?._id) return;
+    window.clearTimeout(autosaveTimerRef.current);
+    autosaveTimerRef.current = window.setTimeout(() => {
+      void saveHandlerRef.current(false);
+    }, 900);
+  };
+
+  useEffect(() => {
+    if (!canvas) return;
+    const markUnsaved = () => scheduleAutosaveRef.current();
+    canvas.on("object:added", markUnsaved);
+    canvas.on("object:modified", markUnsaved);
+    canvas.on("object:removed", markUnsaved);
+    canvas.on("path:created", markUnsaved);
+    canvas.on("text:changed", markUnsaved);
+    return () => {
+      canvas.off("object:added", markUnsaved);
+      canvas.off("object:modified", markUnsaved);
+      canvas.off("object:removed", markUnsaved);
+      canvas.off("path:created", markUnsaved);
+      canvas.off("text:changed", markUnsaved);
+      window.clearTimeout(autosaveTimerRef.current);
+    };
+  }, [canvas, currentTemplate?._id]);
+
+  const pageStateInitialized = useRef(false);
+  useEffect(() => {
+    if (!pageStateInitialized.current) {
+      pageStateInitialized.current = true;
+      return;
+    }
+    scheduleAutosaveRef.current();
+  }, [pages, orientation, activePageId]);
+
+  const exportCurrentImage = (format: "png" | "jpeg") => {
+    if (!canvas) return;
+    try {
+      const dataUrl = canvas.toDataURL({ format, multiplier: 2, quality: 0.95 });
+      const link = document.createElement("a");
+      link.download = `${templateName.trim().replace(/[^a-z0-9-_]+/gi, "-") || "certificate"}.${format === "jpeg" ? "jpg" : "png"}`;
+      link.href = dataUrl;
+      link.click();
+      setExportMenuOpen(false);
+    } catch (error) {
+      console.error("Certificate image export failed:", error);
+      toast.error("Could not export this page as an image.");
+    }
+  };
+
+  const exportFabricJson = () => {
+    if (!canvas) return;
+    const data = {
+      editor: "fabric",
+      version: "1.0",
+      name: templateName,
+      documentType,
+      orientation,
+      activePageId,
+      data: {
+        ...canvas.toJSON(),
+        width: canvas.getWidth(),
+        height: canvas.getHeight(),
+        orientation,
+        activePageId,
+        pages: getPagesSnapshot(),
+      },
+    };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${templateName.trim().replace(/[^a-z0-9-_]+/gi, "-") || "certificate"}.fabric.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setExportMenuOpen(false);
+  };
+
+  const exportAllPagesPdf = async () => {
+    const pageSnapshots = getPagesSnapshot();
+    if (pageSnapshots.length === 0) return;
+    let pdf: jsPDF | null = null;
+
+    try {
+      for (const page of pageSnapshots) {
+        const pageOrientation = page.orientation;
+        const width = pageOrientation === "portrait" ? 747 : 1056;
+        const height = pageOrientation === "portrait" ? 1056 : 747;
+        const offscreenElement = document.createElement("canvas");
+        const offscreen = new FabricCanvas(offscreenElement, {
+          width,
+          height,
+          backgroundColor: "#ffffff",
+          renderOnAddRemove: false,
+        });
+        let image: string;
+        try {
+          if (page.json) await offscreen.loadFromJSON(page.json);
+          offscreen.setDimensions({ width, height });
+          offscreen.renderAll();
+          image = offscreen.toDataURL({ format: "png", multiplier: 2 });
+        } finally {
+          await offscreen.dispose();
+        }
+
+        if (!pdf) {
+          pdf = new jsPDF({ orientation: pageOrientation, unit: "mm", format: "a4" });
+        } else {
+          pdf.addPage("a4", pageOrientation);
+        }
+        pdf.addImage(image, "PNG", 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
+      }
+
+      pdf?.save(`${templateName.trim().replace(/[^a-z0-9-_]+/gi, "-") || "certificates"}.pdf`);
+      setExportMenuOpen(false);
+    } catch (error) {
+      console.error("Multi-page PDF export failed:", error);
+      toast.error("Could not export the pages as a PDF.");
+    }
+  };
+
+  useEffect(() => {
+    const handleShortcutSave = () => {
+      if (!templateName.trim()) {
+        setIsSaveModalOpen(true);
+        return;
+      }
+      void handleSave();
+    };
+    window.addEventListener("fabric-editor-save", handleShortcutSave);
+    return () => window.removeEventListener("fabric-editor-save", handleShortcutSave);
+  }, [handleSave, templateName]);
 
   return (
     <>
       {/* Compact Canva-style Top Bar — single row, horizontally scrollable on very small screens */}
       <header className="flex items-center h-12 sm:h-14 gap-1.5 sm:gap-2 border-b border-gray-200 bg-white px-2 sm:px-3 shadow-sm z-30 shrink-0">
         {/* Back */}
+        <span className={`hidden md:inline text-[10px] font-semibold ${saveStatus === "error" ? "text-red-600" : saveStatus === "saved" ? "text-emerald-700" : "text-amber-700"}`} role="status">
+          {saveStatus === "saving" ? "Saving..." : saveStatus === "unsaved" ? "Unsaved changes" : saveStatus === "error" ? "Save failed" : "Saved"}
+        </span>
+
         <button
           onClick={onBack}
           className="flex items-center justify-center h-8 w-8 sm:h-9 sm:w-9 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition shrink-0"
@@ -984,6 +1149,31 @@ export default function Header({
           </button>
         </div>
 
+        <button
+          type="button"
+          onClick={() => setPreviewMode(true)}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 sm:px-3 h-8 sm:h-9 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+          title="Preview certificate"
+        ><Eye size={14} /><span className="hidden sm:inline">Preview</span></button>
+
+        <div className="relative shrink-0">
+          <button
+            type="button"
+            onClick={() => setExportMenuOpen((open) => !open)}
+            className="inline-flex h-8 items-center gap-1 rounded-lg border border-slate-200 px-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 sm:h-9 sm:px-3"
+            aria-expanded={exportMenuOpen}
+            title="Export certificate"
+          ><Download size={14} /><span className="hidden sm:inline">Export</span><ChevronDown size={13} /></button>
+          {exportMenuOpen && (
+            <div className="absolute right-0 top-full z-50 mt-2 w-48 rounded-lg border border-slate-200 bg-white p-1.5 shadow-xl">
+              <button type="button" onClick={() => exportCurrentImage("png")} className="w-full rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50">Current page · PNG</button>
+              <button type="button" onClick={() => exportCurrentImage("jpeg")} className="w-full rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50">Current page · JPEG</button>
+              <button type="button" onClick={() => void exportAllPagesPdf()} className="w-full rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50">All pages · A4 PDF</button>
+              <button type="button" onClick={exportFabricJson} className="w-full rounded-md px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50">Project · Fabric JSON</button>
+            </div>
+          )}
+        </div>
+
         {/* Save — always pinned right */}
         <button
           onClick={() => setIsSaveModalOpen(true)}
@@ -1050,7 +1240,7 @@ export default function Header({
                 Cancel
               </button>
               <button
-                onClick={handleSave}
+                onClick={() => void handleSave(true)}
                 disabled={saving}
                 className="flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 disabled:opacity-60 transition shadow-sm"
               >
