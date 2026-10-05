@@ -76,6 +76,7 @@ export default function ContextToolbar() {
   const [crop, setCrop] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const [geometry, setGeometry] = useState({ x: 0, y: 0, width: 0, height: 0, angle: 0 });
   const [varMenuOpen, setVarMenuOpen] = useState(false);
+  const [showMore, setShowMore] = useState(false);
   const varMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -234,379 +235,313 @@ export default function ContextToolbar() {
   };
 
   return (
-    <div className="flex items-center gap-1.5 h-12 px-2 sm:px-3 border-b border-gray-200 bg-white overflow-x-auto no-scrollbar shrink-0 z-20 relative">
-      {isText && (
-        <>
-          {/* Inline text edit */}
-          <input
-            value={text}
-            onChange={(e) => {
-              setText(e.target.value);
-              updateProp("text", e.target.value);
-            }}
-            placeholder="Text…"
-            className="w-28 sm:w-40 shrink-0 rounded-md border border-gray-200 px-2 py-1.5 text-xs focus:border-red-500 focus:ring-2 focus:ring-red-100 outline-none"
-          />
+    <div className="relative z-20 flex min-h-[52px] shrink-0 flex-wrap items-center gap-1.5 overflow-hidden border-b border-gray-200 bg-white px-2 py-1.5 sm:px-3">
+      <div className="flex flex-wrap items-center gap-1.5">
+        {isText && (
+          <>
+            <input
+              value={text}
+              onChange={(e) => {
+                setText(e.target.value);
+                updateProp("text", e.target.value);
+              }}
+              placeholder="Text…"
+              className="w-28 sm:w-40 shrink-0 rounded-md border border-gray-200 px-2 py-1.5 text-xs focus:border-red-500 focus:ring-2 focus:ring-red-100 outline-none"
+            />
 
-          {/* Insert variable dropdown */}
-          <div className="relative shrink-0" ref={varMenuRef}>
-            <button
-              onClick={() => setVarMenuOpen((v) => !v)}
-              className="flex items-center gap-1 rounded-md border border-red-200 bg-red-50 text-red-700 px-2 py-1.5 text-[11px] font-bold hover:bg-red-100 transition"
-              title="Insert variable"
-            >
-              <Plus size={12} /> Var <ChevronDown size={12} />
-            </button>
-            {varMenuOpen && (
-              <div className="absolute left-0 top-full mt-1 w-48 rounded-lg border border-gray-200 bg-white shadow-xl p-1.5 z-30">
-                {QUICK_VARS.map((v) => (
-                  <button
-                    key={v}
-                    onClick={() => insertVariable(v)}
-                    className="w-full text-left px-2 py-1.5 rounded-md hover:bg-red-50 text-[11px] font-mono font-bold text-red-700 transition"
-                  >
-                    {v}
-                  </button>
+            <div className="relative shrink-0" ref={varMenuRef}>
+              <button
+                onClick={() => setVarMenuOpen((v) => !v)}
+                className="flex items-center gap-1 rounded-md border border-red-200 bg-red-50 px-2 py-1.5 text-[11px] font-bold text-red-700 transition hover:bg-red-100"
+                title="Insert variable"
+              >
+                <Plus size={12} /> Var <ChevronDown size={12} />
+              </button>
+              {varMenuOpen && (
+                <div className="absolute left-0 top-full z-30 mt-1 w-48 rounded-lg border border-gray-200 bg-white p-1.5 shadow-xl">
+                  {QUICK_VARS.map((v) => (
+                    <button
+                      key={v}
+                      onClick={() => insertVariable(v)}
+                      className="w-full rounded-md px-2 py-1.5 text-left text-[11px] font-mono font-bold text-red-700 transition hover:bg-red-50"
+                    >
+                      {v}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {(isText || activeObject.fill !== undefined) && (
+          <div className="flex items-center gap-1.5 shrink-0">
+            <input
+              type="color"
+              value={typeof fill === "string" ? fill : "#000000"}
+              onChange={(e) => {
+                setFill(e.target.value);
+                updateProp("fill", e.target.value);
+              }}
+              className="h-7 w-7 cursor-pointer rounded-md border border-gray-200 p-0.5"
+            />
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => canvas && FabricToolService.deleteSelected(canvas)}
+          className="inline-flex items-center gap-1 rounded-md bg-red-600 px-2.5 py-1.5 text-[11px] font-bold text-white transition hover:bg-red-700"
+          title="Delete selected element"
+        >
+          <Trash2 size={13} /> Delete
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setShowMore((value) => !value)}
+          className="inline-flex h-7 items-center justify-center rounded-md border border-gray-200 bg-gray-50 px-2 text-[11px] font-bold text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+          title={showMore ? "Hide more options" : "Show more options"}
+        >
+          {showMore ? "Less" : "..."}
+        </button>
+      </div>
+
+      {showMore && (
+        <div className="mt-1.5 flex w-full flex-wrap items-center gap-1.5 border-t border-gray-200 pt-1.5">
+          {isText && (
+            <>
+              <select
+                value={fontFamily}
+                onChange={(e) => {
+                  setFontFamily(e.target.value);
+                  updateProp("fontFamily", e.target.value);
+                }}
+                className="shrink-0 w-28 sm:w-36 rounded-md border border-gray-200 bg-white px-2 py-1.5 text-xs font-medium outline-none focus:border-red-500"
+              >
+                {FONT_FAMILIES.map((f) => (
+                  <option key={f.value} value={f.value}>
+                    {f.label}
+                  </option>
                 ))}
+              </select>
+
+              <input
+                type="number"
+                min={8}
+                max={140}
+                value={fontSize}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  setFontSize(val);
+                  updateProp("fontSize", val);
+                }}
+                className="w-14 shrink-0 rounded-md border border-gray-200 px-2 py-1.5 text-xs font-bold outline-none focus:border-red-500"
+              />
+
+              <div className="flex items-center rounded-md bg-gray-100 p-0.5 shrink-0">
+                <button
+                  onClick={() => {
+                    const nw = fontWeight === "bold" ? "normal" : "bold";
+                    setFontWeight(nw);
+                    updateProp("fontWeight", nw);
+                  }}
+                  className={`rounded p-1.5 transition ${fontWeight === "bold" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
+                  title="Bold"
+                >
+                  <Bold size={14} />
+                </button>
+                <button
+                  onClick={() => {
+                    const ns = fontStyle === "italic" ? "normal" : "italic";
+                    setFontStyle(ns);
+                    updateProp("fontStyle", ns);
+                  }}
+                  className={`rounded p-1.5 transition ${fontStyle === "italic" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
+                  title="Italic"
+                >
+                  <Italic size={14} />
+                </button>
+                <button
+                  onClick={() => {
+                    const value = !underline;
+                    setUnderline(value);
+                    updateProp("underline", value);
+                  }}
+                  className={`rounded px-1.5 py-1 text-xs font-bold underline transition ${underline ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
+                  title="Underline"
+                >U</button>
+                <button
+                  onClick={() => {
+                    const value = !linethrough;
+                    setLinethrough(value);
+                    updateProp("linethrough", value);
+                  }}
+                  className={`rounded px-1.5 py-1 text-xs font-bold line-through transition ${linethrough ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
+                  title="Strikethrough"
+                >S</button>
+                <div className="mx-0.5 h-3.5 w-px bg-gray-300" />
+                <button
+                  onClick={() => {
+                    setTextAlign("left");
+                    updateProp("textAlign", "left");
+                  }}
+                  className={`rounded p-1.5 transition ${textAlign === "left" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
+                  title="Align Left"
+                >
+                  <AlignLeft size={14} />
+                </button>
+                <button
+                  onClick={() => {
+                    setTextAlign("center");
+                    updateProp("textAlign", "center");
+                  }}
+                  className={`rounded p-1.5 transition ${textAlign === "center" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
+                  title="Align Center"
+                >
+                  <AlignCenter size={14} />
+                </button>
+                <button
+                  onClick={() => {
+                    setTextAlign("right");
+                    updateProp("textAlign", "right");
+                  }}
+                  className={`rounded p-1.5 transition ${textAlign === "right" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
+                  title="Align Right"
+                >
+                  <AlignRight size={14} />
+                </button>
               </div>
-            )}
-          </div>
+            </>
+          )}
 
-          <div className="h-6 w-px bg-gray-200 shrink-0" />
+          {(activeObject.fill !== undefined || activeObject.stroke !== undefined) && (
+            <div className="flex items-center gap-1.5 shrink-0">
+              <label className="flex items-center gap-1 text-[9px] font-bold text-gray-400" title="Border color">
+                Border
+                <input type="color" value={stroke} onChange={(event) => {
+                  setStroke(event.target.value);
+                  updateProp("stroke", event.target.value);
+                }} className="h-7 w-7 rounded border border-gray-200 p-0.5" aria-label="Border color" />
+              </label>
+              <label className="flex items-center gap-1 text-[9px] font-bold text-gray-400" title="Border width">
+                <input type="number" min={0} max={40} value={strokeWidth} onChange={(event) => {
+                  const value = Math.max(0, Number(event.target.value));
+                  setStrokeWidth(value);
+                  updateProp("strokeWidth", value);
+                }} className="w-10 rounded border border-gray-200 px-1 py-1 text-[10px] text-gray-700" aria-label="Border width" />
+              </label>
+              {activeObject.type === "rect" && <label className="flex items-center gap-1 text-[9px] font-bold text-gray-400" title="Corner radius">
+                Radius
+                <input type="number" min={0} max={100} value={cornerRadius} onChange={(event) => {
+                  const value = Math.max(0, Number(event.target.value));
+                  setCornerRadius(value);
+                  updateProp("rx", value);
+                  updateProp("ry", value);
+                }} className="w-10 rounded border border-gray-200 px-1 py-1 text-[10px] text-gray-700" aria-label="Corner radius" />
+              </label>}
+            </div>
+          )}
 
-          {/* Font family */}
-          <select
-            value={fontFamily}
-            onChange={(e) => {
-              setFontFamily(e.target.value);
-              updateProp("fontFamily", e.target.value);
-            }}
-            className="shrink-0 w-28 sm:w-36 rounded-md border border-gray-200 px-2 py-1.5 text-xs focus:border-red-500 outline-none bg-white font-medium"
-          >
-            {FONT_FAMILIES.map((f) => (
-              <option key={f.value} value={f.value}>
-                {f.label}
-              </option>
+          <div className="flex items-center gap-0.5 shrink-0" aria-label="Align selection to page">
+            {(["left", "center", "right", "top", "middle", "bottom"] as const).map((alignment) => (
+              <button
+                key={alignment}
+                type="button"
+                onClick={() => alignSelection(alignment)}
+                className="rounded px-1.5 py-1.5 text-[9px] font-bold uppercase text-gray-600 hover:bg-gray-100 hover:text-red-600"
+                title={`Align ${alignment} to page`}
+              >
+                {alignment === "center" ? "HC" : alignment === "middle" ? "VM" : alignment.slice(0, 1)}
+              </button>
             ))}
-          </select>
-
-          {/* Font size */}
-          <input
-            type="number"
-            min={8}
-            max={140}
-            value={fontSize}
-            onChange={(e) => {
-              const val = Number(e.target.value);
-              setFontSize(val);
-              updateProp("fontSize", val);
-            }}
-            className="shrink-0 w-14 rounded-md border border-gray-200 px-2 py-1.5 text-xs focus:border-red-500 outline-none font-bold"
-          />
-
-          <div className="h-6 w-px bg-gray-200 shrink-0" />
-
-          {/* Style + align */}
-          <div className="flex items-center rounded-md bg-gray-100 p-0.5 shrink-0">
-            <button
-              onClick={() => {
-                const nw = fontWeight === "bold" ? "normal" : "bold";
-                setFontWeight(nw);
-                updateProp("fontWeight", nw);
-              }}
-              className={`p-1.5 rounded transition ${fontWeight === "bold" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
-              title="Bold"
-            >
-              <Bold size={14} />
-            </button>
-            <button
-              onClick={() => {
-                const ns = fontStyle === "italic" ? "normal" : "italic";
-                setFontStyle(ns);
-                updateProp("fontStyle", ns);
-              }}
-              className={`p-1.5 rounded transition ${fontStyle === "italic" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
-              title="Italic"
-            >
-              <Italic size={14} />
-            </button>
-            <button
-              onClick={() => {
-                const value = !underline;
-                setUnderline(value);
-                updateProp("underline", value);
-              }}
-              className={`px-1.5 py-1 rounded text-xs font-bold underline transition ${underline ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
-              title="Underline"
-              aria-label="Underline"
-            >U</button>
-            <button
-              onClick={() => {
-                const value = !linethrough;
-                setLinethrough(value);
-                updateProp("linethrough", value);
-              }}
-              className={`px-1.5 py-1 rounded text-xs font-bold line-through transition ${linethrough ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
-              title="Strikethrough"
-              aria-label="Strikethrough"
-            >S</button>
-            <div className="h-3.5 w-px bg-gray-300 mx-0.5" />
-            <button
-              onClick={() => {
-                setTextAlign("left");
-                updateProp("textAlign", "left");
-              }}
-              className={`p-1.5 rounded transition ${textAlign === "left" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
-              title="Align Left"
-            >
-              <AlignLeft size={14} />
-            </button>
-            <button
-              onClick={() => {
-                setTextAlign("center");
-                updateProp("textAlign", "center");
-              }}
-              className={`p-1.5 rounded transition ${textAlign === "center" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
-              title="Align Center"
-            >
-              <AlignCenter size={14} />
-            </button>
-            <button
-              onClick={() => {
-                setTextAlign("right");
-                updateProp("textAlign", "right");
-              }}
-              className={`p-1.5 rounded transition ${textAlign === "right" ? "bg-white text-red-600 shadow-sm" : "text-gray-500 hover:text-gray-900"}`}
-              title="Align Right"
-            >
-              <AlignRight size={14} />
-            </button>
           </div>
 
-          <label className="flex items-center gap-1 shrink-0 text-[10px] font-bold text-gray-400" title="Letter spacing">
-            Spacing
-            <input type="number" min={0} max={500} step={5} value={charSpacing} onChange={(event) => {
-              const value = Number(event.target.value);
-              setCharSpacing(value);
-              updateProp("charSpacing", value);
-            }} className="w-12 rounded border border-gray-200 px-1 py-1 text-[10px] font-medium text-gray-700" aria-label="Letter spacing" />
-          </label>
-          <label className="flex items-center gap-1 shrink-0 text-[10px] font-bold text-gray-400" title="Line height">
-            Line
-            <input type="number" min={0.5} max={4} step={0.1} value={lineHeight} onChange={(event) => {
-              const value = Number(event.target.value);
-              setLineHeight(value);
-              updateProp("lineHeight", value);
-            }} className="w-12 rounded border border-gray-200 px-1 py-1 text-[10px] font-medium text-gray-700" aria-label="Line height" />
-          </label>
-          <label className="flex items-center gap-1 shrink-0 text-[10px] font-bold text-gray-400" title="Text highlight">
-            Highlight
-            <input type="color" value={textBackground} onChange={(event) => {
-              setTextBackground(event.target.value);
-              updateProp("textBackgroundColor", event.target.value);
-            }} className="h-7 w-7 rounded border border-gray-200 p-0.5" aria-label="Text highlight color" />
-          </label>
+          <div className="flex items-center gap-0.5 shrink-0" aria-label="Distribute selection">
+            <button type="button" onClick={() => distributeSelection("x")} className="rounded px-1.5 py-1.5 text-[9px] font-bold text-gray-600 hover:bg-gray-100 hover:text-red-600" title="Distribute horizontally">Spread X</button>
+            <button type="button" onClick={() => distributeSelection("y")} className="rounded px-1.5 py-1.5 text-[9px] font-bold text-gray-600 hover:bg-gray-100 hover:text-red-600" title="Distribute vertically">Spread Y</button>
+          </div>
 
-          <div className="h-6 w-px bg-gray-200 shrink-0" />
+          <div className="flex items-center gap-1 shrink-0" aria-label="Selected object geometry">
+            {(
+  [
+    ["x", "X"],
+    ["y", "Y"],
+    ["width", "W"],
+    ["height", "H"],
+    ["angle", "°"],
+  ] as const
+).map(([key, label]) => (
+  <label
+    key={key}
+    className="flex items-center gap-1 text-[10px] font-bold text-gray-400"
+    title={
+      key === "angle"
+        ? "Rotation"
+        : key === "width"
+          ? "Width"
+          : key === "height"
+            ? "Height"
+            : key.toUpperCase()
+    }
+  >
+    {label}
 
-          {/* Box width */}
-          <div className="hidden md:flex items-center gap-1.5 shrink-0" title="Text box width">
-            <span className="text-[10px] font-bold text-gray-400 uppercase">Width</span>
+    <input
+      type="number"
+      value={geometry[key]}
+      onChange={(event) =>
+        updateGeometry(key, Number(event.target.value))
+      }
+      className="w-12 rounded border border-gray-200 px-1 py-1 text-[10px] font-medium text-gray-700 outline-none focus:border-red-500 sm:w-14"
+    />
+  </label>
+))}
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <span className="text-[10px] font-bold uppercase text-gray-400">Opacity</span>
             <input
               type="range"
-              min={100}
-              max={950}
-              step={10}
-              value={boxWidth}
+              min={0}
+              max={1}
+              step={0.05}
+              value={opacity}
               onChange={(e) => {
-                const val = Number(e.target.value);
-                setBoxWidth(val);
-                updateProp("width", val);
+                const val = parseFloat(e.target.value);
+                setOpacity(val);
+                updateProp("opacity", val);
               }}
-              className="w-20 accent-red-600 cursor-pointer"
+              className="w-16 accent-red-600 cursor-pointer"
             />
+            <span className="w-8 shrink-0 text-[10px] font-mono text-gray-500">{Math.round(opacity * 100)}%</span>
           </div>
 
-          <div className="h-6 w-px bg-gray-200 shrink-0" />
-        </>
-      )}
+          {activeObject.type === "image" && (
+            <div className="flex items-center gap-1 shrink-0">
+              <button type="button" onClick={() => updateProp("flipX", !activeObject.flipX)} className={`rounded px-2 py-1.5 text-[10px] font-bold ${activeObject.flipX ? "bg-red-50 text-red-700" : "text-gray-600 hover:bg-gray-100"}`} title="Flip horizontally">Flip H</button>
+              <button type="button" onClick={() => updateProp("flipY", !activeObject.flipY)} className={`rounded px-2 py-1.5 text-[10px] font-bold ${activeObject.flipY ? "bg-red-50 text-red-700" : "text-gray-600 hover:bg-gray-100"}`} title="Flip vertically">Flip V</button>
+              <button type="button" onClick={() => updateProp("angle", ((activeObject.angle || 0) + 90) % 360)} className="rounded px-2 py-1.5 text-[10px] font-bold text-gray-600 hover:bg-gray-100" title="Rotate 90 degrees">Rotate 90</button>
+              <button type="button" onClick={() => canvas && ImageUploadService.replaceImage(canvas, activeObject)} className="rounded px-2 py-1.5 text-[10px] font-bold text-gray-600 hover:bg-gray-100" title="Replace image">Replace</button>
+            </div>
+          )}
 
-      {/* Color (text fill or shape fill) */}
-      {(isText || activeObject.fill !== undefined) && (
-        <div className="flex items-center gap-1.5 shrink-0">
-          <input
-            type="color"
-            value={typeof fill === "string" ? fill : "#000000"}
-            onChange={(e) => {
-              setFill(e.target.value);
-              updateProp("fill", e.target.value);
-            }}
-            className="h-7 w-7 cursor-pointer rounded-md border border-gray-200 p-0.5"
-          />
-          <div className="hidden sm:flex items-center gap-1">
-            {PRESET_COLORS.map((c) => (
-              <button
-                key={c.color}
-                onClick={() => {
-                  setFill(c.color);
-                  updateProp("fill", c.color);
-                }}
-                style={{ backgroundColor: c.color }}
-                className="h-5 w-5 rounded-full border border-gray-200 shadow-sm transition hover:scale-110"
-                title={c.name}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {(activeObject.fill !== undefined || activeObject.stroke !== undefined) && (
-        <div className="flex items-center gap-1.5 shrink-0">
-          <label className="flex items-center gap-1 text-[9px] font-bold text-gray-400" title="Border color">
-            Border
-            <input type="color" value={stroke} onChange={(event) => {
-              setStroke(event.target.value);
-              updateProp("stroke", event.target.value);
-            }} className="h-7 w-7 rounded border border-gray-200 p-0.5" aria-label="Border color" />
-          </label>
-          <label className="flex items-center gap-1 text-[9px] font-bold text-gray-400" title="Border width">
-            <input type="number" min={0} max={40} value={strokeWidth} onChange={(event) => {
-              const value = Math.max(0, Number(event.target.value));
-              setStrokeWidth(value);
-              updateProp("strokeWidth", value);
-            }} className="w-10 rounded border border-gray-200 px-1 py-1 text-[10px] text-gray-700" aria-label="Border width" />
-          </label>
-          {activeObject.type === "rect" && <label className="flex items-center gap-1 text-[9px] font-bold text-gray-400" title="Corner radius">
-            Radius
-            <input type="number" min={0} max={100} value={cornerRadius} onChange={(event) => {
-              const value = Math.max(0, Number(event.target.value));
-              setCornerRadius(value);
-              updateProp("rx", value);
-              updateProp("ry", value);
-            }} className="w-10 rounded border border-gray-200 px-1 py-1 text-[10px] text-gray-700" aria-label="Corner radius" />
-          </label>}
-          <button type="button" onClick={() => {
-            const enabled = !hasShadow;
-            setHasShadow(enabled);
-            updateProp("shadow", enabled ? new Shadow({ color: "rgba(15, 23, 42, 0.24)", blur: 10, offsetX: 2, offsetY: 3 }) : null);
-          }} className={`rounded px-2 py-1.5 text-[10px] font-bold ${hasShadow ? "bg-red-50 text-red-700" : "text-gray-600 hover:bg-gray-100"}`} title="Toggle subtle shadow">Shadow</button>
-        </div>
-      )}
-
-      <div className="h-6 w-px bg-gray-200 shrink-0" />
-
-      <div className="flex items-center gap-0.5 shrink-0" aria-label="Align selection to page">
-        {(["left", "center", "right", "top", "middle", "bottom"] as const).map((alignment) => (
           <button
-            key={alignment}
-            type="button"
-            onClick={() => alignSelection(alignment)}
-            className="rounded px-1.5 py-1.5 text-[9px] font-bold uppercase text-gray-600 hover:bg-gray-100 hover:text-red-600"
-            title={`Align ${alignment} to page`}
-            aria-label={`Align ${alignment} to page`}
+            onClick={() => canvas && FabricToolService.bringToFront(canvas)}
+            className="rounded-md p-2 text-gray-600 transition hover:bg-gray-100"
+            title="Bring to Front"
           >
-            {alignment === "center" ? "HC" : alignment === "middle" ? "VM" : alignment.slice(0, 1)}
+            <ArrowUp size={15} />
           </button>
-        ))}
-      </div>
-
-      <div className="flex items-center gap-0.5 shrink-0" aria-label="Distribute selection">
-        <button type="button" onClick={() => distributeSelection("x")} className="rounded px-1.5 py-1.5 text-[9px] font-bold text-gray-600 hover:bg-gray-100 hover:text-red-600" title="Distribute horizontally" aria-label="Distribute horizontally">Spread X</button>
-        <button type="button" onClick={() => distributeSelection("y")} className="rounded px-1.5 py-1.5 text-[9px] font-bold text-gray-600 hover:bg-gray-100 hover:text-red-600" title="Distribute vertically" aria-label="Distribute vertically">Spread Y</button>
-      </div>
-
-      <div className="h-6 w-px bg-gray-200 shrink-0" />
-
-      {/* Position, size, and rotation */}
-      <div className="flex items-center gap-1 shrink-0" aria-label="Selected object geometry">
-        {([
-          ["x", "X"],
-          ["y", "Y"],
-          ["width", "W"],
-          ["height", "H"],
-          ["angle", "°"],
-        ] as const).map(([key, label]) => (
-          <label key={key} className="flex items-center gap-1 text-[10px] font-bold text-gray-400" title={key === "angle" ? "Rotation" : key === "width" ? "Width" : key === "height" ? "Height" : key.toUpperCase()}>
-            {label}
-            <input
-              type="number"
-              value={geometry[key]}
-              onChange={(event) => updateGeometry(key, Number(event.target.value))}
-              className="w-12 rounded border border-gray-200 px-1 py-1 text-[10px] font-medium text-gray-700 outline-none focus:border-red-500 sm:w-14"
-              aria-label={key === "angle" ? "Rotation" : key === "width" ? "Width" : key === "height" ? "Height" : key.toUpperCase()}
-            />
-          </label>
-        ))}
-      </div>
-
-      <div className="h-6 w-px bg-gray-200 shrink-0" />
-
-      {/* Opacity */}
-      <div className="flex items-center gap-1.5 shrink-0">
-        <span className="text-[10px] font-bold text-gray-400 uppercase">Opacity</span>
-        <input
-          type="range"
-          min={0}
-          max={1}
-          step={0.05}
-          value={opacity}
-          onChange={(e) => {
-            const val = parseFloat(e.target.value);
-            setOpacity(val);
-            updateProp("opacity", val);
-          }}
-          className="w-16 accent-red-600 cursor-pointer"
-        />
-        <span className="text-[10px] font-mono text-gray-500 w-8 shrink-0">{Math.round(opacity * 100)}%</span>
-      </div>
-
-      {activeObject.type === "image" && (
-        <div className="flex items-center gap-1 shrink-0">
-          <button type="button" onClick={() => updateProp("flipX", !activeObject.flipX)} className={`rounded px-2 py-1.5 text-[10px] font-bold ${activeObject.flipX ? "bg-red-50 text-red-700" : "text-gray-600 hover:bg-gray-100"}`} title="Flip horizontally">Flip H</button>
-          <button type="button" onClick={() => updateProp("flipY", !activeObject.flipY)} className={`rounded px-2 py-1.5 text-[10px] font-bold ${activeObject.flipY ? "bg-red-50 text-red-700" : "text-gray-600 hover:bg-gray-100"}`} title="Flip vertically">Flip V</button>
-          <button type="button" onClick={() => updateProp("angle", ((activeObject.angle || 0) + 90) % 360)} className="rounded px-2 py-1.5 text-[10px] font-bold text-gray-600 hover:bg-gray-100" title="Rotate 90 degrees">Rotate 90</button>
-          <button type="button" onClick={() => canvas && ImageUploadService.replaceImage(canvas, activeObject)} className="rounded px-2 py-1.5 text-[10px] font-bold text-gray-600 hover:bg-gray-100" title="Replace image">Replace</button>
-          {(["x", "y", "width", "height"] as const).map((key) => (
-            <label key={key} className="flex items-center gap-0.5 text-[9px] font-bold text-gray-400" title={`Crop ${key}`}>
-              C{key === "width" ? "W" : key === "height" ? "H" : key.toUpperCase()}
-              <input type="number" min={0} value={crop[key]} onChange={(event) => {
-                const value = Math.max(0, Number(event.target.value));
-                setCrop((current) => ({ ...current, [key]: value }));
-                updateProp(key === "x" ? "cropX" : key === "y" ? "cropY" : key, value);
-              }} className="w-11 rounded border border-gray-200 px-1 py-1 text-[9px] font-medium text-gray-700" aria-label={`Crop ${key}`} />
-            </label>
-          ))}
+          <button
+            onClick={() => canvas && FabricToolService.sendToBack(canvas)}
+            className="rounded-md p-2 text-gray-600 transition hover:bg-gray-100"
+            title="Send to Back"
+          >
+            <ArrowDown size={15} />
+          </button>
         </div>
       )}
-
-      <div className="h-6 w-px bg-gray-200 shrink-0" />
-
-      {/* Layer order */}
-      <button
-        onClick={() => canvas && FabricToolService.bringToFront(canvas)}
-        className="p-2 rounded-md text-gray-600 hover:bg-gray-100 transition shrink-0"
-        title="Bring to Front"
-      >
-        <ArrowUp size={15} />
-      </button>
-      <button
-        onClick={() => canvas && FabricToolService.sendToBack(canvas)}
-        className="p-2 rounded-md text-gray-600 hover:bg-gray-100 transition shrink-0"
-        title="Send to Back"
-      >
-        <ArrowDown size={15} />
-      </button>
-
-      <div className="ml-auto" />
-
-      {/* Delete */}
-      <button
-        onClick={() => canvas && FabricToolService.deleteSelected(canvas)}
-        className="p-2 rounded-md text-red-600 hover:bg-red-50 transition shrink-0"
-        title="Delete"
-      >
-        <Trash2 size={16} />
-      </button>
     </div>
   );
 }

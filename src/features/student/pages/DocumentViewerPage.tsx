@@ -1,6 +1,6 @@
 
 import { useEffect, useRef, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import DashboardLayout from "../../../layouts/DashboardLayout";
 import {
   getMyCertificate,
@@ -10,8 +10,9 @@ import FabricCertificateRenderer from "../components/FabricCertificateRenderer";
 import OfferLetterDocument from "../components/OfferLetterDocument";
 import DocumentHeader from "../../../components/shared/DocumentHeader";
 import { ArrowLeft, AlertCircle, Download, GraduationCap } from "lucide-react";
-import html2canvas from "html2canvas";
+import { toCanvas } from "html-to-image";
 import jsPDF from "jspdf";
+import toast from "react-hot-toast";
 
 interface DocumentViewerPageProps {
   forcedType?: string;
@@ -22,6 +23,7 @@ export default function DocumentViewerPage({
 }: DocumentViewerPageProps) {
   const { certificateId } = useParams<{ certificateId?: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [documentData, setDocumentData] = useState<any>(null);
   const [templateData, setTemplateData] = useState<any>(null);
@@ -31,6 +33,7 @@ export default function DocumentViewerPage({
   const [downloading, setDownloading] = useState(false);
 
   const captureRef = useRef<HTMLDivElement>(null);
+  const autoDownloadStarted = useRef(false);
 
   useEffect(() => {
     const fetchDoc = async () => {
@@ -96,30 +99,41 @@ export default function DocumentViewerPage({
     if (!captureRef.current) return;
     try {
       setDownloading(true);
-      const canvas = await html2canvas(captureRef.current, {
-        scale: 2,
-        useCORS: true,
+      const canvas = await toCanvas(captureRef.current, {
+        pixelRatio: 2,
+        cacheBust: true,
         backgroundColor: "#ffffff",
       });
 
-      const imgData = canvas.toDataURL("image/png", 1.0);
-      const orientation =
-        templateData?.orientation === "portrait" ? "portrait" : "landscape";
-
-      const pdf = new jsPDF({
-        orientation,
-        unit: "px",
-        format: [canvas.width, canvas.height],
-      });
-
-      pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+      const orientation = templateData?.orientation === "portrait" ? "portrait" : "landscape";
+      const pdf = new jsPDF({ orientation, unit: "mm", format: "a4" });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const scale = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
+      const width = canvas.width * scale;
+      const height = canvas.height * scale;
+      pdf.addImage(canvas, "PNG", (pageWidth - width) / 2, (pageHeight - height) / 2, width, height);
       pdf.save(getFileName("pdf"));
     } catch (err) {
       console.error("PDF download failed:", err);
+      toast.error("Could not download this certificate. Please try again.");
     } finally {
       setDownloading(false);
     }
   };
+
+  useEffect(() => {
+    if (
+      searchParams.get("download") === "1" &&
+      !loading &&
+      documentData &&
+      !downloading &&
+      !autoDownloadStarted.current
+    ) {
+      autoDownloadStarted.current = true;
+      void handleDownloadPDF();
+    }
+  }, [searchParams, loading, documentData, downloading]);
 
   if (loading) {
     return (

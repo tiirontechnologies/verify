@@ -49,27 +49,53 @@ function fitBackground(canvas: any, w: number, h: number) {
 }
 
 function fitObjects(canvas: any, oldW: number, oldH: number, w: number, h: number) {
+  if (!oldW || !oldH || !w || !h) return;
+
   const scaleX = w / oldW;
   const scaleY = h / oldH;
 
   canvas.getObjects().forEach((obj: any) => {
+    if (obj.isPageBackground) return;
+
     const isText = obj.type === "textbox" || obj.type === "i-text" || obj.type === "text";
     if (isText && Math.abs((obj.scaleX || 1) - (obj.scaleY || 1)) > 0.01) {
       const uniformScale = Math.sqrt((obj.scaleX || 1) * (obj.scaleY || 1));
       obj.set({ scaleX: uniformScale, scaleY: uniformScale });
     }
-    obj.set({ left: (obj.left || 0) * scaleX, top: (obj.top || 0) * scaleY });
+
+    obj.set({
+      left: (obj.left || 0) * scaleX,
+      top: (obj.top || 0) * scaleY,
+    });
     obj.setCoords();
 
     const bounds = obj.getBoundingRect();
+    const padding = 8;
+
     const correctionX = bounds.left < 0
-      ? -bounds.left
-      : bounds.left + bounds.width > w ? w - bounds.left - bounds.width : 0;
+      ? -bounds.left + padding
+      : bounds.left + bounds.width > w ? w - bounds.left - bounds.width - padding : 0;
     const correctionY = bounds.top < 0
-      ? -bounds.top
-      : bounds.top + bounds.height > h ? h - bounds.top - bounds.height : 0;
+      ? -bounds.top + padding
+      : bounds.top + bounds.height > h ? h - bounds.top - bounds.height - padding : 0;
+
     if (correctionX || correctionY) {
-      obj.set({ left: (obj.left || 0) + correctionX, top: (obj.top || 0) + correctionY });
+      obj.set({
+        left: (obj.left || 0) + correctionX,
+        top: (obj.top || 0) + correctionY,
+      });
+      obj.setCoords();
+    }
+
+    const finalBounds = obj.getBoundingRect();
+    const finalLeft = finalBounds.left < 0 ? -finalBounds.left : finalBounds.left + finalBounds.width > w ? w - finalBounds.left - finalBounds.width : 0;
+    const finalTop = finalBounds.top < 0 ? -finalBounds.top : finalBounds.top + finalBounds.height > h ? h - finalBounds.top - finalBounds.height : 0;
+
+    if (finalLeft || finalTop) {
+      obj.set({
+        left: (obj.left || 0) + finalLeft,
+        top: (obj.top || 0) + finalTop,
+      });
       obj.setCoords();
     }
   });

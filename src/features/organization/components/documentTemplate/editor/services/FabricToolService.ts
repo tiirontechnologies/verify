@@ -297,8 +297,8 @@ export class FabricToolService {
       fill: "#eab308",
       stroke: "#ca8a04",
       strokeWidth: 1,
-      name: "Star" as any,
     });
+    star.set("name", "Star");
     canvas.add(star);
     canvas.setActiveObject(star);
     canvas.requestRenderAll();
@@ -311,9 +311,9 @@ export class FabricToolService {
         left: (canvas.width || 1056) / 2 - 55,
         top: (canvas.height || 747) / 2 - 24,
         fill: "#2563eb",
-        name: "Arrow",
       },
     );
+    arrow.set("name", "Arrow");
     canvas.add(arrow);
     canvas.setActiveObject(arrow);
     canvas.requestRenderAll();
