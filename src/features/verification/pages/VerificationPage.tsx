@@ -51,7 +51,6 @@ export default function VerificationPage() {
           id: data._id,
           type: data.certificateType, // dynamic, backend se
           studentName: data.studentName,
-          profileImage: data.profileImage,
           email: data.email,
           certificateId: data.certificateId,
           organization: data.organization,

@@ -19,16 +19,8 @@ export default function CandidateCard({
     <article className="grid overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg sm:rounded-3xl md:grid-cols-[minmax(190px,0.72fr)_minmax(0,1.8fr)]">
       <aside className="flex flex-col justify-between bg-[#711824] p-6 text-white sm:p-8">
         <div>
-          <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-white/25 bg-white/10 text-white sm:h-20 sm:w-20">
-            {certificate.profileImage ? (
-              <img
-                src={certificate.profileImage}
-                alt={`${certificate.studentName} profile`}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <User size={34} />
-            )}
+          <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white sm:h-20 sm:w-20">
+            <User size={34} />
           </div>
           <p className="mt-6 text-xs font-semibold uppercase text-rose-200">
             Verified candidate
