@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { login } from "../../../api/auth.api";
 import useMeRedirect from "../hooks/useMeRedirect";
 import { baseURL } from "../../../api/axios";
 
 export default function LoginForm() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const redirectToDashboard = useMeRedirect();
 
   useEffect(() => {
@@ -32,6 +33,10 @@ export default function LoginForm() {
       }
 
       const loggedInRole = response.user.role;
+      const requestedRedirect = searchParams.get("redirect");
+      const redirectPath = requestedRedirect?.startsWith("/") && !requestedRedirect.startsWith("//")
+        ? requestedRedirect
+        : null;
 
       // Prevent logging in from the wrong tab
       if (role === "student" && loggedInRole !== "student") {
@@ -46,6 +51,11 @@ export default function LoginForm() {
 
       // Store only user details
       sessionStorage.setItem("user", JSON.stringify(response.user));
+
+      if (redirectPath) {
+        navigate(redirectPath, { replace: true });
+        return;
+      }
 
       if (loggedInRole === "student") {
         navigate("/student/dashboard", { replace: true });

@@ -4,6 +4,7 @@ import { FileBadge2, CheckCircle2 } from "lucide-react";
 import { documentTemplateApi } from "../../../api/documentTemplateApi";
 import FabricCertificateRenderer from "../../student/components/FabricCertificateRenderer";
 import DocumentHeader from "../../../components/shared/DocumentHeader";
+import DashboardLayout from "../../../layouts/DashboardLayout";
 
 const SAMPLE_PREVIEW_STUDENT = {
   studentName: "Rahul Sharma",
@@ -52,18 +53,18 @@ export default function TemplatePreviewPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+      <DashboardLayout><div className="min-h-[70vh] bg-gray-100 flex items-center justify-center p-6">
         <div className="flex flex-col items-center">
           <div className="h-16 w-16 animate-spin rounded-full border-4 border-red-600 border-t-transparent"></div>
           <p className="mt-4 font-semibold text-gray-700">Loading Template Preview...</p>
         </div>
-      </div>
+      </div></DashboardLayout>
     );
   }
 
   if (!template) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+      <DashboardLayout><div className="min-h-[70vh] bg-gray-100 flex items-center justify-center p-6">
         <div className="text-center">
           <FileBadge2 size={60} className="mx-auto text-gray-300" />
           <h2 className="mt-4 text-2xl font-bold text-gray-800">Template Not Found</h2>
@@ -74,12 +75,12 @@ export default function TemplatePreviewPage() {
             Go Back
           </button>
         </div>
-      </div>
+      </div></DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 p-6 space-y-6">
+    <DashboardLayout><div className="min-h-screen bg-slate-100 -m-4 p-4 space-y-6 md:-m-8 md:p-8">
       <div className="max-w-7xl mx-auto">
         <DocumentHeader
           title={template.name}
@@ -96,30 +97,25 @@ export default function TemplatePreviewPage() {
 
       {/* Render Canvas Preview */}
       <div className="max-w-7xl mx-auto">
-        {template.design?.data ? (
-          <FabricCertificateRenderer
-            templateData={{
-              ...template.design.data,
-              orientation:
-                template.design?.orientation ||
-                template.design?.data?.orientation ||
-                "landscape",
-            }}
-            studentData={SAMPLE_PREVIEW_STUDENT}
-            hideHeader={true}
-          />
-        ) : (
-          <div className="flex justify-center p-12">
-            <div className="flex w-[800px] min-h-[500px] flex-col items-center justify-center rounded-2xl bg-white p-8 shadow-xl text-center border border-gray-200">
-              <FileBadge2 size={60} className="text-red-600 mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900">{template.name}</h2>
-              <p className="mt-2 text-sm text-gray-500 max-w-md">
-                This template does not contain Fabric.js canvas JSON data yet. Click Edit from the templates card to design it in the editor.
-              </p>
-            </div>
-          </div>
-        )}
+        <FabricCertificateRenderer
+          templateData={{
+            ...(template.design?.data || { objects: [], width: 1056, height: 747 }),
+            objects: Array.isArray(template.design?.data?.objects)
+              ? template.design.data.objects
+              : [],
+            width: Number(template.design?.data?.width) || 1056,
+            height: Number(template.design?.data?.height) || 747,
+            orientation:
+              template.design?.orientation ||
+              template.design?.data?.orientation ||
+              "landscape",
+          }}
+          studentData={SAMPLE_PREVIEW_STUDENT}
+          hideHeader={true}
+          templateName={template.name}
+          documentType={template.documentType}
+        />
       </div>
-    </div>
+    </div></DashboardLayout>
   );
 }

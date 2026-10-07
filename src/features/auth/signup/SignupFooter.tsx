@@ -147,7 +147,7 @@ export default function SignupFooter() {
                   className="text-red-600"
                 />
 
-                support@tiiron.com
+                <a href="mailto:verify@tiirontechnologies.com" className="hover:text-red-700">verify@tiirontechnologies.com</a>
 
               </div>
 

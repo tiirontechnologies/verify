@@ -252,7 +252,7 @@ export default function Workspace({
 
             <div className="flex flex-col sm:flex-row items-center gap-2 pt-0.5">
               <button
-                onClick={onBack}
+                onClick={() => window.dispatchEvent(new Event("fabric-editor-back"))}
                 className="w-full flex items-center justify-center gap-1.5 rounded-lg bg-gray-100 border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-200 transition"
               >
                 <ArrowLeft size={14} /> Back

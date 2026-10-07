@@ -145,7 +145,7 @@ const ContactUs: React.FC = () => {
       {/* ================= NAVBAR ================= */}
       <Navbar />
 
-      <section className="bg-slate-50 px-4 py-10 font-sans sm:py-14">
+      <section className="bg-slate-50 px-4 py-10 font-sans antialiased sm:py-14">
         <div className="mx-auto grid max-w-[1200px] grid-cols-1 gap-8 lg:grid-cols-[1.12fr_0.88fr]">
           {/* ================= LEFT CARD ================= */}
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
@@ -334,10 +334,10 @@ const ContactUs: React.FC = () => {
                       Technical Support
                     </p>
                     <a
-                      href="mailto:support@tiiron.com"
+                      href="mailto:verify@tiirontechnologies.com"
                       className="text-sm font-bold text-black sm:text-base"
                     >
-                      support@tiiron.com
+                      verify@tiirontechnologies.com
                     </a>
                   </div>
                 </div>

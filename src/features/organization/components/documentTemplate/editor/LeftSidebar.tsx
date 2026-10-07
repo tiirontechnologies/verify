@@ -316,7 +316,7 @@ const NAV_ITEMS = [
 ] as const;
 
 export default function LeftSidebar() {
-  const { canvas, orientation, setOrientation, setActiveObject } = useFabric();
+  const { canvas, orientation, setOrientation, pageSize, setPageSize, setActiveObject } = useFabric();
 
   const [activeTab, setActiveTab] = useState<
     "placeholders" | "text" | "media" | "shapes" | "layers"
@@ -441,6 +441,12 @@ export default function LeftSidebar() {
                 <div className="flex justify-between items-center text-[10px] font-bold text-gray-500 uppercase tracking-wide">
                   <span>Orientation</span>
                 </div>
+                <label className="block pt-1 text-[10px] font-bold uppercase tracking-wide text-gray-500">Page size</label>
+                <select aria-label="Certificate page size" value={pageSize} onChange={(event) => setPageSize(event.target.value as "A4" | "A3" | "Letter")} className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs font-medium text-gray-700 outline-none focus:border-red-400">
+                  <option value="A4">A4 · 297 × 210 mm</option>
+                  <option value="A3">A3 · 420 × 297 mm</option>
+                  <option value="Letter">US Letter · 11 × 8.5 in</option>
+                </select>
                 <div className="grid grid-cols-2 gap-1.5">
                   <button
                     type="button"

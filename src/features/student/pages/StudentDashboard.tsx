@@ -17,6 +17,21 @@ import {
   ExternalLink,
 } from "lucide-react";
 
+function getIssuerName(certificate: any): string {
+  const issuer = certificate?.organization ??
+    certificate?.organizationName ??
+    certificate?.issuedByOrganization ??
+    certificate?.issuerName ??
+    certificate?.issuer?.organization ??
+    certificate?.issuer;
+  if (typeof issuer === "string") return issuer.trim();
+  if (issuer && typeof issuer === "object") {
+    const name = issuer.name ?? issuer.organizationName ?? issuer.displayName ?? issuer.legalName ?? issuer.companyName;
+    return typeof name === "string" ? name.trim() : "";
+  }
+  return "";
+}
+
 export default function StudentDashboard() {
   const navigate = useNavigate();
   const [certificates, setCertificates] = useState<any[]>([]);
@@ -41,7 +56,10 @@ export default function StudentDashboard() {
   const activeCount = loading
     ? "..."
     : String(certificates.filter((c) => c.status === "active").length);
-  const orgName = certificates[0]?.organization || "Tiiron Technologies";
+  const issuerNames = [...new Set(certificates.map(getIssuerName).filter(Boolean))];
+  const orgName = loading ? "Loading…" : issuerNames.length > 1
+    ? `${issuerNames.length} organizations`
+    : issuerNames[0] || (certificates.length ? "Organization not provided" : "—");
   const activityCertId = certificates[0]?.certificateId || certificates[0]?._id || "";
 
   return (
@@ -135,7 +153,7 @@ export default function StudentDashboard() {
                 {orgName}
               </span>
               <p className="text-xs text-slate-500 mt-1 font-medium">
-                Verified Organization Roster
+                {certificates.length ? "From your issued credentials" : "Appears when a credential is issued"}
               </p>
             </div>
           </div>
@@ -181,7 +199,8 @@ export default function StudentDashboard() {
           ) : (
             <div className="grid lg:grid-cols-2 gap-6">
               {certificates.map((cert) => {
-                const cType = (cert.certificateType || "internship").toLowerCase();
+                const cType = (cert.certificateType || "document").toLowerCase();
+                const issuerName = getIssuerName(cert) || "Organization not provided";
                 const isInternship = cType === "internship";
                 const isTraining = cType === "training";
                 const isOfferLetter = cType === "offer-letter";
@@ -256,7 +275,7 @@ export default function StudentDashboard() {
                         </p>
                         <p>
                           <span className="font-medium text-slate-400">Issued by:</span>{" "}
-                          <span className="font-semibold text-slate-800">{cert.organization || orgName}</span>
+                          <span className="font-semibold text-slate-800">{issuerName}</span>
                         </p>
                       </div>
                     </div>

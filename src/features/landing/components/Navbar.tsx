@@ -13,10 +13,10 @@ const mainLinks = [
 ];
 
 const exploreLinks = [
-  { label: "Pricing", href: "https://tiirontechnologies.com/pricing" },
-  { label: "Testimonials", href: "https://tiirontechnologies.com/comingsoon" },
-  { label: "Help & Support", href: "/help-support" },
+  { label: "Pricing", href: "/pricing" },
+  { label: "Contact Us", href: "/helpandsupport" },
   { label: "Book a Demo", href: "/book-demo" },
+  { label: "Testimonials", href: "https://tiirontechnologies.com/comingsoon" },
 ];
 
 export default function Navbar() {

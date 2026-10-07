@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useCallback, useMemo, useState } from "react";
 import { Canvas as FabricCanvas, ActiveSelection, Group } from "fabric";
 import { useFabric } from "./FabricContext";
 import { ImageUploadService } from "./services/ImageUploadService";
@@ -10,14 +10,17 @@ function cleanFontFamily(font: string): string {
   return first || "Arial";
 }
 
-// Dispose hone ke baad fabric `lower` hata deta hai
-const isAlive = (c: any) => Boolean(c && c.lower && c.lower.el);
+// Fabric 7 exposes the element as `lowerCanvasEl` (older versions used
+// `lower.el`). Check disposal flags as well so async loads don't touch a dead canvas.
+const isAlive = (c: any) => Boolean(
+  c && !c.disposed && !c.destroyed && (c.lowerCanvasEl || c.elements?.lower?.el),
+);
 
 // Canvas size SIRF orientation se tay hota hai (bg image se kabhi nahi)
-function getDims(orientation: "landscape" | "portrait") {
-  return orientation === "portrait"
-    ? { w: 747, h: 1056 }
-    : { w: 1056, h: 747 };
+function getDims(orientation: "landscape" | "portrait", pageSize: "A4" | "A3" | "Letter") {
+  const sizes = { A4: { w: 1056, h: 747 }, A3: { w: 1497, h: 1056 }, Letter: { w: 1056, h: 816 } };
+  const size = sizes[pageSize];
+  return orientation === "portrait" ? { w: size.h, h: size.w } : size;
 }
 
 function getBgNaturalSize(bg: any) {
@@ -104,6 +107,7 @@ function fitObjects(canvas: any, oldW: number, oldH: number, w: number, h: numbe
 // Module-level clipboard: page/component change hone par bhi paste chalega
 let clipboardObject: any = null;
 let clipboardPasteCount = 0;
+let clipboardPromise: Promise<void> | null = null;
 
 interface CanvasProps {
   template?: any;
@@ -111,7 +115,7 @@ interface CanvasProps {
 }
 
 export default function Canvas({ template, previewMode = false }: CanvasProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasHostRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const guidesRef = useRef<HTMLDivElement>(null);
@@ -130,6 +134,7 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
     setActiveObject,
     orientation,
     setOrientation,
+    pageSize,
     zoomLevel,
     setZoomLevel,
     setCanvasDimensions,
@@ -145,9 +150,10 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
     orientation === "portrait" ? "portrait" : "landscape";
   const zoomLevelRef = useRef(zoomLevel);
   zoomLevelRef.current = zoomLevel;
+  const panRef = useRef({ x: 0, y: 0 });
 
   // Canvas ka size sirf orientation se (context ke canvasDimensions pe depend nahi)
-  const dims = useMemo(() => getDims(orient), [orient]);
+  const dims = useMemo(() => getDims(orient, pageSize), [orient, pageSize]);
 
   // Context ke functions ko ref mein rakho taaki effects unke change par re-run na hon
   const setCanvasDimensionsRef = useRef(setCanvasDimensions);
@@ -164,9 +170,14 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
 
   // Initialize Fabric canvas instance once
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (!canvasHostRef.current) return;
 
-    const fabricCanvas = new FabricCanvas(canvasRef.current, {
+    // Fabric wraps and reparents the canvas element. Keep that DOM mutation
+    // inside an opaque React-owned host so React never removes a moved child.
+    const canvasElement = document.createElement("canvas");
+    canvasHostRef.current.appendChild(canvasElement);
+
+    const fabricCanvas = new FabricCanvas(canvasElement, {
       width: dims.w,
       height: dims.h,
       backgroundColor: "#ffffff",
@@ -223,7 +234,7 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
     };
     const onObjectMoving = (event: any) => {
       const target = event.target;
-      if (!target || (!snapEnabledRef.current && !gridEnabledRef.current)) {
+      if (!target) {
         hideGuides();
         return;
       }
@@ -263,6 +274,24 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
 
       target.set({ left: (target.left || 0) + deltaX, top: (target.top || 0) + deltaY });
       target.setCoords();
+      if (!(target as any).isPageBackground) {
+        const movedBounds = target.getBoundingRect();
+        const edgeInset = 10;
+        const correctionX = movedBounds.left < edgeInset
+          ? edgeInset - movedBounds.left
+          : movedBounds.left + movedBounds.width > fabricCanvas.getWidth() - edgeInset
+            ? fabricCanvas.getWidth() - edgeInset - movedBounds.left - movedBounds.width
+            : 0;
+        const correctionY = movedBounds.top < edgeInset
+          ? edgeInset - movedBounds.top
+          : movedBounds.top + movedBounds.height > fabricCanvas.getHeight() - edgeInset
+            ? fabricCanvas.getHeight() - edgeInset - movedBounds.top - movedBounds.height
+            : 0;
+        if (correctionX || correctionY) {
+          target.set({ left: (target.left || 0) + correctionX, top: (target.top || 0) + correctionY });
+          target.setCoords();
+        }
+      }
 
       if (guidesRef.current && (xMatch || yMatch)) {
         guidesRef.current.style.display = "block";
@@ -285,7 +314,9 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
     fabricCanvas.renderAll();
 
     return () => {
-      void fabricCanvas.dispose();
+      void fabricCanvas.dispose().catch((error) => {
+        console.error("Failed to dispose Fabric canvas:", error);
+      }).finally(() => canvasElement.remove());
       setCanvas(null);
       setActiveObject(null);
     };
@@ -295,14 +326,17 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
   // Auto zoom: canvas screen mein fit ho
   const calculateAutoZoom = useCallback(() => {
     if (!containerRef.current) return;
-    const parentW = containerRef.current.clientWidth - 48;
-    const parentH = containerRef.current.clientHeight - 48;
+    const styles = window.getComputedStyle(containerRef.current);
+    const paddingX = Number.parseFloat(styles.paddingLeft) + Number.parseFloat(styles.paddingRight);
+    const paddingY = Number.parseFloat(styles.paddingTop) + Number.parseFloat(styles.paddingBottom);
+    const parentW = containerRef.current.clientWidth - paddingX - 24;
+    const parentH = containerRef.current.clientHeight - paddingY - 24;
 
     if (parentW > 0 && parentH > 0) {
       const zoomW = parentW / dims.w;
       const zoomH = parentH / dims.h;
       const autoZoom = Math.min(zoomW, zoomH, 1.1);
-      setZoomLevel(Number(Math.max(0.35, autoZoom).toFixed(2)));
+      setZoomLevel(Number(Math.max(0.15, autoZoom).toFixed(2)));
     }
   }, [dims.w, dims.h, setZoomLevel]);
 
@@ -312,7 +346,12 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
   useEffect(() => {
     calculateAutoZoom();
     window.addEventListener("resize", calculateAutoZoom);
-    return () => window.removeEventListener("resize", calculateAutoZoom);
+    const observer = containerRef.current ? new ResizeObserver(calculateAutoZoom) : null;
+    if (containerRef.current) observer?.observe(containerRef.current);
+    return () => {
+      window.removeEventListener("resize", calculateAutoZoom);
+      observer?.disconnect();
+    };
   }, [calculateAutoZoom]);
 
   useEffect(() => {
@@ -388,8 +427,6 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
     let zoomFrame = 0;
     let spaceHeld = false;
     let activePointer: number | null = null;
-    let panX = 0;
-    let panY = 0;
 
     const isTyping = (target: EventTarget | null) =>
       target instanceof HTMLElement &&
@@ -409,7 +446,7 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
     const onWheel = (event: WheelEvent) => {
       event.preventDefault();
       const current = pendingZoom ?? zoomLevelRef.current;
-      pendingZoom = Math.max(0.35, Math.min(1.5, current + (event.deltaY < 0 ? 0.08 : -0.08)));
+      pendingZoom = Math.max(0.15, Math.min(1.5, current + (event.deltaY < 0 ? 0.08 : -0.08)));
       if (!zoomFrame) {
         zoomFrame = window.requestAnimationFrame(() => {
           if (pendingZoom !== null) setZoomLevel(Number(pendingZoom.toFixed(2)));
@@ -427,10 +464,10 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
     };
     const onPointerMove = (event: PointerEvent) => {
       if (activePointer !== event.pointerId || !wrapperRef.current) return;
-      panX += event.movementX;
-      panY += event.movementY;
-      wrapperRef.current.style.setProperty("--pan-x", `${panX}px`);
-      wrapperRef.current.style.setProperty("--pan-y", `${panY}px`);
+      panRef.current.x += event.movementX;
+      panRef.current.y += event.movementY;
+      wrapperRef.current.style.setProperty("--pan-x", `${panRef.current.x}px`);
+      wrapperRef.current.style.setProperty("--pan-y", `${panRef.current.y}px`);
     };
     const onPointerUp = (event: PointerEvent) => {
       if (activePointer !== event.pointerId) return;
@@ -488,8 +525,8 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
     };
   }, [canvas, isPreview]);
 
-  // Orientation change: canvas resize + bg fit + objects reposition
-  useEffect(() => {
+  // Apply page-size changes before paint so canvas and artboard never disagree for a frame.
+  useLayoutEffect(() => {
     if (!canvas || !isAlive(canvas)) return;
 
     const { w, h } = dims;
@@ -503,37 +540,38 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
 
     fitBackground(canvas, w, h);
     setCanvasDimensionsRef.current({ width: w, height: h });
+    panRef.current = { x: 0, y: 0 };
+    wrapperRef.current?.style.setProperty("--pan-x", "0px");
+    wrapperRef.current?.style.setProperty("--pan-y", "0px");
     canvas.renderAll();
     autoZoomRef.current();
-  }, [canvas, dims]);
+  }, [canvas, dims, activePageId]);
 
   // Keyboard shortcuts (Undo / Redo, Copy / Paste, Delete, Arrow keys)
   useEffect(() => {
     const copyActiveObject = async () => {
       if (!canvas || !isAlive(canvas)) return;
-      const active = canvas.getActiveObject();
-      if (!active) return;
+      const selected = canvas.getActiveObjects();
+      if (!selected.length) return;
       try {
-        if (active instanceof ActiveSelection) {
-          clipboardObject = {
-            type: "multi-selection",
-            objects: await Promise.all(active.getObjects().map((object) => object.clone())),
-          };
-        } else {
-          clipboardObject = { type: "single", object: await active.clone() };
-        }
+        clipboardPromise = Promise.all(selected.map((object) => object.clone())).then((objects) => {
+          clipboardObject = { type: objects.length > 1 ? "multi-selection" : "single", objects };
+        });
+        await clipboardPromise;
         clipboardPasteCount = 0;
       } catch (err) {
         console.error("Copy failed:", err);
+      } finally {
+        clipboardPromise = null;
       }
     };
 
     const pasteFromClipboard = async () => {
-      if (!canvas || !isAlive(canvas) || !clipboardObject) return;
+      if (!canvas || !isAlive(canvas)) return;
       try {
-        const clonedObjects: any[] = clipboardObject.type === "multi-selection"
-          ? await Promise.all(clipboardObject.objects.map((object: any) => object.clone()))
-          : [await clipboardObject.object.clone()];
+        if (clipboardPromise) await clipboardPromise;
+        if (!clipboardObject) return;
+        const clonedObjects: any[] = await Promise.all(clipboardObject.objects.map((object: any) => object.clone()));
         if (!isAlive(canvas)) return;
 
         canvas.discardActiveObject();
@@ -585,22 +623,20 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
 
     const handleKeyDown = (e: KeyboardEvent) => {
       const activeEl = document.activeElement;
+      const activeObj = canvas?.getActiveObject();
+      if ((activeObj as any)?.isEditing) return;
 
       const isFormInput =
         activeEl &&
         (activeEl.tagName === "INPUT" ||
           activeEl.tagName === "TEXTAREA" ||
           activeEl.tagName === "SELECT" ||
-          (activeEl as HTMLElement).isContentEditable ||
-          (activeEl instanceof HTMLElement && activeEl.classList.contains("fabric-hidden-textarea")));
+          (activeEl as HTMLElement).isContentEditable) &&
+        !(activeEl instanceof HTMLElement && activeEl.classList.contains("fabric-hidden-textarea"));
 
       if (isFormInput) return;
       if (!canvas || !isAlive(canvas) || isPreview) return;
       if (canvas.upperCanvasEl.closest("[inert]")) return;
-
-      const activeObj = canvas.getActiveObject();
-
-      if (activeObj && (activeObj as any).isEditing) return;
 
       const isMac = /Mac|iPhone|iPad/i.test(navigator.platform);
       const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
@@ -630,7 +666,7 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
           void cutSelection();
           return;
         } else if (key === "v") {
-          if (!clipboardObject) return;
+          if (!clipboardObject && !clipboardPromise) return;
           e.preventDefault();
           void pasteFromClipboard();
           return;
@@ -641,7 +677,10 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
           return;
         } else if (key === "a") {
           e.preventDefault();
-          const objects = canvas.getObjects();
+          const objects = canvas.getObjects().filter((object: any) =>
+            object.selectable !== false || object.isPageBackground === true,
+          );
+          canvas.discardActiveObject();
           if (objects.length) canvas.setActiveObject(new ActiveSelection(objects, { canvas }));
           canvas.requestRenderAll();
           return;
@@ -734,38 +773,53 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
     ) {
       return;
     }
-    loadedRef.current = { canvas, key: templateKey };
-
+    const savedData = tpl.design.data;
+    const activeSavedPage = Array.isArray(savedData.pages)
+      ? savedData.pages.find((page: any) => page.id === savedData.activePageId)
+      : null;
+    const pageJson = activeSavedPage?.json;
+    // Multi-page saves include both the active canvas snapshot and per-page
+    // snapshots. Prefer the active page when it has content; older saves may
+    // only have content in the root snapshot.
+    const pageHasContent = Array.isArray(pageJson?.objects) && pageJson.objects.length > 0;
+    const rootHasContent = Array.isArray(savedData.objects) && savedData.objects.length > 0;
+    const canvasData = pageHasContent || !rootHasContent ? pageJson || savedData : savedData;
     const targetOrientation: "landscape" | "portrait" =
-      (tpl.design.orientation || tpl.design.data?.orientation) === "portrait"
+      (activeSavedPage?.orientation || tpl.design.orientation || savedData.orientation) === "portrait"
         ? "portrait"
         : "landscape";
 
-    setOrientationRef.current(targetOrientation);
-
     const loadCanvasData = async () => {
+      (canvas as any).__isHydratingTemplate = true;
       try {
-        await canvas.loadFromJSON(tpl.design.data);
+        await canvas.loadFromJSON(canvasData);
         if (!isAlive(canvas)) return; // dispose ho chuka
 
-        const { w, h } = getDims(targetOrientation);
+        const { w, h } = getDims(targetOrientation, pageSize);
 
-        const savedW = Number(tpl.design.data.width) || w;
-        const savedH = Number(tpl.design.data.height) || h;
+        const savedW = Number(canvasData.width) || w;
+        const savedH = Number(canvasData.height) || h;
 
+        canvas.setDimensions({ width: w, height: h });
         if (savedW !== w || savedH !== h) fitObjects(canvas, savedW, savedH, w, h);
 
         fitBackground(canvas, w, h);
         setCanvasDimensionsRef.current({ width: w, height: h });
+        setOrientationRef.current(targetOrientation);
+        loadedRef.current = { canvas, key: templateKey };
         canvas.renderAll();
         autoZoomRef.current();
+        (canvas as any).__isHydratingTemplate = false;
+        (canvas as any).fire("template:loaded");
       } catch (err) {
         console.error("Failed to load canvas JSON in editor:", err);
+      } finally {
+        (canvas as any).__isHydratingTemplate = false;
       }
     };
 
     loadCanvasData();
-  }, [canvas, templateKey]);
+  }, [canvas, templateKey, pageSize]);
 
   return (
     <div
@@ -781,15 +835,24 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
         ref={wrapperRef}
         className="relative overflow-hidden rounded-lg border border-gray-200 bg-white shadow-[0_10px_40px_rgba(0,0,0,0.14)] origin-center shrink-0"
         style={{
-          width: dims.w,
-          height: dims.h,
-          transform: `translate(var(--pan-x, 0px), var(--pan-y, 0px)) scale(${zoomLevel})`,
+          width: dims.w * zoomLevel,
+          height: dims.h * zoomLevel,
+          transform: "translate(var(--pan-x, 0px), var(--pan-y, 0px))",
         }}
       >
-        <canvas ref={canvasRef} />
-        <div ref={guidesRef} className="pointer-events-none absolute inset-0 z-20 hidden overflow-hidden">
-          <span ref={verticalGuideRef} className="absolute inset-y-0 hidden border-l border-dashed border-red-500" />
-          <span ref={horizontalGuideRef} className="absolute inset-x-0 hidden border-t border-dashed border-red-500" />
+        <div
+          className="absolute left-0 top-0 origin-top-left"
+          style={{ width: dims.w, height: dims.h, transform: `scale(${zoomLevel})` }}
+        >
+          <div
+            ref={canvasHostRef}
+            className="absolute left-0 top-0"
+            style={{ width: dims.w, height: dims.h }}
+          />
+          <div ref={guidesRef} className="pointer-events-none absolute inset-0 z-20 hidden overflow-hidden">
+            <span ref={verticalGuideRef} className="absolute inset-y-0 hidden border-l border-dashed border-red-500" />
+            <span ref={horizontalGuideRef} className="absolute inset-x-0 hidden border-t border-dashed border-red-500" />
+          </div>
         </div>
       </div>
 
@@ -798,7 +861,7 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
         <button
           onClick={() =>
             setZoomLevel((prev) =>
-              Math.max(0.35, Number((prev - 0.1).toFixed(1)))
+              Math.max(0.15, Number((prev - 0.1).toFixed(1)))
             )
           }
           className="p-1.5 rounded-full text-gray-600 hover:bg-gray-100"
@@ -822,9 +885,14 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
         </button>
         <div className="h-4 w-px bg-gray-200 mx-0.5" />
         <button
-          onClick={() => setZoomLevel(0.75)}
+          onClick={() => {
+            panRef.current = { x: 0, y: 0 };
+            wrapperRef.current?.style.setProperty("--pan-x", "0px");
+            wrapperRef.current?.style.setProperty("--pan-y", "0px");
+            autoZoomRef.current();
+          }}
           className="p-1.5 rounded-full text-red-600 hover:bg-red-50"
-          title="Reset Zoom"
+          title="Fit page to workspace"
         >
           <Maximize2 size={14} />
         </button>

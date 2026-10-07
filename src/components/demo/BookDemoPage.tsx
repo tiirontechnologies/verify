@@ -124,7 +124,7 @@
 // //                   <Mail className="text-red-600" />
 
 // //                   <span className="text-lg text-slate-700">
-// //                     contact@tiirontechnologies.com
+// //                     sales@tiirontechnologies.com
 // //                   </span>
 
 // //                 </div>
@@ -307,7 +307,7 @@
 //                   <Mail size={16} className="text-red-600" />
 
 //                   <span className="text-sm text-slate-700">
-//                     contact@tiirontechnologies.com
+//                     sales@tiirontechnologies.com
 //                   </span>
 //                 </div>
 //               </div>
@@ -470,9 +470,9 @@ export default function BookDemoPage() {
                 <div className="mt-3 flex items-center gap-3">
                   <Mail size={16} className="text-red-600" />
 
-                  <span className="text-sm text-slate-700">
-                    contact@tiirontechnologies.com
-                  </span>
+                  <a href="mailto:sales@tiirontechnologies.com" className="text-sm text-slate-700 hover:text-red-700">
+                    sales@tiirontechnologies.com
+                  </a>
                 </div>
               </div>
 
