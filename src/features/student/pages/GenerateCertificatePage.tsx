@@ -8,6 +8,7 @@ interface Certificate {
   _id?: string;
   certificateId: string;
   certificateType?: string;
+  type?: string;
   course?: string;
   role?: string;
   [key: string]: any;
@@ -16,7 +17,7 @@ interface Certificate {
 /* ---------- Helpers ---------- */
 
 function formatType(type?: string) {
-  return (type || "Document")
+  return (type || "")
     .replace(/[-_]/g, " ")
     .replace(/\b\w/g, (l: string) => l.toUpperCase());
 }
@@ -40,7 +41,7 @@ const PALETTE = [
 ];
 
 function getTypeStyle(type?: string) {
-  const key = (type || "document").toLowerCase().trim();
+  const key = (type || "").toLowerCase().trim();
   let hash = 0;
   for (let i = 0; i < key.length; i++) {
     hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
@@ -56,8 +57,8 @@ const outlineBtn =
 /* ---------- Card ---------- */
 
 function DocumentCard({ cert, onView, onDownload }: { cert: Certificate; onView: () => void; onDownload: () => void }) {
-  const title = formatType(cert.certificateType);
-  const style = getTypeStyle(cert.certificateType);
+  const title = formatType(cert.certificateType || cert.type);
+  const style = getTypeStyle(cert.certificateType || cert.type);
 
   return (
     <div className="flex flex-col justify-between overflow-hidden rounded-xl border border-gray-200 bg-white">
@@ -76,7 +77,7 @@ function DocumentCard({ cert, onView, onDownload }: { cert: Certificate; onView:
 
         <div>
           <h2 className="line-clamp-2 text-base font-semibold text-gray-900">
-            {cert.course || cert.role || "Program"}
+            {cert.course || cert.role || ""}
           </h2>
           <p className="mt-1 break-all text-xs text-gray-400">
             ID: {cert.certificateId}
@@ -179,7 +180,7 @@ export default function GenerateCertificatePage() {
   const types = useMemo(
     () =>
       Array.from(
-        new Set(certificates.map((c) => c.certificateType || "document"))
+        new Set(certificates.map((c) => c.certificateType || c.type).filter((type): type is string => Boolean(type?.trim())))
       ),
     [certificates]
   );
@@ -188,12 +189,12 @@ export default function GenerateCertificatePage() {
     const q = query.trim().toLowerCase();
     return certificates
       .filter(
-        (c) => filter === "all" || (c.certificateType || "document") === filter
+        (c) => filter === "all" || (c.certificateType || c.type) === filter
       )
       .filter(
         (c) =>
           !q ||
-          formatType(c.certificateType).toLowerCase().includes(q) ||
+          formatType(c.certificateType || c.type).toLowerCase().includes(q) ||
           (c.course || "").toLowerCase().includes(q) ||
           (c.role || "").toLowerCase().includes(q) ||
           (c.certificateId || "").toLowerCase().includes(q)

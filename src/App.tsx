@@ -1,5 +1,5 @@
 // import { useEffect, useRef } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "./features/landing/pages/LandingPage";
 import VerificationPage from "./features/verification/pages/VerificationPage";
 import LoginPage from "./features/auth/pages/LoginPage";
@@ -16,8 +16,6 @@ import OtpVerificationPage from "./features/auth/pages/OtpVerificationPage";
 import ResetPasswordPage from "./features/auth/pages/ResetPasswordPage";
 import PasswordResetSuccessPage from "./features/auth/pages/PasswordResetSuccessPage";
 import GenerateCertificatePage from "./features/student/pages/GenerateCertificatePage";
-import InternshipCertificatePage from "./features/student/pages/InternshipCertificatePage";
-import TrainingCertificatePage from "./features/student/pages/TrainingCertificatePage";
 import DocumentViewerPage from "./features/student/pages/DocumentViewerPage";
 import DocumentTemplateDesigner from "./features/organization/pages/DocumentTemplateDesigner";
 // import useMeRedirect from "./features/auth/hooks/useMeRedirect";
@@ -33,7 +31,8 @@ import NotFoundPage from "./pages/NotFoundPage";
 import ComingSoon from "./pages/ComingSoon";
 import SubscriptionPage from "./pages/Subscription";
 import DashboardLayout from "./layouts/DashboardLayout";
-import HelpSupportPage from "./pages/HelpandSupport";
+import ContactUsPage from "./pages/HelpandSupport";
+import HelpSupportPage from "./pages/HelpSupportPage";
 import PricingPage from "./pages/PricingPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import LegalPage from "./pages/LegalPage";
@@ -196,33 +195,6 @@ function App() {
   }
 />
 <Route
-  path="/student/certificates/internship"
-  element={
-    <ProtectedRoute>
-      <InternshipCertificatePage />
-    </ProtectedRoute>
-  }
-/>
-
-<Route
-  path="/student/certificates/training"
-  element={
-    <ProtectedRoute>
-      <TrainingCertificatePage />
-    </ProtectedRoute>
-  }
-/>
-
-<Route
-  path="/student/certificates/offer-letter"
-  element={
-    <ProtectedRoute>
-      <DocumentViewerPage forcedType="offer-letter" />
-    </ProtectedRoute>
-  }
-/>
-
-<Route
   path="/student/certificates/doc/:certificateId"
   element={
     <ProtectedRoute>
@@ -320,11 +292,10 @@ element={
   path="*"
   element={<NotFoundPage />}
 />
-<Route
-  path="/help-support"
-  element={<HelpSupportPage />}
-/>
-<Route path="/helpandsupport" element={<HelpSupportPage />} />
+<Route path="/contact-us" element={<ContactUsPage />} />
+<Route path="/help-and-support" element={<HelpSupportPage />} />
+<Route path="/help-support" element={<Navigate to="/help-and-support" replace />} />
+<Route path="/helpandsupport" element={<Navigate to="/contact-us" replace />} />
 
       </Routes>
     </BrowserRouter>

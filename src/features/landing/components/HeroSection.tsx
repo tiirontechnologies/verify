@@ -62,7 +62,7 @@ export default function HeroSection() {
                       type="text"
                       value={credentialId}
                       onChange={(e) => setCredentialId(e.target.value)}
-                      placeholder="Enter your Verification ID (e.g. TTINT202600000)"
+                      placeholder="Enter your Verification ID"
                       className="min-w-0 flex-1 bg-transparent text-base text-slate-900 outline-none placeholder:text-slate-400"
                     />
                   </div>

@@ -70,11 +70,13 @@ export async function getCertificateTemplateData(certificate: any) {
     return null;
   }
 
+  const certificateType = normalizeTemplateType(certificate?.certificateType || certificate?.type);
+  if (!certificateType) return null;
+
   try {
     const response = await documentTemplateApi.getTemplates();
     const payload = response.data?.templates ?? response.data;
     const templates = Array.isArray(payload) ? payload : [];
-    const certificateType = normalizeTemplateType(certificate?.certificateType);
     const matchingTemplates = templates.filter(
       (template: any) =>
         normalizeTemplateType(template.documentType) === certificateType &&

@@ -17,14 +17,6 @@ interface UploadDropzoneProps {
   onUploadSuccess?: () => void;
 }
 
-// Sirf quick-add suggestions hain, koi bhi custom type bhi add ho sakta hai
-const SUGGESTED_CERTIFICATE_TYPES = [
-  "offer-letter",
-  "training",
-  "internship",
-  "appreciation-letter",
-];
-
 const emptyForm = {
   name: "",
   email: "",
@@ -61,6 +53,7 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
   const [formError, setFormError] = useState<string | null>(null);
   const [templates, setTemplates] = useState<any[]>([]);
   const [templatesLoading, setTemplatesLoading] = useState(false);
+  const suggestedCertificateTypes = [...new Set(templates.map((template) => normalizeType(String(template.documentType || ""))).filter(Boolean))];
 
   useEffect(() => {
     if (!showModal) return;
@@ -426,25 +419,19 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
                 "Mentor",
                 "Director",
               ];
-              const sampleRows = [
-                '"Aarav Sharma","aarav.sharma@example.com","offer-letter, training, internship","Full Stack Development","Software Engineer Intern","2026-09-01","2026-12-01","Rahul Sharma","Nitesh Singh"',
-                '"Priya Patel","priya.patel@example.com","offer-letter, internship","Data Science & AI","Data Analyst Intern","2026-05-01","2026-08-01","Anjali Gupta","Nitesh Singh"',
-                '"Rohan Verma","rohan.verma@example.com","training","Python Programming","Trainee","2026-06-15","2026-07-15","Vikram Malhotra","Nitesh Singh"',
-                '"Sneha Reddy","sneha.reddy@example.com","appreciation-letter","Cloud Architecture","Participant","2026-07-01","2026-07-31","Rahul Sharma","Nitesh Singh"',
-              ];
-              const csvContent =
-                "data:text/csv;charset=utf-8," + [headers.join(","), ...sampleRows].join("\n");
-              const encodedUri = encodeURI(csvContent);
+              const csvContent = new Blob([headers.join(",")], { type: "text/csv;charset=utf-8" });
+              const encodedUri = URL.createObjectURL(csvContent);
               const link = document.createElement("a");
               link.setAttribute("href", encodedUri);
-              link.setAttribute("download", "student_upload_sample_template.csv");
+              link.setAttribute("download", "student_upload_template.csv");
               document.body.appendChild(link);
               link.click();
               document.body.removeChild(link);
+              URL.revokeObjectURL(encodedUri);
             }}
             className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3.5 font-semibold transition text-sm"
           >
-            <Download size={18} /> Download Sample CSV
+            <Download size={18} /> Download Empty CSV Template
           </button>
         </div>
 
@@ -514,7 +501,7 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
                     type="text"
                     value={form.name}
                     onChange={(e) => updateField("name", e.target.value)}
-                    placeholder="Aarav Sharma"
+                    placeholder="Student name"
                     className={inputClass}
                     disabled={uploading}
                   />
@@ -540,7 +527,7 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
                     type="text"
                     value={form.course}
                     onChange={(e) => updateField("course", e.target.value)}
-                    placeholder="Full Stack Development"
+                    placeholder="Course or program"
                     className={inputClass}
                     disabled={uploading}
                   />
@@ -552,7 +539,7 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
                     type="text"
                     value={form.role}
                     onChange={(e) => updateField("role", e.target.value)}
-                    placeholder="Software Engineer Intern"
+                    placeholder="Role or position"
                     className={inputClass}
                     disabled={uploading}
                   />
@@ -587,7 +574,7 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
                     type="text"
                     value={form.mentor}
                     onChange={(e) => updateField("mentor", e.target.value)}
-                    placeholder="Rahul Sharma"
+                    placeholder="Mentor name"
                     className={inputClass}
                     disabled={uploading}
                   />
@@ -641,7 +628,7 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
                     onBlur={() => addCertTypes(certInput)}
                     placeholder={
                       form.certificateTypes.length === 0
-                        ? "Type certificate type & press Enter (e.g. offer-letter)"
+                        ? "Type a certificate type & press Enter"
                         : "Add more..."
                     }
                     disabled={uploading}
@@ -661,7 +648,7 @@ export default function UploadDropzone({ onUploadSuccess }: UploadDropzoneProps)
                 {/* Quick suggestions */}
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <span className="text-[11px] font-medium text-gray-500">Quick add:</span>
-                  {SUGGESTED_CERTIFICATE_TYPES.map((type) => {
+                  {suggestedCertificateTypes.map((type) => {
                     const active = form.certificateTypes.includes(type);
                     return (
                       <button

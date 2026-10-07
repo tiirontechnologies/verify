@@ -4,6 +4,7 @@ interface StudentSearchFiltersProps {
   searchQuery: string;
   onSearchChange: (q: string) => void;
   typeFilter: string;
+  documentTypes: string[];
   onTypeFilterChange: (t: string) => void;
   statusFilter: string;
   onStatusFilterChange: (s: string) => void;
@@ -14,6 +15,7 @@ export default function StudentSearchFilters({
   searchQuery,
   onSearchChange,
   typeFilter,
+  documentTypes,
   onTypeFilterChange,
   statusFilter,
   onStatusFilterChange,
@@ -45,11 +47,7 @@ export default function StudentSearchFilters({
             className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm outline-none focus:border-red-500"
           >
             <option value="all">All Document Types</option>
-            <option value="offer-letter">Offer Letter</option>
-            <option value="internship">Internship Certificate</option>
-            <option value="training">Training Certificate</option>
-            <option value="appreciation-letter">Appreciation Letter</option>
-            <option value="custom">Custom Document</option>
+            {documentTypes.map((type) => <option key={type} value={type}>{type.replace(/[-_]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase())}</option>)}
           </select>
         </div>
 

@@ -6,20 +6,6 @@ import FabricCertificateRenderer from "../../student/components/FabricCertificat
 import DocumentHeader from "../../../components/shared/DocumentHeader";
 import DashboardLayout from "../../../layouts/DashboardLayout";
 
-const SAMPLE_PREVIEW_STUDENT = {
-  studentName: "Rahul Sharma",
-  email: "rahul.sharma@example.com",
-  course: "Full Stack Web Development",
-  role: "Software Developer Intern",
-  certificateId: "TIIRON-2026-98421",
-  issueDate: "02 August 2026",
-  startDate: "01 February 2026",
-  endDate: "01 August 2026",
-  organization: "Tiiron Technologies Pvt. Ltd.",
-  mentor: "Dr. Ananya Verma",
-  director: "Nitesh Singh",
-};
-
 export default function TemplatePreviewPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -84,7 +70,7 @@ export default function TemplatePreviewPage() {
       <div className="max-w-7xl mx-auto">
         <DocumentHeader
           title={template.name}
-          subtitle={`Live sample preview of document template.`}
+          subtitle="Preview the saved document template. Student fields stay blank until real certificate data is available."
           docType={template.documentType}
           backText="Back to Templates"
           actions={
@@ -110,7 +96,19 @@ export default function TemplatePreviewPage() {
               template.design?.data?.orientation ||
               "landscape",
           }}
-          studentData={SAMPLE_PREVIEW_STUDENT}
+          studentData={{
+            studentName: "",
+            email: "",
+            course: "",
+            role: "",
+            certificateId: "",
+            issueDate: "",
+            startDate: "",
+            endDate: "",
+            organization: "",
+            mentor: "",
+            director: "",
+          }}
           hideHeader={true}
           templateName={template.name}
           documentType={template.documentType}

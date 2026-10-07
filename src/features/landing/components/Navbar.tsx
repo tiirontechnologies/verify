@@ -14,8 +14,9 @@ const mainLinks = [
 
 const exploreLinks = [
   { label: "Pricing", href: "/pricing" },
-  { label: "Contact Us", href: "/helpandsupport" },
+  { label: "Contact Us", href: "/contact-us" },
   { label: "Book a Demo", href: "/book-demo" },
+  // { label: "Help & Support", href: "/help-and-support" },
   { label: "Testimonials", href: "https://tiirontechnologies.com/comingsoon" },
 ];
 

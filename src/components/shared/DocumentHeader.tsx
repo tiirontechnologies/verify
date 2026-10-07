@@ -141,10 +141,6 @@
 import React from "react";
 import {
   ArrowLeft,
-  Award,
-  GraduationCap,
-  FileText,
-  FileCheck,
   FileBadge2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -159,17 +155,6 @@ export interface DocumentHeaderProps {
   backText?: string;
   actions?: React.ReactNode;
 }
-
-const getDocTypeIcon = (docType?: string, CustomIcon?: any) => {
-  if (CustomIcon) return CustomIcon;
-  const type = (docType || "").toLowerCase();
-  if (type === "training") return GraduationCap;
-  if (type === "offer-letter") return FileText;
-  if (type === "appreciation-letter") return Award;
-  if (type === "custom") return FileCheck;
-  if (type === "template") return FileBadge2;
-  return Award; // default for internship & general certificates
-};
 
 // Unified red theme for ALL document types — no more type-based color switching
 const getDocTypeTheme = (_docType?: string) => {
@@ -191,7 +176,7 @@ export default function DocumentHeader({
   actions,
 }: DocumentHeaderProps) {
   const navigate = useNavigate();
-  const IconComponent = getDocTypeIcon(docType, icon);
+  const IconComponent = icon || FileBadge2;
   const theme = getDocTypeTheme(docType);
 
   const handleBack = () => {
@@ -243,8 +228,7 @@ export default function DocumentHeader({
             </div>
 
             <p className="text-slate-500 mt-1 text-xs sm:text-base leading-relaxed">
-              {subtitle ||
-                `View official ${docType || "document"} details and verification status.`}
+              {subtitle || (docType ? `View official ${docType.replace(/-/g, " ")} details and verification status.` : "")}
               {certificateId && (
                 <span className="ml-2 font-mono font-medium text-slate-700">
                   (ID: {certificateId})

@@ -356,59 +356,45 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
 
   useEffect(() => {
     if (!canvas || !isAlive(canvas)) return;
+    const upperCanvasEl = canvas.upperCanvasEl;
+    if (!upperCanvasEl) return;
     const originalSelection = canvas.selection;
     const originalSkipTargetFind = canvas.skipTargetFind;
-    const originalPointerEvents = canvas.upperCanvasEl.style.pointerEvents;
+    const originalPointerEvents = upperCanvasEl.style.pointerEvents;
 
     if (isPreview) {
       canvas.discardActiveObject();
       setActiveObject(null);
       canvas.selection = false;
       canvas.skipTargetFind = true;
-      canvas.upperCanvasEl.style.pointerEvents = "none";
+      upperCanvasEl.style.pointerEvents = "none";
     }
     canvas.requestRenderAll();
 
     return () => {
+      if (!isAlive(canvas)) return;
       canvas.selection = originalSelection;
       canvas.skipTargetFind = originalSkipTargetFind;
-      canvas.upperCanvasEl.style.pointerEvents = originalPointerEvents;
+      upperCanvasEl.style.pointerEvents = originalPointerEvents;
     };
   }, [canvas, isPreview, setActiveObject]);
 
   useEffect(() => {
-    if (!canvas || !isPreview) return;
-    const sampleData: Record<string, string> = {
-      studentName: "Rahul Sharma",
-      email: "rahul.sharma@example.com",
-      courseName: "Full Stack Web Development",
-      course: "Full Stack Web Development",
-      certificateId: "TIIRON-2026-98421",
-      completionDate: "05 October 2026",
-      issueDate: "05 October 2026",
-      organizationName: "Tiiron Technologies Pvt. Ltd.",
-      organization: "Tiiron Technologies Pvt. Ltd.",
-      instructorName: "Ananya Verma",
-      instructor: "Ananya Verma",
-      grade: "A",
-      duration: "6 months",
-      role: "Software Developer Intern",
-      startDate: "01 April 2026",
-      endDate: "30 September 2026",
-      mentor: "Ananya Verma",
-      director: "Nitesh Singh",
-    };
-
+    if (!canvas || !isPreview || !isAlive(canvas)) return;
     canvas.getObjects().forEach((object: any) => {
       if (typeof object.text !== "string") return;
       previewTextRef.current.set(object, object.text);
-      object.set("text", object.text.replace(/\{\{\s*([\w]+)\s*\}\}/g, (match: string, key: string) => sampleData[key] ?? match));
+      object.set("text", object.text.replace(/\{\{\s*[\w]+\s*\}\}/g, ""));
       object.initDimensions?.();
       object.setCoords();
     });
     canvas.requestRenderAll();
 
     return () => {
+      if (!isAlive(canvas)) {
+        previewTextRef.current.clear();
+        return;
+      }
       previewTextRef.current.forEach((text, object) => {
         object.set("text", text);
         object.initDimensions?.();

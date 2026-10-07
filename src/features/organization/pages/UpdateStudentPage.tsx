@@ -56,8 +56,12 @@ export default function UpdateStudentPage() {
     const map = new Map<string, GroupedStudent>();
 
     for (const cert of rawCertificates) {
-      const key = (cert.email || cert.studentName || cert._id).toLowerCase().trim();
-      const cType = normalizeType(cert.certificateType || "internship");
+      const certificateType = typeof (cert.certificateType || cert.type) === "string" ? String(cert.certificateType || cert.type).trim() : "";
+      const identity = cert.email || cert.studentName || cert._id || cert.id;
+      if (!identity) continue;
+      const certificate = { ...cert, certificateType };
+      const key = String(identity).toLowerCase().trim();
+      const cType = normalizeType(certificateType);
       const certId = cert._id || cert.id;
 
       if (!map.has(key)) {
@@ -68,24 +72,24 @@ export default function UpdateStudentPage() {
 
         map.set(key, {
           id: key,
-          studentName: cert.studentName || "Student",
+          studentName: cert.studentName || "",
           email: cert.email || "",
           course: cert.course || "",
           role: cert.role || "",
-          status: cert.status || "active",
+          status: cert.status || "",
           baseCertificateId: baseCertId || cert.certificateId || "",
-          documents: [cert],
+          documents: [certificate],
           allDocumentIds: [certId],
-          certificateTypes: [cType],
+          certificateTypes: cType ? [cType] : [],
           primaryRecord: cert,
         });
       } else {
         const existing = map.get(key)!;
-        existing.documents.push(cert);
+        existing.documents.push(certificate);
         if (!existing.allDocumentIds.includes(certId)) {
           existing.allDocumentIds.push(certId);
         }
-        if (!existing.certificateTypes.includes(cType)) {
+        if (cType && !existing.certificateTypes.includes(cType)) {
           existing.certificateTypes.push(cType);
         }
         if (cert.status === "active") {
@@ -115,7 +119,7 @@ export default function UpdateStudentPage() {
 
     const matchesStatus =
       statusFilter === "all" ||
-      (student.status || "active").toLowerCase() === statusFilter.toLowerCase();
+      (student.status || "").toLowerCase() === statusFilter.toLowerCase();
 
     return matchesSearch && matchesType && matchesStatus;
   });
@@ -175,6 +179,7 @@ export default function UpdateStudentPage() {
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           typeFilter={typeFilter}
+          documentTypes={[...new Set(groupedStudents.flatMap((student) => student.certificateTypes))]}
           onTypeFilterChange={setTypeFilter}
           statusFilter={statusFilter}
           onStatusFilterChange={setStatusFilter}

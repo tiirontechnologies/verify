@@ -5,10 +5,7 @@ import { getMyCertificate } from "../../../api/certificate.api";
 import { useNavigate } from "react-router-dom";
 import {
   Award,
-  GraduationCap,
   ArrowRight,
-  FileText,
-  AwardIcon,
   FileCheck,
   BadgeCheck,
   Building2,
@@ -59,7 +56,7 @@ export default function StudentDashboard() {
   const issuerNames = [...new Set(certificates.map(getIssuerName).filter(Boolean))];
   const orgName = loading ? "Loading…" : issuerNames.length > 1
     ? `${issuerNames.length} organizations`
-    : issuerNames[0] || (certificates.length ? "Organization not provided" : "—");
+    : issuerNames[0] || "";
   const activityCertId = certificates[0]?.certificateId || certificates[0]?._id || "";
 
   return (
@@ -133,7 +130,7 @@ export default function StudentDashboard() {
                 {activeCount}
               </span>
               <p className="text-xs text-emerald-600 mt-1 font-semibold flex items-center gap-1">
-                <BadgeCheck size={14} /> Active & Blockchain Authenticated
+                <BadgeCheck size={14} /> Based on issuer status
               </p>
             </div>
           </div>
@@ -199,46 +196,10 @@ export default function StudentDashboard() {
           ) : (
             <div className="grid lg:grid-cols-2 gap-6">
               {certificates.map((cert) => {
-                const cType = (cert.certificateType || "document").toLowerCase();
-                const issuerName = getIssuerName(cert) || "Organization not provided";
-                const isInternship = cType === "internship";
-                const isTraining = cType === "training";
-                const isOfferLetter = cType === "offer-letter";
-                const isAppreciation = cType === "appreciation-letter";
-
-                let Icon = FileCheck;
-                let bgStyle = "bg-purple-50 text-purple-600 border-purple-200";
-                let btnStyle = "bg-purple-600 hover:bg-purple-700 shadow-purple-200";
-                let badgeStyle = "bg-purple-50 text-purple-700 border-purple-200";
-                let titleText = (cert.certificateType || "Document")
+                const issuerName = getIssuerName(cert);
+                let titleText = (cert.certificateType || cert.type || "")
                   .replace(/-/g, " ")
                   .replace(/\b\w/g, (l: string) => l.toUpperCase());
-
-                if (isInternship) {
-                  Icon = Award;
-                  bgStyle = "bg-red-50 text-red-600 border-red-200";
-                  btnStyle = "bg-red-600 hover:bg-red-700 shadow-red-200";
-                  badgeStyle = "bg-red-50 text-red-700 border-red-200";
-                  titleText = "Internship Certificate";
-                } else if (isTraining) {
-                  Icon = GraduationCap;
-                  bgStyle = "bg-blue-50 text-blue-600 border-blue-200";
-                  btnStyle = "bg-blue-600 hover:bg-blue-700 shadow-blue-200";
-                  badgeStyle = "bg-blue-50 text-blue-700 border-blue-200";
-                  titleText = "Training Certificate";
-                } else if (isOfferLetter) {
-                  Icon = FileText;
-                  bgStyle = "bg-emerald-50 text-emerald-600 border-emerald-200";
-                  btnStyle = "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200";
-                  badgeStyle = "bg-emerald-50 text-emerald-700 border-emerald-200";
-                  titleText = "Offer Letter";
-                } else if (isAppreciation) {
-                  Icon = AwardIcon;
-                  bgStyle = "bg-amber-50 text-amber-600 border-amber-200";
-                  btnStyle = "bg-amber-600 hover:bg-amber-700 shadow-amber-200";
-                  badgeStyle = "bg-amber-50 text-amber-700 border-amber-200";
-                  titleText = "Appreciation Letter";
-                }
 
                 const handleNavigate = () => {
                   navigate(`/student/certificates/doc/${cert._id || cert.certificateId}`);
@@ -251,16 +212,14 @@ export default function StudentDashboard() {
                   >
                     <div>
                       <div className="flex items-center justify-between">
-                        <div className={`p-3.5 rounded-2xl border ${bgStyle} transition-transform duration-300 group-hover:scale-105`}>
-                          <Icon size={26} />
+                        <div className="p-3.5 rounded-2xl border border-slate-200 bg-slate-50 text-slate-600 transition-transform duration-300 group-hover:scale-105">
+                          <FileCheck size={26} />
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className={`text-[11px] font-bold uppercase px-3 py-1 rounded-full border ${badgeStyle}`}>
+                          <span className="text-[11px] font-bold uppercase px-3 py-1 rounded-full border border-slate-200 bg-slate-50 text-slate-700">
                             {titleText}
                           </span>
-                          <span className="text-xs font-mono font-semibold bg-slate-100 px-2.5 py-1 rounded-md text-slate-700">
-                            #{cert.certificateId}
-                          </span>
+                          {cert.certificateId && <span className="text-xs font-mono font-semibold bg-slate-100 px-2.5 py-1 rounded-md text-slate-700">#{cert.certificateId}</span>}
                         </div>
                       </div>
 
@@ -271,7 +230,7 @@ export default function StudentDashboard() {
                       <div className="mt-3 space-y-1 text-xs text-slate-600">
                         <p>
                           <span className="font-medium text-slate-400">Course / Program:</span>{" "}
-                          <span className="font-semibold text-slate-800">{cert.course || "Technical Training"}</span>
+                          <span className="font-semibold text-slate-800">{cert.course || ""}</span>
                         </p>
                         <p>
                           <span className="font-medium text-slate-400">Issued by:</span>{" "}
@@ -281,13 +240,11 @@ export default function StudentDashboard() {
                     </div>
 
                     <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">
-                        <ShieldCheck size={13} /> Active & Verified
-                      </span>
+                      {cert.status && <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-md border ${cert.status === "active" ? "border-emerald-100 bg-emerald-50 text-emerald-700" : cert.status === "revoked" ? "border-red-100 bg-red-50 text-red-700" : "border-slate-200 bg-slate-50 text-slate-700"}`}>{cert.status === "active" && <ShieldCheck size={13} />} {cert.status}</span>}
 
                       <button
                         onClick={handleNavigate}
-                        className={`flex items-center gap-2 py-2.5 px-5 rounded-xl text-xs font-semibold text-white transition-all shadow-md hover:scale-[1.02] ${btnStyle}`}
+                        className="flex items-center gap-2 py-2.5 px-5 rounded-xl text-xs font-semibold text-white bg-slate-700 hover:bg-slate-800 transition-all shadow-md hover:scale-[1.02]"
                       >
                         View {titleText} <ArrowRight size={14} />
                       </button>
