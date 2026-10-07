@@ -5,7 +5,8 @@ import logo from "../../assets/Tiiron_Technologies_Logo.png";
 const quickLinks = [
   { label: "Our Products", href: "https://tiirontechnologies.com/products" },
   { label: "Services Offered", href: "https://tiirontechnologies.com/services" },
-  { label: "Help & Support", href: "/help-support" },
+  { label: "Help & Support", href: "https://tiirontechnologies.com" },
+  { label: "Pricing", href: "/pricing" },
   { label: "Request a Demo", href: "/book-demo" },
 ];
 
@@ -19,7 +20,7 @@ const solutionLinks = [
 const companyLinks = [
   { label: "About Us", href: "https://tiirontechnologies.com/about" },
   { label: "Contact Us", href: "https://tiirontechnologies.com/contact" },
-  { label: "Careers", href: "mailto:contact@tiirontechnologies.com", external: true },
+  { label: "Sales", href: "mailto:sales@tiirontechnologies.com", external: true },
   { label: "Verify Credentials", href: "https://verify.tiirontechnologies.com/", external: true },
 ];
 
@@ -121,7 +122,7 @@ export default function Footer() {
                 <Mail size={20} className="mt-1 text-[#ef233c]" />
                 <div className="flex flex-col">
                   <span className="footer-contact-label">Email Address</span>
-                  <a href="mailto:contact@tiirontechnologies.com" className="mt-1 font-semibold text-gray-500">contact@tiirontechnologies.com</a>
+                  <a href="mailto:verify@tiirontechnologies.com" className="mt-1 font-semibold text-gray-500">verify@tiirontechnologies.com</a>
                 </div>
               </li>
               <li className="flex items-start gap-3">
@@ -140,9 +141,9 @@ export default function Footer() {
         <div className="mt-14 flex flex-col gap-4 border-t border-slate-300 pt-8 text-sm text-gray-400 sm:flex-row sm:items-center sm:justify-between mb-0 pb-0">
           <p>© 2026 Tiiron Technologies Pvt. Ltd. All rights reserved.</p>
           <div className="flex flex-wrap gap-6 sm:gap-8">
-            <a href="#" className="transition hover:text-[#ef233c]">Terms & Conditions</a>
-            <a href="#" className="transition hover:text-[#ef233c]">Refund Policy</a>
-            <a href="#" className="transition hover:text-[#ef233c]">Privacy Policy</a>
+            <a href="/terms-and-conditions" className="transition hover:text-[#ef233c]">Terms & Conditions</a>
+            <a href="/refund-policy" className="transition hover:text-[#ef233c]">Refund Policy</a>
+            <a href="/privacy-policy" className="transition hover:text-[#ef233c]">Privacy Policy</a>
           </div>
         </div>
       </div>

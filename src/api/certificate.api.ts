@@ -1,22 +1,38 @@
 import axios from "./axios"
 import { documentTemplateApi } from "./documentTemplateApi";
 
-const normalizeTemplateType = (value?: string) =>
-  (value || "").toLowerCase().trim().replace(/[\s_]+/g, "-");
+const normalizeTemplateType = (value?: string) => {
+  const normalized = (value || "").toLowerCase().trim().replace(/[\s_]+/g, "-");
+  return normalized
+    .replace(/-certificate$/, "")
+    .replace(/-document$/, "");
+};
 
 function toFabricData(template: any) {
   if (!template || typeof template !== "object") return null;
 
-  const data =
+  const explicitDesignData =
     template.template?.design?.data ??
     template.design?.data ??
     template.templateData?.design?.data ??
+    (template.templateData?.objects ? template.templateData : null) ??
+    template.data?.design?.data;
+  const data =
+    explicitDesignData ??
     template.templateData ??
-    template.data?.design?.data ??
     template.design ??
     template;
 
-  if (!data?.backgroundImage) return null;
+  // Fabric pages may intentionally be blank. The objects array is the
+  // important signal that this is saved canvas JSON; a background image is optional.
+  if (!data || typeof data !== "object") return null;
+  const hasCanvasData = Boolean(explicitDesignData) || Array.isArray(data.objects) ||
+    Boolean(data.backgroundImage) ||
+    (Number(data.width) > 0 && Number(data.height) > 0);
+  if (!hasCanvasData) return null;
+  if (!Array.isArray(data.objects) && !data.backgroundImage) {
+    data.objects = [];
+  }
 
   const orientation =
     template.orientation ||
@@ -50,6 +66,8 @@ export async function getCertificateTemplateData(certificate: any) {
     } catch (error) {
       console.error("Failed to load assigned certificate template:", error);
     }
+    // A broken explicit assignment must not silently substitute a different default.
+    return null;
   }
 
   try {

@@ -236,6 +236,8 @@ interface FabricContextType {
   setPreviewMode: React.Dispatch<React.SetStateAction<boolean>>;
   orientation: "landscape" | "portrait";
   setOrientation: (orientation: "landscape" | "portrait") => void;
+  pageSize: "A4" | "A3" | "Letter";
+  setPageSize: (size: "A4" | "A3" | "Letter") => void;
   zoomLevel: number;
   setZoomLevel: React.Dispatch<React.SetStateAction<number>>;
   canvasDimensions: CanvasDimensions;
@@ -276,6 +278,7 @@ export function FabricProvider({
   const [orientation, setOrientation] = useState<"landscape" | "portrait">(
     initialOrientation
   );
+  const [pageSize, setPageSize] = useState<"A4" | "A3" | "Letter">("A4");
   const [zoomLevel, setZoomLevel] = useState<number>(1.0);
   const [canvasDimensions, setCanvasDimensions] = useState<CanvasDimensions>({
     width: initialOrientation === "portrait" ? 747 : 1056,
@@ -386,14 +389,22 @@ export function FabricProvider({
 
     let historyTimer: number | undefined;
     const handleCanvasChange = () => {
+      if ((canvas as any).__isHydratingTemplate) return;
       window.clearTimeout(historyTimer);
-      historyTimer = window.setTimeout(saveHistory, 120);
+      // Let rapid drag/resize frames settle before serializing the full canvas.
+      historyTimer = window.setTimeout(saveHistory, 280);
     };
 
     canvas.on("object:added", handleCanvasChange);
     canvas.on("object:modified", handleCanvasChange);
     canvas.on("object:removed", handleCanvasChange);
     canvas.on("path:created", handleCanvasChange);
+    const handleTemplateLoaded = () => {
+      window.clearTimeout(historyTimer);
+      resetHistory();
+      saveHistory();
+    };
+    (canvas as any).on("template:loaded", handleTemplateLoaded);
 
     return () => {
       window.clearTimeout(historyTimer);
@@ -401,8 +412,9 @@ export function FabricProvider({
       canvas.off("object:modified", handleCanvasChange);
       canvas.off("object:removed", handleCanvasChange);
       canvas.off("path:created", handleCanvasChange);
+      (canvas as any).off("template:loaded", handleTemplateLoaded);
     };
-  }, [canvas, saveHistory]);
+  }, [canvas, resetHistory, saveHistory]);
 
   // ---------------------------------------------------------------------
   // Multi-page (Canva-style) management
@@ -598,6 +610,8 @@ export function FabricProvider({
         setPreviewMode,
         orientation,
         setOrientation,
+        pageSize,
+        setPageSize,
         zoomLevel,
         setZoomLevel,
         canvasDimensions,

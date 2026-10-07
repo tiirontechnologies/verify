@@ -441,10 +441,13 @@ export default function FabricCertificateRenderer({
 
   const backgroundImage = fabricData?.backgroundImage;
 
-  const isCertificateMissing =
-    !fabricData ||
-    !backgroundImage ||
-    !(backgroundImage?.src || backgroundImage?.url || backgroundImage?.width);
+  const hasRenderableBackground = Boolean(
+    backgroundImage?.src || backgroundImage?.url || backgroundImage?.width
+  );
+  const hasCanvasData = Boolean(
+    fabricData && (Array.isArray(fabricData.objects) || hasRenderableBackground)
+  );
+  const isCertificateMissing = !hasCanvasData;
 
   const orientation = (() => {
     const raw = (

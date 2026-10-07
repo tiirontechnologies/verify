@@ -790,6 +790,11 @@ export default function Header({
   const [saveStatus, setSaveStatus] = useState<"saved" | "unsaved" | "saving" | "error">("saved");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [currentTemplate, setCurrentTemplate] = useState<any>(template);
+  const [isExitWarningOpen, setIsExitWarningOpen] = useState(false);
+  const [savedMetadata, setSavedMetadata] = useState({
+    name: template?.name || "",
+    documentType: template?.documentType || "Other",
+  });
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const autosaveTimerRef = useRef<number | undefined>(undefined);
 
@@ -800,11 +805,25 @@ export default function Header({
     if (template) {
       setTemplateName(template.name || "");
       setDocumentType(template.documentType || "Other");
+      setSavedMetadata({ name: template.name || "", documentType: template.documentType || "Other" });
     } else {
       setTemplateName("");
       setDocumentType("Other");
+      setSavedMetadata({ name: "", documentType: "Other" });
     }
   }
+
+  const hasUnsavedChanges = saveStatus === "unsaved" || saveStatus === "error" ||
+    templateName !== savedMetadata.name || documentType !== savedMetadata.documentType;
+
+  const requestExit = () => {
+    if (saving) return;
+    if (hasUnsavedChanges) {
+      setIsExitWarningOpen(true);
+      return;
+    }
+    onBack();
+  };
 
   const handleSave = async (manual = true) => {
     if (!canvas) return;
@@ -866,13 +885,15 @@ export default function Header({
       }
 
       setSaveStatus("saved");
+      setSavedMetadata({ name: templateName, documentType: finalDocumentType });
       if (manual) {
         setMessage({ type: "success", text: "Template saved successfully!" });
         setTimeout(() => {
           setIsSaveModalOpen(false);
           if (onSaveSuccess) {
-            onSaveSuccess("Template saved successfully! Click 'Back to Dashboard' whenever you are done.");
+            onSaveSuccess("Template saved successfully.");
           }
+          onBack();
         }, 500);
       }
     } catch (err: any) {
@@ -894,16 +915,14 @@ export default function Header({
   const scheduleAutosaveRef = useRef<() => void>(() => undefined);
   scheduleAutosaveRef.current = () => {
     setSaveStatus("unsaved");
-    if (!currentTemplate?._id) return;
-    window.clearTimeout(autosaveTimerRef.current);
-    autosaveTimerRef.current = window.setTimeout(() => {
-      void saveHandlerRef.current(false);
-    }, 900);
   };
 
   useEffect(() => {
     if (!canvas) return;
-    const markUnsaved = () => scheduleAutosaveRef.current();
+    const markUnsaved = () => {
+      if ((canvas as any).__isHydratingTemplate) return;
+      scheduleAutosaveRef.current();
+    };
     canvas.on("object:added", markUnsaved);
     canvas.on("object:modified", markUnsaved);
     canvas.on("object:removed", markUnsaved);
@@ -927,6 +946,21 @@ export default function Header({
     }
     scheduleAutosaveRef.current();
   }, [pages, orientation, activePageId]);
+
+  useEffect(() => {
+    const handleBackRequest = () => requestExit();
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!hasUnsavedChanges) return;
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("fabric-editor-back", handleBackRequest);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("fabric-editor-back", handleBackRequest);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [hasUnsavedChanges, saving, templateName, documentType, saveStatus]);
 
   const exportCurrentImage = (format: "png" | "jpeg") => {
     if (!canvas) return;
@@ -1035,7 +1069,7 @@ export default function Header({
         </span>
 
         <button
-          onClick={onBack}
+          onClick={requestExit}
           className="flex items-center justify-center h-8 w-8 sm:h-9 sm:w-9 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition shrink-0"
           title="Back to Dashboard"
         >
@@ -1249,6 +1283,25 @@ export default function Header({
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {isExitWarningOpen && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-sm" role="presentation">
+          <section role="dialog" aria-modal="true" aria-labelledby="unsaved-warning-title" className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl sm:p-6">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-700"><AlertCircle size={20} /></div>
+              <div>
+                <h2 id="unsaved-warning-title" className="text-base font-bold text-slate-900">Unsaved changes</h2>
+                <p className="mt-1 text-sm leading-6 text-slate-600">Your template has changes that haven’t been saved. Save before leaving, or discard these changes.</p>
+              </div>
+            </div>
+            <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+              <button type="button" onClick={() => { setIsExitWarningOpen(false); window.clearTimeout(autosaveTimerRef.current); onBack(); }} className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Discard changes</button>
+              <button type="button" onClick={() => { setIsExitWarningOpen(false); setMessage(null); setIsSaveModalOpen(true); }} className="rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700">Save changes</button>
+              <button type="button" onClick={() => setIsExitWarningOpen(false)} className="rounded-lg px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100">Keep editing</button>
+            </div>
+          </section>
         </div>
       )}
     </>

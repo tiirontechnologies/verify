@@ -34,6 +34,9 @@ import ComingSoon from "./pages/ComingSoon";
 import SubscriptionPage from "./pages/Subscription";
 import DashboardLayout from "./layouts/DashboardLayout";
 import HelpSupportPage from "./pages/HelpandSupport";
+import PricingPage from "./pages/PricingPage";
+import CheckoutPage from "./pages/CheckoutPage";
+import LegalPage from "./pages/LegalPage";
 
 // function AuthBootstrap() {
 //   const redirectToDashboard = useMeRedirect();
@@ -68,6 +71,11 @@ function App() {
           path="/book-demo"
           element={<BookDemoPage />}
         />
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/privacy-policy" element={<LegalPage kind="privacy" />} />
+        <Route path="/terms-and-conditions" element={<LegalPage kind="terms" />} />
+        <Route path="/refund-policy" element={<LegalPage kind="refund" />} />
         <Route
           path="/verification/:id"
           element={<VerificationPage />}
@@ -160,7 +168,7 @@ function App() {
 
     path="/certificate-templates/:id"
 
-    element={<TemplatePreviewPage/>}
+    element={<ProtectedRoute><TemplatePreviewPage /></ProtectedRoute>}
 
 />
 <Route
@@ -316,6 +324,7 @@ element={
   path="/help-support"
   element={<HelpSupportPage />}
 />
+<Route path="/helpandsupport" element={<HelpSupportPage />} />
 
       </Routes>
     </BrowserRouter>

@@ -226,7 +226,7 @@ const SubscriptionPage: React.FC = () => {
             setLoadingPlanId(null);
           },
         },
-        theme: { color: "#e11d2a" },
+        theme: { color: "#334155" },
       };
 
       const razorpay = new window.Razorpay(options);
