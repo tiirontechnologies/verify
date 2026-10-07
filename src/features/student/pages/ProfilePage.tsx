@@ -59,23 +59,20 @@ const buildForm = (p: StudentProfile): FormState => ({
   skills: p.skills || [],
 });
 
-// "internship" -> "Internship Certificate", "offer-letter" -> "Offer Letter"
 const formatCertificateTitle = (type?: string): string => {
-  if (!type) return "Certificate";
-  const words = type
+  return (type || "")
     .replace(/[-_]+/g, " ")
     .trim()
     .split(/\s+/)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
     .join(" ");
-  return /(letter|certificate)$/i.test(words) ? words : `${words} Certificate`;
 };
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
 
   const [loading, setLoading] = useState(true);
-  const [certId, setcertId] = useState("TTINT202600000");
+  const [certId, setcertId] = useState("");
   const [certificates, setCertificates] = useState<any[]>([]);
 
   // ---- inline edit state ----
@@ -104,7 +101,7 @@ export default function ProfilePage() {
           );
 
           setCertificates(list);
-          if (list[0]?.certificateId) setcertId(list[0].certificateId);
+          setcertId(list[0]?.certificateId || list[0]?._id || "");
         } catch (err) {
           setCertificates([]);
         }
@@ -659,8 +656,8 @@ export default function ProfilePage() {
               {recentCertificates.map((cert) => (
                 <CredentialCard
                   key={cert._id || cert.certificateId}
-                  title={formatCertificateTitle(cert.certificateType)}
-                  issuer={`Issued by ${cert.organization || "Tiiron Technologies"}`}
+                  title={formatCertificateTitle(cert.certificateType || cert.type)}
+                  issuer={cert.organization ? `Issued by ${cert.organization}` : ""}
                 />
               ))}
             </div>
@@ -672,7 +669,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Activity */}
-        <RecentActivity id={certId} />
+        {certId && <RecentActivity id={certId} />}
       </div>
     </DashboardLayout>
   );

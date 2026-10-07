@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, ExternalLink, ShieldCheck, Calendar, User, Mail, BookOpen, Award, GraduationCap, FileText, AwardIcon, FileCheck, Ban, Loader2, CheckCircle2 } from "lucide-react";
+import { X, ExternalLink, ShieldCheck, Calendar, User, Mail, BookOpen, FileCheck, Ban, Loader2, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { organizationApi } from "../../../../api/organization.api";
 
@@ -23,7 +23,7 @@ export default function ViewStudentModal({
   const currentDoc = documents[selectedDocIndex] || documents[0] || student;
 
   const formatDate = (dateStr?: string) => {
-    if (!dateStr) return "N/A";
+    if (!dateStr) return "";
     const d = new Date(dateStr);
     return isNaN(d.getTime())
       ? dateStr
@@ -59,20 +59,8 @@ export default function ViewStudentModal({
   };
 
   const getDocBadgeInfo = (certType?: string) => {
-    const cType = (certType || "internship").toLowerCase();
-    if (cType === "internship") {
-      return { label: "Internship Certificate", Icon: Award, color: "bg-red-50 text-red-700 border-red-200" };
-    }
-    if (cType === "training") {
-      return { label: "Training Certificate", Icon: GraduationCap, color: "bg-blue-50 text-blue-700 border-blue-200" };
-    }
-    if (cType === "offer-letter") {
-      return { label: "Offer Letter", Icon: FileText, color: "bg-emerald-50 text-emerald-700 border-emerald-200" };
-    }
-    if (cType === "appreciation-letter") {
-      return { label: "Appreciation Letter", Icon: AwardIcon, color: "bg-amber-50 text-amber-700 border-amber-200" };
-    }
-    return { label: "Custom Document", Icon: FileCheck, color: "bg-purple-50 text-purple-700 border-purple-200" };
+    const label = (certType || "").replace(/[-_]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+    return { label, Icon: FileCheck, color: "bg-slate-50 text-slate-700 border-slate-200" };
   };
 
   const currentBadge = getDocBadgeInfo(currentDoc.certificateType);
@@ -152,15 +140,9 @@ export default function ViewStudentModal({
             <div className="flex items-center justify-between pt-2 border-t border-slate-200/60">
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-500 uppercase font-semibold">Status:</span>
-                <span
-                  className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full ${
-                    currentDoc.status === "active"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                  }`}
-                >
-                  {currentDoc.status === "active" ? <ShieldCheck size={14} /> : <Ban size={14} />}
-                  {currentDoc.status === "active" ? "Verified Active" : "Revoked"}
+                <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full ${currentDoc.status === "active" ? "bg-green-100 text-green-800" : currentDoc.status === "revoked" ? "bg-red-100 text-red-800" : "bg-slate-100 text-slate-700"}`}>
+                  {currentDoc.status === "active" ? <ShieldCheck size={14} /> : currentDoc.status === "revoked" ? <Ban size={14} /> : null}
+                  {currentDoc.status || ""}
                 </span>
               </div>
 
@@ -211,7 +193,7 @@ export default function ViewStudentModal({
               <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold">
                 <User size={14} /> Role / Position
               </div>
-              <p className="font-semibold text-slate-800 text-xs">{currentDoc.role || student.role || "Participant"}</p>
+              <p className="font-semibold text-slate-800 text-xs">{currentDoc.role || student.role || ""}</p>
             </div>
 
             <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-1">

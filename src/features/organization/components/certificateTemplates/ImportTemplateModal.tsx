@@ -10,7 +10,7 @@ interface Props {
 
 const initialForm = {
   name: "",
-  documentType: " ",
+  documentType: "",
   orientation: "landscape",
   status: "active",
 };
@@ -89,6 +89,10 @@ export default function ImportTemplateModal({
       alert("Template name is required.");
       return;
     }
+    if (!form.documentType.trim()) {
+      alert("Document type is required.");
+      return;
+    }
 
     if (!selectedFile) {
       alert(
@@ -156,7 +160,7 @@ export default function ImportTemplateModal({
               name="name"
               value={form.name}
               onChange={handleChange}
-              placeholder="Internship Certificate"
+              placeholder="Enter template name"
               className="w-full rounded-xl border px-4 py-3 outline-none transition focus:border-red-500"
             />
           </div>
@@ -167,40 +171,14 @@ export default function ImportTemplateModal({
               Document Type
             </label>
 
-            <select
+            <input
+              type="text"
               name="documentType"
               value={form.documentType}
               onChange={handleChange}
+              placeholder="Enter the document type"
               className="w-full rounded-xl border px-4 py-3 outline-none focus:border-red-500"
-            >
-              <option value="internship">
-                Internship
-              </option>
-
-              <option value="training">
-                Training
-              </option>
-
-              <option value="offer-letter">
-                Offer Letter
-              </option>
-
-              <option value="evaluation-letter">
-                Evaluation Letter
-              </option>
-
-              <option value="experience-letter">
-                Experience Letter
-              </option>
-
-              <option value="appreciation-letter">
-                Appreciation Letter
-              </option>
-
-              <option value="custom">
-                Custom
-              </option>
-            </select>
+            />
           </div>
 
           {/* Orientation */}

@@ -23,7 +23,7 @@ export default function CertificateTemplateHero({
 
           <p className="mt-4 max-w-2xl leading-7 text-gray-500">
             Manage, import and customize certificate templates for
-            internship, training and other programs. Select a template
+            your organization’s programs. Select a template
             before generating certificates for students.
           </p>
         </div>

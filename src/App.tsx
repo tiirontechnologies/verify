@@ -16,8 +16,6 @@ import OtpVerificationPage from "./features/auth/pages/OtpVerificationPage";
 import ResetPasswordPage from "./features/auth/pages/ResetPasswordPage";
 import PasswordResetSuccessPage from "./features/auth/pages/PasswordResetSuccessPage";
 import GenerateCertificatePage from "./features/student/pages/GenerateCertificatePage";
-import InternshipCertificatePage from "./features/student/pages/InternshipCertificatePage";
-import TrainingCertificatePage from "./features/student/pages/TrainingCertificatePage";
 import DocumentViewerPage from "./features/student/pages/DocumentViewerPage";
 import DocumentTemplateDesigner from "./features/organization/pages/DocumentTemplateDesigner";
 // import useMeRedirect from "./features/auth/hooks/useMeRedirect";
@@ -196,33 +194,6 @@ function App() {
     </ProtectedRoute>
   }
 />
-<Route
-  path="/student/certificates/internship"
-  element={
-    <ProtectedRoute>
-      <InternshipCertificatePage />
-    </ProtectedRoute>
-  }
-/>
-
-<Route
-  path="/student/certificates/training"
-  element={
-    <ProtectedRoute>
-      <TrainingCertificatePage />
-    </ProtectedRoute>
-  }
-/>
-
-<Route
-  path="/student/certificates/offer-letter"
-  element={
-    <ProtectedRoute>
-      <DocumentViewerPage forcedType="offer-letter" />
-    </ProtectedRoute>
-  }
-/>
-
 <Route
   path="/student/certificates/doc/:certificateId"
   element={

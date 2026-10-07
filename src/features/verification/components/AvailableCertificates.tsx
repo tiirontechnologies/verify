@@ -30,16 +30,13 @@ const normalize = (input: Props["certificates"]): ApiCertificate[] => {
   return [];
 };
 
-// "internship" -> "Internship Certificate", "offer-letter" -> "Offer Letter"
 const formatCertificateTitle = (type?: string): string => {
-  if (!type) return "Certificate";
-  const words = type
+  return (type || "")
     .replace(/[-_]+/g, " ")
     .trim()
     .split(/\s+/)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
     .join(" ");
-  return /(letter|certificate)$/i.test(words) ? words : `${words} Certificate`;
 };
 
 // Type ke hisaab se color. Unknown type ka color type string se hi stable pick hoga
@@ -55,12 +52,6 @@ const PALETTE = [
 
 const getColor = (type?: string) => {
   const t = (type || "").toLowerCase();
-  if (t.includes("internship")) return PALETTE[0];
-  if (t.includes("training")) return PALETTE[1];
-  if (t.includes("offer")) return PALETTE[2];
-  if (t.includes("course")) return PALETTE[3];
-  if (!t) return PALETTE[4];
-  // unknown type: string hash se consistent color
   let hash = 0;
   for (let i = 0; i < t.length; i++) hash = (hash * 31 + t.charCodeAt(i)) >>> 0;
   return PALETTE[hash % PALETTE.length];
@@ -128,9 +119,7 @@ export default function AvailableCertificates({ certificates, isLoading }: Props
                       {formatCertificateTitle(type)}
                     </h3>
 
-                    <p className="text-sm text-gray-500 truncate">
-                      Issued by {cert.organization || "Tiiron Technologies"}
-                    </p>
+                    {cert.organization && <p className="text-sm text-gray-500 truncate">Issued by {cert.organization}</p>}
 
                     {(cert.course || cert.role || issued) && (
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-gray-400">

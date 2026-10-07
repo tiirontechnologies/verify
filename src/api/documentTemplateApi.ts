@@ -2,14 +2,7 @@ import api from "./axios";
 
 export interface CreateTemplateRequest {
   name: string;
-  documentType:
-    | "internship"
-    | "training"
-    | "offer-letter"
-    | "evaluation-letter"
-    | "experience-letter"
-    | "appreciation-letter"
-    | "custom";
+  documentType: string;
   orientation?: "landscape" | "portrait";
   status: "active" | "inactive";
 }
@@ -17,14 +10,7 @@ export interface CreateTemplateRequest {
 export interface UpdateTemplateRequest {
   name?: string;
   description?: string;
-  documentType?:
-    | "internship"
-    | "training"
-    | "offer-letter"
-    | "evaluation-letter"
-    | "experience-letter"
-    | "appreciation-letter"
-    | "custom";
+  documentType?: string;
   status?: "active" | "inactive";
 }
 

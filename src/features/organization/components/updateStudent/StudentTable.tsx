@@ -1,4 +1,4 @@
-import { Pencil, Trash2, Eye, ShieldCheck, FileText, Award, GraduationCap, AwardIcon, FileCheck } from "lucide-react";
+import { Pencil, Trash2, Eye, ShieldCheck, FileCheck } from "lucide-react";
 
 export interface StudentDocumentItem {
   _id: string;
@@ -155,51 +155,23 @@ export default function StudentTable({
                     <td className="px-6 py-5">
                       <div className="flex flex-wrap gap-1.5 items-center">
                         {student.documents.map((doc, idx) => {
-                          const type = doc.certificateType || "document";
-                          const cType = type.toLowerCase();
+                          const type = doc.certificateType || "";
                           const isRevoked = doc.status === "revoked";
 
-                          let Icon = FileCheck;
                           let badgeClass = isRevoked
                             ? "bg-slate-100 text-slate-500 border-slate-200 line-through"
                             : "bg-purple-50 text-purple-700 border-purple-200";
-                          let typeLabel = type
+                          const typeLabel = type
                             .replace(/-/g, " ")
                             .replace(/\b\w/g, (l: string) => l.toUpperCase());
-
-                          if (cType === "internship") {
-                            Icon = Award;
-                            badgeClass = isRevoked
-                              ? "bg-red-50/60 text-red-600 border-red-200 line-through"
-                              : "bg-red-50 text-red-700 border-red-200";
-                            typeLabel = "Internship";
-                          } else if (cType === "training") {
-                            Icon = GraduationCap;
-                            badgeClass = isRevoked
-                              ? "bg-red-50/60 text-red-600 border-red-200 line-through"
-                              : "bg-blue-50 text-blue-700 border-blue-200";
-                            typeLabel = "Training";
-                          } else if (cType === "offer-letter") {
-                            Icon = FileText;
-                            badgeClass = isRevoked
-                              ? "bg-red-50/60 text-red-600 border-red-200 line-through"
-                              : "bg-emerald-50 text-emerald-700 border-emerald-200";
-                            typeLabel = "Offer Letter";
-                          } else if (cType === "appreciation-letter") {
-                            Icon = AwardIcon;
-                            badgeClass = isRevoked
-                              ? "bg-red-50/60 text-red-600 border-red-200 line-through"
-                              : "bg-amber-50 text-amber-700 border-amber-200";
-                            typeLabel = "Appreciation";
-                          }
 
                           return (
                             <span
                               key={doc._id || idx}
-                              title={`${typeLabel}: ${isRevoked ? "Revoked" : "Active"}`}
+                              title={typeLabel ? `${typeLabel}${doc.status ? `: ${doc.status}` : ""}` : undefined}
                               className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${badgeClass}`}
                             >
-                              <Icon size={13} /> {typeLabel}
+                              <FileCheck size={13} /> {typeLabel}
                               {isRevoked && <span className="text-[10px] font-normal text-red-600 no-underline">(Revoked)</span>}
                             </span>
                           );

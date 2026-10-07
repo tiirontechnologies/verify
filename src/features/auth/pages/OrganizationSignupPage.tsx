@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { FormEvent } from "react";
 import toast from "react-hot-toast";
 import { organizationApi } from "../../../api/organization.api";
 import SignupHero from "../signup/SignupHero";
@@ -37,6 +38,15 @@ export default function OrganizationSignupPage() {
   const [newsletter, setNewsletter] = useState(false);
 
   const [loading, setLoading] = useState(false);
+
+  const handleStepSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (currentStep < 4) {
+      setCurrentStep((step) => step + 1);
+    } else if (!loading) {
+      void handleSubmit();
+    }
+  };
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -166,7 +176,7 @@ export default function OrganizationSignupPage() {
 
         <div className="mt-6 grid gap-5 xl:grid-cols-[2fr_340px]">
           {/* Left */}
-          <div className="space-y-5">
+          <form className="space-y-5" onSubmit={handleStepSubmit}>
             {currentStep === 1 && (
               <OrganizationInfoForm
                 formData={formData}
@@ -199,7 +209,6 @@ export default function OrganizationSignupPage() {
                 agreePrivacy={agreePrivacy}
                 newsletter={newsletter}
                 handleCheckboxChange={handleCheckboxChange}
-                handleSubmit={handleSubmit}
                 loading={loading}
               />
             )}
@@ -228,7 +237,7 @@ export default function OrganizationSignupPage() {
                 </button>
               )}
             </div>
-          </div>
+          </form>
 
           {/* Right */}
           <div className="h-fit xl:sticky xl:top-6">

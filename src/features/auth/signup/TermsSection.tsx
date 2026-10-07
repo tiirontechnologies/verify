@@ -22,8 +22,6 @@ type TermsSectionProps = {
 
   handleCheckboxChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 
-  handleSubmit: () => void;
-
   loading?: boolean;
 };
 
@@ -34,7 +32,6 @@ export default function TermsSection({
   agreePrivacy,
   newsletter,
   handleCheckboxChange,
-  handleSubmit,
   loading = false,
 }: TermsSectionProps) {
   const canSubmit = agreeTerms && agreePrivacy;
@@ -128,9 +125,8 @@ export default function TermsSection({
 
         {/* Submit */}
         <button
-          type="button"
+          type="submit"
           disabled={!canSubmit || loading}
-          onClick={handleSubmit}
           className={`
           flex
           w-full
