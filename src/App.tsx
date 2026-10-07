@@ -1,5 +1,5 @@
 // import { useEffect, useRef } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "./features/landing/pages/LandingPage";
 import VerificationPage from "./features/verification/pages/VerificationPage";
 import LoginPage from "./features/auth/pages/LoginPage";
@@ -33,7 +33,8 @@ import NotFoundPage from "./pages/NotFoundPage";
 import ComingSoon from "./pages/ComingSoon";
 import SubscriptionPage from "./pages/Subscription";
 import DashboardLayout from "./layouts/DashboardLayout";
-import HelpSupportPage from "./pages/HelpandSupport";
+import ContactUsPage from "./pages/HelpandSupport";
+import HelpSupportPage from "./pages/HelpSupportPage";
 import PricingPage from "./pages/PricingPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import LegalPage from "./pages/LegalPage";
@@ -320,11 +321,10 @@ element={
   path="*"
   element={<NotFoundPage />}
 />
-<Route
-  path="/help-support"
-  element={<HelpSupportPage />}
-/>
-<Route path="/helpandsupport" element={<HelpSupportPage />} />
+<Route path="/contact-us" element={<ContactUsPage />} />
+<Route path="/help-and-support" element={<HelpSupportPage />} />
+<Route path="/help-support" element={<Navigate to="/help-and-support" replace />} />
+<Route path="/helpandsupport" element={<Navigate to="/contact-us" replace />} />
 
       </Routes>
     </BrowserRouter>

@@ -4,10 +4,10 @@ import logo from "../../assets/Tiiron_Technologies_Logo.png";
 
 const quickLinks = [
   { label: "Our Products", href: "https://tiirontechnologies.com/products" },
-  { label: "Services Offered", href: "https://tiirontechnologies.com/services" },
-  { label: "Help & Support", href: "https://tiirontechnologies.com" },
   { label: "Pricing", href: "/pricing" },
-  { label: "Request a Demo", href: "/book-demo" },
+  { label: "Services Offered", href: "https://tiirontechnologies.com/services" },
+  { label: "Help & Support", href: "/help-and-support" },
+  // { label: "Request a Demo", href: "/book-demo" },
 ];
 
 const solutionLinks = [
@@ -19,7 +19,7 @@ const solutionLinks = [
 
 const companyLinks = [
   { label: "About Us", href: "https://tiirontechnologies.com/about" },
-  { label: "Contact Us", href: "https://tiirontechnologies.com/contact" },
+  { label: "Contact Us", href: "/contact-us" },
   { label: "Sales", href: "mailto:sales@tiirontechnologies.com", external: true },
   { label: "Verify Credentials", href: "https://verify.tiirontechnologies.com/", external: true },
 ];
