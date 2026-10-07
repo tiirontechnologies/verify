@@ -147,7 +147,7 @@ function Card({ icon, title, description, items, footer }: CardProps) {
       {/* Support */}
       <div className="mt-3 flex items-center gap-2 border-t border-slate-200 pt-3 text-xs text-slate-500">
         <Mail size={14} />
-        <span>contact@tiirontechnologies.com</span>
+        <a href="mailto:verify@tiirontechnologies.com" className="hover:text-rose-700">verify@tiirontechnologies.com</a>
       </div>
     </div>
   );

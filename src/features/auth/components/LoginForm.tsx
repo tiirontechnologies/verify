@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import type { FormEvent } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 import { login } from "../../../api/auth.api";
 import useMeRedirect from "../hooks/useMeRedirect";
 import { baseURL } from "../../../api/axios";
 
 export default function LoginForm() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const redirectToDashboard = useMeRedirect();
 
   useEffect(() => {
@@ -16,9 +19,15 @@ export default function LoginForm() {
   const [role, setRole] = useState<"student" | "admin">("student");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!loading) void handleLogin();
+  };
 
   const handleLogin = async () => {
     try {
@@ -32,6 +41,10 @@ export default function LoginForm() {
       }
 
       const loggedInRole = response.user.role;
+      const requestedRedirect = searchParams.get("redirect");
+      const redirectPath = requestedRedirect?.startsWith("/") && !requestedRedirect.startsWith("//")
+        ? requestedRedirect
+        : null;
 
       // Prevent logging in from the wrong tab
       if (role === "student" && loggedInRole !== "student") {
@@ -46,6 +59,11 @@ export default function LoginForm() {
 
       // Store only user details
       sessionStorage.setItem("user", JSON.stringify(response.user));
+
+      if (redirectPath) {
+        navigate(redirectPath, { replace: true });
+        return;
+      }
 
       if (loggedInRole === "student") {
         navigate("/student/dashboard", { replace: true });
@@ -123,11 +141,13 @@ export default function LoginForm() {
         <div className="flex-1 h-[1px] bg-gray-200"></div>
       </div>
 
+      <form onSubmit={handleSubmit}>
       {/* Email */}
       <div>
         <label className="text-xs text-gray-500">Email</label>
         <input
           type="email"
+          autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Enter email"
@@ -141,13 +161,25 @@ export default function LoginForm() {
           <label className="text-xs text-gray-500">Password</label>
         </div>
 
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Enter password"
-          className="w-full h-9 sm:h-10 text-sm border rounded-xl px-3.5 mt-1.5 outline-none focus:border-red-500"
-        />
+        <div className="relative mt-1.5">
+          <input
+            type={showPassword ? "text" : "password"}
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter password"
+            className="w-full h-9 sm:h-10 text-sm border rounded-xl px-3.5 pr-11 outline-none focus:border-red-500"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((visible) => !visible)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            title={showPassword ? "Hide password" : "Show password"}
+            className="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-slate-700"
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mt-3.5">
           <div className="flex items-center gap-2">
@@ -156,6 +188,7 @@ export default function LoginForm() {
           </div>
 
           <button
+            type="button"
             onClick={() => navigate("/forgot-password")}
             className="text-red-500 font-medium text-sm text-left sm:text-right"
           >
@@ -169,18 +202,20 @@ export default function LoginForm() {
 
       {/* Login */}
       <button
-        onClick={handleLogin}
+        type="submit"
         disabled={loading}
         className="w-full h-9 sm:h-10 mt-5 text-sm rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {loading ? "Logging In..." : "Login to Dashboard"}
       </button>
+      </form>
 
       {/* Footer */}
       {role === "admin" && (
         <div className="mt-5 text-center text-sm">
           <span className="text-slate-500">Don't have an organization account?</span>
           <button
+            type="button"
             onClick={() => navigate("/signup")}
             className="ml-2 font-semibold text-red-600 hover:text-red-700"
           >

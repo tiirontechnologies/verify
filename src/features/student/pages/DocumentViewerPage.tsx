@@ -7,20 +7,13 @@ import {
   getCertificateTemplateData,
 } from "../../../api/certificate.api";
 import FabricCertificateRenderer from "../components/FabricCertificateRenderer";
-import OfferLetterDocument from "../components/OfferLetterDocument";
 import DocumentHeader from "../../../components/shared/DocumentHeader";
 import { ArrowLeft, AlertCircle, Download, GraduationCap } from "lucide-react";
 import { toCanvas } from "html-to-image";
 import jsPDF from "jspdf";
 import toast from "react-hot-toast";
 
-interface DocumentViewerPageProps {
-  forcedType?: string;
-}
-
-export default function DocumentViewerPage({
-  forcedType,
-}: DocumentViewerPageProps) {
+export default function DocumentViewerPage() {
   const { certificateId } = useParams<{ certificateId?: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -58,15 +51,7 @@ export default function DocumentViewerPage({
           );
         }
 
-        if (!match && forcedType) {
-          match = validList.find(
-            (c: any) =>
-              (c.certificateType || "").toLowerCase() ===
-              forcedType.toLowerCase(),
-          );
-        }
-
-        if (!match && validList.length > 0) {
+        if (!match && validList.length > 0 && !certificateId) {
           match = validList[0];
         }
 
@@ -87,7 +72,7 @@ export default function DocumentViewerPage({
     };
 
     fetchDoc();
-  }, [certificateId, forcedType]);
+  }, [certificateId]);
 
   const getFileName = (ext: string) => {
     const idPart =
@@ -212,15 +197,12 @@ export default function DocumentViewerPage({
     );
   }
 
-  const certType = (documentData.certificateType || "internship").toLowerCase();
+  const certType = (documentData.certificateType || documentData.type || "").toLowerCase();
   const formattedTitle = certType
     .replace(/-/g, " ")
     .replace(/\b\w/g, (l: string) => l.toUpperCase());
 
-  const titleText =
-    formattedTitle.includes("Certificate") || formattedTitle.includes("Letter")
-      ? formattedTitle
-      : `${formattedTitle} Document`;
+  const titleText = formattedTitle;
 
   const downloadActions = (
     <button
@@ -238,7 +220,7 @@ export default function DocumentViewerPage({
       <div className="bg-slate-100 min-h-screen -m-4 sm:-m-8 p-4 sm:p-8 space-y-6">
         <DocumentHeader
           title={titleText}
-          subtitle={`Official ${certType.replace("-", " ")} issued to ${documentData.studentName || "you"}.`}
+          subtitle={certType && documentData.studentName ? `Official ${certType.replace("-", " ")} issued to ${documentData.studentName}.` : ""}
           docType={certType}
           certificateId={documentData.certificateId}
           actions={downloadActions}
@@ -264,10 +246,9 @@ export default function DocumentViewerPage({
               hideHeader={true}
             />
           ) : (
-            <OfferLetterDocument
-              documentData={documentData}
-              // onBack={() => navigate(-1)}
-            />
+            <div className="mx-auto flex min-h-[360px] max-w-5xl items-center justify-center border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">
+              No certificate design is assigned to this document yet. Please contact your organization.
+            </div>
           )}
         </div>
       </div>  

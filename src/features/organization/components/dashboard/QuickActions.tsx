@@ -13,7 +13,7 @@ const actions = [
   {
     title: "Certificate Templates",
     description:
-      "Create and manage internship and training certificate templates.",
+      "Create and manage certificate and document templates for your organization.",
     icon: FileBadge2,
     route: "/organization/templates",
     color: "bg-red-50 text-red-600",

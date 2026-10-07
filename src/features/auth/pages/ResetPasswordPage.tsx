@@ -124,6 +124,8 @@ export default function ResetPasswordPage() {
                     onClick={() =>
                       setShowNewPassword(!showNewPassword)
                     }
+                    aria-label={showNewPassword ? "Hide new password" : "Show new password"}
+                    title={showNewPassword ? "Hide password" : "Show password"}
                     className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400"
                   >
                     {showNewPassword ? (
@@ -162,6 +164,8 @@ export default function ResetPasswordPage() {
                     onClick={() =>
                       setShowConfirmPassword(!showConfirmPassword)
                     }
+                    aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                    title={showConfirmPassword ? "Hide password" : "Show password"}
                     className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400"
                   >
                     {showConfirmPassword ? (

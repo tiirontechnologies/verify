@@ -9,6 +9,16 @@ import ImportTemplateModal from "../components/certificateTemplates/ImportTempla
 import FabricEditor from "../components/documentTemplate/editor/FabricEditor";
 import { useNavigate } from "react-router-dom";
 
+function readTemplateList(responseData: any): any[] {
+  const payload = responseData?.templates ??
+    responseData?.data?.templates ??
+    responseData?.data ??
+    responseData?.template ??
+    responseData;
+  if (Array.isArray(payload)) return payload;
+  return payload && typeof payload === "object" && payload._id ? [payload] : [];
+}
+
 export default function CertificateTemplatesPage() {
   const [templates, setTemplates] = useState<any[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
@@ -23,7 +33,7 @@ export default function CertificateTemplatesPage() {
       if (showLoading) setLoading(true);
 
       const { data } = await documentTemplateApi.getTemplates();
-      const templateList = data.templates || [];
+      const templateList = readTemplateList(data);
 
       setTemplates(templateList);
 
@@ -78,7 +88,7 @@ export default function CertificateTemplatesPage() {
       .getTemplates()
       .then(({ data }) => {
         if (!isMounted) return;
-        const templateList = data.templates || [];
+        const templateList = readTemplateList(data);
         setTemplates(templateList);
 
         if (templateList.length > 0) {
@@ -136,9 +146,20 @@ export default function CertificateTemplatesPage() {
           selectedTemplate={selectedTemplate}
           onSelect={setSelectedTemplate}
           onPreview={(template) => navigate(`/certificate-templates/${template._id}`)}
-          onEdit={(template) => {
-            setEditingTemplate(template);
-            setIsEditorOpen(true);
+          onEdit={async (template) => {
+            try {
+              const { data } = await documentTemplateApi.getTemplateById(template._id);
+              const fullTemplate = data.template || data;
+              if (!fullTemplate?.design?.data) {
+                window.alert("This template has no saved canvas data yet, so it was not opened in edit mode.");
+                return;
+              }
+              setEditingTemplate(fullTemplate);
+              setIsEditorOpen(true);
+            } catch (error) {
+              console.error("Failed to load the full template before editing:", error);
+              window.alert("Could not load this template's saved design. Please try again.");
+            }
           }}
           onDelete={(template) => handleDelete(template)}
           onSetDefault={(template) => handleSetDefault(template)}
