@@ -6,6 +6,7 @@ import {
   UserCog,
   Megaphone,
   Server,
+  LifeBuoy,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -57,6 +58,13 @@ const actions = [
     icon: Server,
     route: "/organization/self-hosted",
     color: "bg-slate-100 text-slate-700",
+  },
+  {
+    title: "Support Tickets",
+    description: "Raise organization support requests and follow replies from the Tiiron support team.",
+    icon: LifeBuoy,
+    route: "/tickets",
+    color: "bg-rose-50 text-rose-600",
   },
 ];
 

@@ -6,6 +6,8 @@ export interface CertificateData {
 
     studentName: string;
 
+    profileImage?: string;
+
     email: string;
 
     organization: string;

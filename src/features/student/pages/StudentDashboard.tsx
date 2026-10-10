@@ -15,16 +15,22 @@ import {
 } from "lucide-react";
 
 function getIssuerName(certificate: any): string {
-  const issuer = certificate?.organization ??
-    certificate?.organizationName ??
-    certificate?.issuedByOrganization ??
-    certificate?.issuerName ??
-    certificate?.issuer?.organization ??
-    certificate?.issuer;
-  if (typeof issuer === "string") return issuer.trim();
-  if (issuer && typeof issuer === "object") {
-    const name = issuer.name ?? issuer.organizationName ?? issuer.displayName ?? issuer.legalName ?? issuer.companyName;
-    return typeof name === "string" ? name.trim() : "";
+  const candidates = [
+    certificate?.issuingOrganization,
+    certificate?.issuingOrganizationName,
+    certificate?.issuedByOrganization,
+    certificate?.issuerName,
+    certificate?.issuer?.organization,
+    certificate?.issuer,
+    certificate?.organization,
+    certificate?.organizationName,
+  ];
+  for (const issuer of candidates) {
+    if (typeof issuer === "string" && issuer.trim()) return issuer.trim();
+    if (issuer && typeof issuer === "object") {
+      const name = issuer.name ?? issuer.organizationName ?? issuer.displayName ?? issuer.legalName ?? issuer.companyName;
+      if (typeof name === "string" && name.trim()) return name.trim();
+    }
   }
   return "";
 }

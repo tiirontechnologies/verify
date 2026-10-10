@@ -36,6 +36,7 @@ interface FabricCertificateRendererProps {
   // Optional override, nahi diya to template se hi le lega
   templateName?: string;
   documentType?: string;
+  onCanvasReady?: (canvas: HTMLCanvasElement) => void;
 }
 
 function formatType(type?: string) {
@@ -50,6 +51,7 @@ export default function FabricCertificateRenderer({
   hideHeader = false,
   templateName,
   documentType,
+  onCanvasReady,
 }: FabricCertificateRendererProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -58,7 +60,14 @@ export default function FabricCertificateRenderer({
 
   // ---------- Normalize: { template } -> template -> design.data ----------
   const templateDoc = templateData?.template ?? templateData;
-  const fabricData = templateDoc?.design?.data ?? templateDoc;
+  const savedData = templateDoc?.design?.data ?? templateDoc;
+  const savedPages = Array.isArray(savedData?.pages) ? savedData.pages : [];
+  const activeSavedPage = savedPages.find((page: any) => page.id === savedData?.activePageId);
+  const pageJson = activeSavedPage?.json;
+  const pageHasContent = Array.isArray(pageJson?.objects) && pageJson.objects.length > 0;
+  const rootHasContent = Array.isArray(savedData?.objects) && savedData.objects.length > 0;
+  // Keep the displayed page identical to the editor's selected saved page.
+  const fabricData = pageHasContent || !rootHasContent ? pageJson || savedData : savedData;
 
   const displayName: string =
     templateName || templateDoc?.name || "Official Document Preview";
@@ -79,6 +88,7 @@ export default function FabricCertificateRenderer({
   const orientation = (() => {
     const raw = (
       fabricData?.orientation ||
+      activeSavedPage?.orientation ||
       templateDoc?.design?.orientation ||
       templateDoc?.orientation ||
       ""
@@ -99,6 +109,11 @@ export default function FabricCertificateRenderer({
 
   // useMemo: template late aaye tab bhi dimensions sahi banen
   const dimensions = useMemo(() => {
+    const savedWidth = Number(fabricData?.width || 0);
+    const savedHeight = Number(fabricData?.height || 0);
+    if (savedWidth > 0 && savedHeight > 0) {
+      return { width: savedWidth, height: savedHeight };
+    }
     let width = isPortrait ? 747 : 1056;
     let height = isPortrait ? 1056 : 747;
 
@@ -118,7 +133,7 @@ export default function FabricCertificateRenderer({
     }
 
     return { width, height };
-  }, [isPortrait, backgroundImage?.width, backgroundImage?.height]);
+  }, [fabricData?.width, fabricData?.height, isPortrait, backgroundImage?.width, backgroundImage?.height]);
 
   const [zoomScale, setZoomScale] = useState(1);
   const [zoomMode, setZoomMode] = useState<"fit" | "custom">("fit");
@@ -193,6 +208,7 @@ export default function FabricCertificateRenderer({
         }
 
         canvas.renderAll();
+        onCanvasReady?.(canvasRef.current!);
       } catch (e) {
         console.error(e);
       }
@@ -204,7 +220,7 @@ export default function FabricCertificateRenderer({
       cancelled = true;
       void canvas.dispose();
     };
-  }, [fabricData, studentData, dimensions, isCertificateMissing]);
+  }, [fabricData, studentData, dimensions, isCertificateMissing, onCanvasReady]);
 
   const handleDownload = () => {
     if (!canvasRef.current) return;
