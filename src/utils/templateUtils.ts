@@ -116,7 +116,26 @@ export function processFabricCanvasObjects(objects: any[], studentData: any): vo
 
   objects.forEach((obj) => {
     if (obj.text && typeof obj.text === "string") {
+      const containsVariable = /\{\{\s*[\w\s]+\s*\}\}/.test(obj.text);
+      if (containsVariable && (obj.type === "textbox" || obj.type === "i-text" || obj.type === "text")) {
+        const scaleX = Number(obj.scaleX) || 1;
+        const scaleY = Number(obj.scaleY) || 1;
+        const width = (Number(obj.width) || 0) * scaleX;
+        const height = (Number(obj.height) || 0) * scaleY;
+        const originX = obj.originX || "left";
+        const originY = obj.originY || "top";
+        if (originX === "center") obj.left = (Number(obj.left) || 0) - width / 2;
+        else if (originX === "right") obj.left = (Number(obj.left) || 0) - width;
+        if (originY === "center") obj.top = (Number(obj.top) || 0) - height / 2;
+        else if (originY === "bottom") obj.top = (Number(obj.top) || 0) - height;
+        obj.originX = "left";
+        obj.originY = "top";
+      }
       obj.text = replaceTemplatePlaceholders(obj.text, studentData);
+      // Fabric character styles are indexed against the literal placeholder.
+      // Reusing those indices after substitution can apply the wrong font and
+      // line metrics when the real value has a different length.
+      if (containsVariable && obj.styles) obj.styles = {};
     }
     if (obj.objects) {
       processFabricCanvasObjects(obj.objects, studentData);

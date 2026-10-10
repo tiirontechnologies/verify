@@ -10,6 +10,7 @@ import {
   Megaphone,
   Server,
   Award,
+  Ticket,
 } from "lucide-react";
 
 export const sidebarMenus = {
@@ -81,6 +82,11 @@ admin: [
       label: "Self Hosted Platforms",
       path: "/organization/self-hosted",
       icon: Server,
+    },
+    {
+      label: "Support Tickets",
+      path: "/tickets",
+      icon: Ticket,
     },
   ],
 };

@@ -135,6 +135,7 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
     orientation,
     setOrientation,
     pageSize,
+    setPageSize,
     zoomLevel,
     setZoomLevel,
     setCanvasDimensions,
@@ -781,10 +782,16 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
         await canvas.loadFromJSON(canvasData);
         if (!isAlive(canvas)) return; // dispose ho chuka
 
-        const { w, h } = getDims(targetOrientation, pageSize);
+        const defaultDims = getDims(targetOrientation, pageSize);
+        const savedW = Number(canvasData.width) || defaultDims.w;
+        const savedH = Number(canvasData.height) || defaultDims.h;
 
-        const savedW = Number(canvasData.width) || w;
-        const savedH = Number(canvasData.height) || h;
+        const savedPageSize = (["A4", "A3", "Letter"] as const).find((size) => {
+          const expected = getDims(targetOrientation, size);
+          return Math.abs(expected.w - savedW) <= 2 && Math.abs(expected.h - savedH) <= 2;
+        });
+        const targetPageSize = savedPageSize || pageSize;
+        const { w, h } = getDims(targetOrientation, targetPageSize);
 
         canvas.setDimensions({ width: w, height: h });
         if (savedW !== w || savedH !== h) fitObjects(canvas, savedW, savedH, w, h);
@@ -793,6 +800,7 @@ export default function Canvas({ template, previewMode = false }: CanvasProps) {
         setCanvasDimensionsRef.current({ width: w, height: h });
         setOrientationRef.current(targetOrientation);
         loadedRef.current = { canvas, key: templateKey };
+        if (savedPageSize && savedPageSize !== pageSize) setPageSize(savedPageSize);
         canvas.renderAll();
         autoZoomRef.current();
         (canvas as any).__isHydratingTemplate = false;
