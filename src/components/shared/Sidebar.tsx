@@ -11,11 +11,12 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const { open, setOpen } = useSidebar();
 
-const storedUser = localStorage.getItem("user");
-
-const role: "student" | "admin" = storedUser
-  ? JSON.parse(storedUser).role
-  : "student";
+let role: "student" | "admin" = "student";
+try {
+  const storedUser = sessionStorage.getItem("user") || localStorage.getItem("user");
+  const parsedUser = storedUser ? JSON.parse(storedUser) : {};
+  if (parsedUser.role === "admin" || parsedUser.roleId === "admin") role = "admin";
+} catch { /* use the student menu when there is no readable session */ }
 
   const menus = sidebarMenus[role];
 

@@ -34,8 +34,8 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import ContactUsPage from "./pages/HelpandSupport";
 import HelpSupportPage from "./pages/HelpSupportPage";
 import PricingPage from "./pages/PricingPage";
-import CheckoutPage from "./pages/CheckoutPage";
 import LegalPage from "./pages/LegalPage";
+import TicketCenterPage from "./features/support/TicketCenterPage";
 
 // function AuthBootstrap() {
 //   const redirectToDashboard = useMeRedirect();
@@ -71,7 +71,7 @@ function App() {
           element={<BookDemoPage />}
         />
         <Route path="/pricing" element={<PricingPage />} />
-        <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/checkout" element={<CheckoutRedirect />} />
         <Route path="/privacy-policy" element={<LegalPage kind="privacy" />} />
         <Route path="/terms-and-conditions" element={<LegalPage kind="terms" />} />
         <Route path="/refund-policy" element={<LegalPage kind="refund" />} />
@@ -296,10 +296,18 @@ element={
 <Route path="/help-and-support" element={<HelpSupportPage />} />
 <Route path="/help-support" element={<Navigate to="/help-and-support" replace />} />
 <Route path="/helpandsupport" element={<Navigate to="/contact-us" replace />} />
+<Route path="/tickets" element={<ProtectedRoute><TicketCenterPage /></ProtectedRoute>} />
+<Route path="/tickets/new" element={<ProtectedRoute><TicketCenterPage /></ProtectedRoute>} />
+<Route path="/tickets/:ticketId" element={<ProtectedRoute><TicketCenterPage /></ProtectedRoute>} />
 
       </Routes>
     </BrowserRouter>
   );
+}
+
+function CheckoutRedirect() {
+  const query = window.location.search;
+  return <Navigate to={`/pricing${query}`} replace />;
 }
 
 export default App;

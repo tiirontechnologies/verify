@@ -1,5 +1,5 @@
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import DashboardLayout from "../../../layouts/DashboardLayout";
 import {
@@ -9,7 +9,6 @@ import {
 import FabricCertificateRenderer from "../components/FabricCertificateRenderer";
 import DocumentHeader from "../../../components/shared/DocumentHeader";
 import { ArrowLeft, AlertCircle, Download, GraduationCap } from "lucide-react";
-import { toCanvas } from "html-to-image";
 import jsPDF from "jspdf";
 import toast from "react-hot-toast";
 
@@ -24,9 +23,15 @@ export default function DocumentViewerPage() {
   const [error, setError] = useState("");
   const [noCertificate, setNoCertificate] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [canvasReady, setCanvasReady] = useState(false);
 
   const captureRef = useRef<HTMLDivElement>(null);
+  const certificateCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const autoDownloadStarted = useRef(false);
+  const setCertificateCanvas = useCallback((canvas: HTMLCanvasElement) => {
+    certificateCanvasRef.current = canvas;
+    setCanvasReady(true);
+  }, []);
 
   useEffect(() => {
     const fetchDoc = async () => {
@@ -34,6 +39,7 @@ export default function DocumentViewerPage() {
         setLoading(true);
         setError("");
         setNoCertificate(false);
+        setCanvasReady(false);
         const response = await getMyCertificate();
         const list = Array.isArray(response.data)
           ? response.data
@@ -81,15 +87,13 @@ export default function DocumentViewerPage() {
   };
 
   const handleDownloadPDF = async () => {
-    if (!captureRef.current) return;
+    const canvas = certificateCanvasRef.current;
+    if (!canvas) {
+      toast.error("The certificate is still loading. Please try again.");
+      return;
+    }
     try {
       setDownloading(true);
-      const canvas = await toCanvas(captureRef.current, {
-        pixelRatio: 2,
-        cacheBust: true,
-        backgroundColor: "#ffffff",
-      });
-
       const orientation = templateData?.orientation === "portrait" ? "portrait" : "landscape";
       const pdf = new jsPDF({ orientation, unit: "mm", format: "a4" });
       const pageWidth = pdf.internal.pageSize.getWidth();
@@ -97,7 +101,7 @@ export default function DocumentViewerPage() {
       const scale = Math.min(pageWidth / canvas.width, pageHeight / canvas.height);
       const width = canvas.width * scale;
       const height = canvas.height * scale;
-      pdf.addImage(canvas, "PNG", (pageWidth - width) / 2, (pageHeight - height) / 2, width, height);
+      pdf.addImage(canvas.toDataURL("image/png"), "PNG", (pageWidth - width) / 2, (pageHeight - height) / 2, width, height);
       pdf.save(getFileName("pdf"));
     } catch (err) {
       console.error("PDF download failed:", err);
@@ -112,13 +116,14 @@ export default function DocumentViewerPage() {
       searchParams.get("download") === "1" &&
       !loading &&
       documentData &&
+      canvasReady &&
       !downloading &&
       !autoDownloadStarted.current
     ) {
       autoDownloadStarted.current = true;
       void handleDownloadPDF();
     }
-  }, [searchParams, loading, documentData, downloading]);
+  }, [searchParams, loading, documentData, canvasReady, downloading]);
 
   if (loading) {
     return (
@@ -244,6 +249,7 @@ export default function DocumentViewerPage() {
                 email: documentData.email || "",
               }}
               hideHeader={true}
+              onCanvasReady={setCertificateCanvas}
             />
           ) : (
             <div className="mx-auto flex min-h-[360px] max-w-5xl items-center justify-center border border-dashed border-slate-300 bg-white p-8 text-center text-sm text-slate-500">

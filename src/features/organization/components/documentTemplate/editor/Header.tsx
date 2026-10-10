@@ -87,6 +87,7 @@ export default function Header({
 
   const hasUnsavedChanges = saveStatus === "unsaved" || saveStatus === "error" ||
     templateName !== savedMetadata.name || documentType !== savedMetadata.documentType;
+  const sourceFileName = template?.originalFileName || template?.originalname || template?.fileName || template?.filename || template?.file?.originalname;
 
   const requestExit = () => {
     if (saving) return;
@@ -361,10 +362,10 @@ export default function Header({
           <button
             onClick={() => setIsSaveModalOpen(true)}
             className="min-w-0 text-left hidden xs:block group"
-            title="Rename & save"
+            title={sourceFileName ? `${sourceFileName} · Rename & save` : "Rename & save"}
           >
             <h1 className="text-[12.5px] font-bold text-gray-900 truncate max-w-[90px] sm:max-w-[180px] leading-tight group-hover:text-red-600 transition">
-              {template?.name || "Untitled design"}
+              {sourceFileName || template?.name || "Untitled design"}
             </h1>
           </button>
         </div>

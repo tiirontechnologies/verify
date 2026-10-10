@@ -86,10 +86,11 @@ export default function OtpVerificationPage() {
     try {
       setLoading(true);
       setError("");
-await verifyPasswordResetOtp(email, code);
+      const verification = await verifyPasswordResetOtp(email, code);
+      const resetToken = verification?.resetToken ?? verification?.data?.resetToken ?? verification?.token ?? code;
 
       navigate("/reset-password", {
-        state: { email, token: code },
+        state: { email, token: resetToken },
       });
     } catch (err: any) {
       setError(err?.response?.data?.message || "Invalid OTP.");

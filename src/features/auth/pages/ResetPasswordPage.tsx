@@ -74,6 +74,7 @@ export default function ResetPasswordPage() {
         <AuthLayout
           title="Create New Password"
           subtitle="Choose a strong password to secure your Tiiron account."
+          centerLeftContent
         >
           <div className="w-full">
             <div className="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mb-4">

@@ -16,12 +16,14 @@ type AuthLayoutProps = {
   title: string;
   subtitle?: string;
   children: ReactNode;
+  centerLeftContent?: boolean;
 };
 
 export default function AuthLayout({
   title,
   subtitle,
   children,
+  centerLeftContent = false,
 }: AuthLayoutProps) {
   return (
     <div className="w-full flex items-center justify-center p-3 sm:p-4 lg:p-5">
@@ -40,8 +42,9 @@ export default function AuthLayout({
         <div className="grid lg:grid-cols-[1.15fr_0.85fr]">
           {/* LEFT PANEL */}
           <div
-            className="
+            className={`
             relative
+            ${centerLeftContent ? "flex flex-col justify-center" : ""}
             px-5
             sm:px-8
             lg:px-8
@@ -50,7 +53,7 @@ export default function AuthLayout({
             from-white
             via-[#FFFDFD]
             to-[#FFF7F7]
-            "
+            `}
           >
             {/* Heading */}
             <div className="text-center">

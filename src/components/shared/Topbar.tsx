@@ -91,7 +91,7 @@ export default function Topbar() {
   const firstName = user?.name?.split(" ")[0] || "there";
   const { text: greetingText, Icon: GreetingIcon, color, bg } = getGreeting();
 
-  const isAdmin = user?.role === "admin"; // apne actual role field se match kar lena
+  const isAdmin = user?.role === "admin" || user?.roleId === "admin";
 
   const profileImage = resolveImageUrl(user?.profileImage || user?.profilePicture);
 
@@ -546,8 +546,7 @@ export default function Topbar() {
                     </div>
                     Self Hosted Settings
                   </button>
-                ) : (
-                  <>
+                ) : <>
                     <button
                       onClick={() => goTo("/verification")}
                       className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-2xl text-sm text-slate-700 hover:bg-slate-50 transition group"
@@ -557,17 +556,16 @@ export default function Topbar() {
                       </div>
                       Verification History
                     </button>
-                    <button
-                      onClick={() => window.location.assign("https://tiirontechnologies.com")}
-                      className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-2xl text-sm text-slate-700 hover:bg-slate-50 transition group"
-                    >
-                      <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-slate-200 flex items-center justify-center transition shrink-0">
-                        <LifeBuoy size={15} className="text-slate-500" />
-                      </div>
-                      Help & Support
-                    </button>
-                  </>
-                )}
+                </>}
+                <button
+                  onClick={() => goTo("/tickets")}
+                  className="w-full flex items-center gap-3 px-2.5 py-2.5 rounded-2xl text-sm text-slate-700 hover:bg-slate-50 transition group"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-slate-100 group-hover:bg-slate-200 flex items-center justify-center transition shrink-0">
+                    <LifeBuoy size={15} className="text-slate-500" />
+                  </div>
+                  Help & Support
+                </button>
               </div>
 
               <div className="h-px bg-slate-100 mx-4" />
